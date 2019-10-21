@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>List of patients:</h1>
+    <hr/>
+    <br/>
+
+    <form method="POST">
+    </form>
+    <div style="margin: 10px 50px">
+    {{message}}
+    {% if show == True %}
+        {{ table }}
+    {% endif %}
+    {% if show == False %}
+        <div class="body_style">
+            <h1>No Patients Found</h1>
+        </div>
+    {% endif %}
+    </div>
+
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block content %}
+
+    <style>
+        .modal-backdrop{
+          opacity:0; transition:opacity .2s;
+        }
+        .modal-backdrop.in{
+          opacity:.7;
+        }
+    </style>
+
+    <h1>Patient's History: {{userName}}</h1>
+    <hr/>
+    <br/>
+
+    <div style="margin: 10px 50px">
+    {% if show == True %}
+
+        <table class="table table-striped">
+        <tr>
+            <th scope="col">Doctor:</th>
+            <th scope="col">Centre:</th>
+            <th scope="col">Date:</th>
+            <th scope="col">Time:</th>
+            <th scope="col">Reason for Appointment:</th>
+            <th scope="col">Doctor's notes:</th>
+            <th scope="col">Edit</th>
+        </tr>
+
+        {% for appointment in historyList %}
+
+        <tr>
+            <td> {{appointment._providerName}} </td>
+            <td> {{appointment._centreName}} </td>
+            <td> {{appointment._date}} </td>
+            <td> {{appointment._time}} </td>
+            <td> {{appointment._reason}} </td>
+            <td> {{appointment._note}} </td>
+            <td> <button class="btn btn-primary" data-toggle="modal" data-target='#exampleModal{{appointment._identifier}}'>Edit</button> </td>
+        </tr>
+
+
+        {% endfor %}
+
+        {% for appointment in historyList %}
+        <div class="modal" id='exampleModal{{appointment._identifier}}' tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Edit notes for this appointment</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form method="POST">
+                            <div>
+                                <label for="editNote" class="col-form-label">Edit Note</label>
+                                <input type="text" class="form-control" id="editNote" value='{{ appointment._note }}' name="editNote">
+                                <input type="hidden" class="form-control" id="appointmentId" value='{{ appointment._identifier }}' name="appointmentId">
+                                <br>
+                            </div>
+                            <div class="modal-footer">
+                                <!--<a href= class="btn btn-info" role="button" type="submit">Save changes</a>-->
+                                <input type="submit" class="btn btn-primary" value="Save Changes">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+    {% endif %}
+    {% if show == False %}
+        <div class="body_style">
+            <h1>No Patient Found</h1>
+        </div>
+    {% endif %}
+    
+    </div>
+        
+    <div class="modal" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Edit notes for this appointment</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            {{ note }}
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-primary">Save changes</button>
+          </div>
+        </div>
+      </div>
+   </div>
+   
+   
+   <div>
+   		{% if not current_user.isSpecialist %}
+   		<a href={{ url_for('sendReferral',name=name)}}><p style="text-align:center"> Send Referral for Patient </a>
+		{% endif %}
+   </div> 
+   
+   
+   
+
+{% endblock %}

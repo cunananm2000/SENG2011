@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block content %}
+	<h1>Searching the HAMS</h1>
+	<hr/>
+	<br/>
+
+	<form method="POST">
+	<div>
+		<div class="input-group mb-3">
+			<input type="text" name="term" class="form-control" aria-describedby="inputGroup-sizing-default" placeholder="Enter a search term">
+		</div>
+	</div>
+	<div>
+		Search by: <br>
+
+		<input type="radio"	name="type" value="Centre name" required> Centre name<br>
+		<input type="radio" name="type" value="Provider name" required> Provider name<br>
+		<input type="radio" name="type" value="Suburb" required> Suburb<br>
+		<input type="radio" name="type" value="Service" required> Service<br>
+		<br>
+		<input class="btn btn-primary" type="submit" value="Submit">
+	</div>
+	</form>
+	<br>
+	<div>
+
+	{% if message != "" %}
+		{% if "Searching instead" in message %}
+		<div class="alert alert-warning" role="alert">
+		{% else %}
+		<div class="alert alert-danger" role="alert">
+		{% endif %}
+		{{message}}
+		</div>
+	{% endif %}
+
+
+	{% if show == True %}
+		<div class="alert alert-success" role="alert">
+		{% if contentType == "Centre name" %}
+			Click on a centre name to view their profile
+		{% elif contentType == "Provider name" %}
+			Click on a provider name to view their profile
+		{% endif %}
+		</div>
+		<hr>
+		<table class="table" style="width: 100%">
+		{% if contentType == "Centre name" %}
+			<tr>
+				<th scope="col">Name</th>
+				<th scope="col">Type</th> 
+				<th scope="col">Suburb</th>
+				<th scope="col">Contact</th>
+			</tr>
+			{% for centre in data %}
+				<tr>
+					<td><a href="{{ url_for('centrepage', centreId=centre.getName())}}">{{ centre.getName() }}</a></td>
+					<td>{{ centre.getType() }}</td>
+					<td>{{ centre.getSuburb() }}</td>
+					<td>{{ centre.getContact() }}</td>
+				</tr>
+			{% endfor %}
+		{% elif contentType == "Provider name" %}
+			<tr>
+				<th>Name</th>
+				<th>Email</th> 
+				<th>Field</th>
+			</tr>
+			{% for provider in data %}
+				<tr>
+					<td><a href="{{ url_for('providerpage', providerId=provider.getEmail())}}">{{ provider.getName() }}</a></td>
+					<td>{{ provider.getEmail() }}</td>
+					<td>{{ provider.getField() }}</td>
+				</tr>
+			{% endfor %}
+		{% endif %}
+		</table>
+	{% endif %}
+	</div>
+
+{% endblock %}

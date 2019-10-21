@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Centre - {{centre.getName()}}</h1>
+    <hr/>
+    <br/>
+    <div>
+        <p><b>Centre Type:</b> {{centre.getType()}} </p>
+        <p><b>Suburb:</b> {{centre.getSuburb()}} </p>
+        <p><b>Contact:</b> {{centre.getContact()}} </p>
+        <p><b>Centre Rating:</b> {{centre.getRating()}}/10 </p>
+    </div>
+    <div>
+        <p><b>Affiliated Provider(s):</b> </p>
+            <table class="table" style="width: 100%">
+        	<tr>
+				<th scope="col">Name</th>
+				<th scope="col">Service</th>
+				<th scope="col">Rating</th>
+			</tr>
+            {% for provider in providers %}
+                <tr>
+                <td> 
+                	{% if current_user.getType() == "Patient" %}
+                	<!-- disabling the hyperlink for all specialists -->
+                		{% if provider.isSpecialist == False or current_user.hasReferral(provider) %}
+                        	<a href={{ url_for('book',centre=centre.getName(),provider=provider.getName())}}>
+                        {% endif %}
+                    {% else %}
+                        <a href={{ url_for('providerpage',providerId=provider.getEmail()) }}>
+                    {% endif %}
+                    {{ provider.getName() }}
+                </a></td>
+				<td>{{ provider.getField() }}</td>
+				<td>
+                {% if provider.getRating() != None %}
+                {{ provider.getRating() }}/10
+                {% else %}
+                N/A
+                {% endif %}
+                </td>
+				</tr>
+			{% endfor %}
+            </table>
+    </div>
+
+    <a href={{ url_for('centrepage',centreId=centre.getName(),rate=True) }} class="btn btn-primary" role="button">Rate</a>
+    <button type="button" class="btn btn-primary" onclick="goBack()">Go Back</button>
+    {% if rate %}
+    <form method="POST">
+        <div class="form-group">
+            <br>
+            <label for="rating">Rate {{centre.getName()}} out of 10:</label>
+            <select class="form-control" name="rating">
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+                <option>5</option>
+                <option>6</option>
+                <option>7</option>
+                <option>8</option>
+                <option>9</option>
+                <option>10</option>
+            </select>
+            <br>
+        </div>
+        <input type="submit" class="btn btn-primary" value="Submit">
+    </form>
+    {% endif %}
+    <script>
+    function goBack() {
+        window.history.back();
+    }
+    </script>
+{% endblock %}

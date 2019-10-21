@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  	<meta charset="utf-8">
+  	<meta name="viewport" content="width=device-width, initial-scale=1">
+	  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+	  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+	  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+
+	{% if title %}
+		<title>Vampire - {{ title }}</title>
+	{% else %}
+		<title>NEEDS TITLE</title>
+	{% endif %}
+</head>
+<body>
+	<div class="container" style="margin-top: 80px">
+		<h1>Login</h1>
+		<hr/>
+		<br/>
+		<form method="POST">
+			<div class="form-group">
+				<label for="userType">Select type</label>
+				<select class="form-control" name="userType">
+					<option>Donor</option>
+					<option>Pathology Centre</option>
+					<option>Hospital</option>
+					<option>Vampire</option>
+				</select>
+			</div>
+			<div class="input-group" style="width: 50%">
+				<div class="input-group-prepend">
+		   	 	<span class="input-group-text">Login ID: </span>
+			  	</div>
+				<input type="text" name="loginID" class="form-control" aria-describedby="inputGroup-sizing-default" placeholder="Enter ID">
+				<br>
+			</div>
+			<br>
+			<div class="input-group" style="width: 50%">
+				<div class="input-group-prepend">
+		   	 	<span class="input-group-text">Password: </span>
+			  	</div>
+				<input type="password" name="password" class="form-control" aria-describedby="inputGroup-sizing-default" placeholder="Enter password">
+				<br>
+			</div>
+			<br>
+			<div>
+				<input class="btn btn-primary" type="submit" value="Submit">
+			</div>
+		</form>
+		{% if message != "" %}
+			<hr>
+			<div class="alert alert-danger" role="alert">
+			{{ message }}
+			</div>
+		{% endif %}
+	</div>
+</body>
+</html>

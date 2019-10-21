@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block content %}
+{% if current_user.getType() == "Patient" %}
+	<h1>Booking the HAMS</h1>
+	<hr/>
+	<br/>
+	
+	<form method="POST">
+	<div>
+		<div class="input-group">
+		  	<div class="input-group-prepend">
+	   	 	<span class="input-group-text">First name: </span>
+		  	</div>
+		  	<input type="text" name="firstName" class="form-control" value={{ firstName }}>
+		  	<div class="input-group-prepend">
+	   	 	<span class="input-group-text">Last name: </span>
+		  	</div>
+		  	<input type="text" name="lastName" class="form-control" value={{ lastName }}>
+		</div>
+		<br>
+		<div class="input-group mb-3">
+			<div class="input-group-prepend">
+	   	 	<span class="input-group-text">Provider's name: </span>
+		  	</div>
+		 	<input type="text" name="providerName" class="form-control" value="{{providerName}}" disabled>
+		</div>
+		<div class="input-group mb-3">
+			<div class="input-group-prepend">
+	   	 	<span class="input-group-text">Centre name: </span>
+		  	</div>
+		 	<input type="text" name="centreName" class="form-control" value="{{centreName}}" disabled>
+		</div>
+		<div class="input-group mb-3">
+			<div class="input-group-prepend">
+	   	 	<span class="input-group-text">Date: </span>
+		  	</div>
+		  	<input type="date" name="date" class="form-control" min={{currentDate}} max={{maxDate}} required>
+
+		  	<div class="input-group-prepend">
+		  	<span class="input-group-text">Time: </span>
+		  	</div>
+		  	<input type="time" name="time" class="form-control" step=1800 required>
+		</div>
+		<div class="input-group mb-3">
+			<div class="input-group-prepend">
+	   	 	<span class="input-group-text" >Reason: </span>
+		  	</div>
+		 	<input type="text" name="reason" class="form-control" placeholder="(Optional) Provide a reason for your visit">
+		</div>
+		<input class="btn btn-primary" type="submit" value="Book">
+		<br>
+	</div>
+	</form>
+	{% if errors != [] %}
+		<hr>
+		<div class="alert alert-danger" role="alert">
+		Please enter:
+		<ul>
+		{% for error in errors %}
+		<li>
+		{{ error }}
+		</li>
+		{% endfor %}
+		</ul>
+		</div>
+	{% elif warnings != [] %}
+		<hr>
+		<div class="alert alert-warning" role="alert">
+		Warning:
+		<ul>
+		{% for warning in warnings %}
+		<li>
+		{{ warning }}
+		</li>
+		{% endfor %}
+		</ul>
+		</div>
+	{% elif booked == True %}
+		<hr>
+		<div class="alert alert-success" role="alert">
+		Successfully booked!
+		</div>
+	{% endif %}
+	<div>
+	<!--{{ message }}-->
+{% else %}
+	<h1>404 Page Not Found</h1>
+	<div class="alert alert-danger" role="alert">
+		Please make a patient account to book an appointment.
+		</div>
+{% endif %}
+{% endblock %}

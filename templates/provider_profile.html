@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+{% block content %}
+    <h1>Provider Profile - {{provider.getName()}}</h1>
+    <hr/>
+    <br/>
+    <div>
+    	{% if provider.isSpecialist==False %}
+        <p><b>Service Provided:</b> {{provider.getField()}} </p>
+        {% else %}
+        <p><b>Expertise:</b> {{provider.getField()}} </p>
+        {% endif %}
+        <p><b>Average Rating:</b>
+        {% if provider.getRating() != None%}
+            {{ provider.getRating() }}/10
+        {% else %}
+            No ratings yet
+        {% endif %}
+        </p>
+    </div>
+    
+    {% if provider.isSpecialist==True %}
+    <div>
+        <p>This provider is a <b>specialist.</b> </p>
+        <p>To book an appointment with a specialist, ask your provider to send a referral. </p>
+    </div>
+    {% endif %}
+    
+    <div>
+    	{% if provider.isSpecialist == True %}
+    	<p><b>Book with specialist in centre:</b> </p>
+    	{% else %}
+        <p><b>Affiliated Centre(s):</b> </p>
+        {% endif %}
+            <table class="table" style="width: 100%">
+        	<tr>
+				<th scope="col">Name</th>
+				<th scope="col">Type</th>
+				<th scope="col">Suburb</th>
+				<th scope="col">Contact</th>
+			</tr>
+            {% for centre in provider.getWorkplaces() %}
+                <tr>
+                    <td>
+                        {% if current_user.getType() == "Patient" %}
+							{% if provider.isSpecialist == False or current_user.hasReferral(provider) %}
+		                        <a href={{ url_for('book',centre=centre.getName(),provider=provider.getName())}}>
+                        	{% endif %}
+                        {% else %}
+                            <a href={{ url_for('centrepage',centreId=centre.getName()) }}>
+                        {% endif %}
+                        {{ centre.getName() }}
+                    </a></td>
+                    <td>{{ centre.getType() }}</td>
+                    <td>{{ centre.getSuburb() }}</td>
+					<td>{{ centre.getContact() }}</td>
+				</tr>
+			{% endfor %}
+            </table>
+    </div>    
+    
+    
+    <a href={{ url_for('providerpage',providerId=provider.getEmail(),rate=True) }} class="btn btn-primary" role="button">Rate</a>
+    <button type="button" class="btn btn-primary" onclick="goBack()">Go Back</button>
+
+    {% if rate %}
+
+    <form method="POST">
+        <div class="form-group">
+            <br>
+            <label for="rating">Rate {{ provider.getName() }} out of 10:</label>
+            <select class="form-control" name="rating">
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>
+                <option>4</option>
+                <option>5</option>
+                <option>6</option>
+                <option>7</option>
+                <option>8</option>
+                <option>9</option>
+                <option>10</option>
+            </select>
+            <br>
+        </div>
+        <input type="submit" class="btn btn-primary" value="Submit">
+    </form>
+
+    {% endif %}
+
+    <script>
+    function goBack() {
+        window.history.back();
+    }
+    </script>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block content %}
+	<div>
+		<p>
+		{% if sent %}
+			{% if error %}
+				<h1> {{error}} </h1>
+			{% else %}
+				<h1> Successfully sent a referral to {{specialist}} for {{name}} </h1>
+			{% endif %}
+		{% else %}
+			<h1><p> Sending referral for patient {{name}} </p></h1>
+				<table class="table" style="width: 100%">
+				<tr>
+					<th>Name</th>
+					<th>Email</th> 
+					<th>Field</th>
+				</tr>
+				{% for provider in data %}
+				<form method="POST" >
+					<tr>
+						<td>{{ provider.getName() }}</td>
+						<td>{{ provider.getEmail() }}</td>
+						<td>{{ provider.getField() }}</td>
+						<td><input name="provider" value="{{provider.getName()}}" type="hidden"></td>
+						<td><button value="Send Referral" type="submit">Send Referral</button></td>
+					</tr>
+				</form>
+				{% endfor %}
+		{% endif %}
+		</p>
+	</div>
+   <div>
+   		<!-- this doesnt work   <a href={{ url_for('patientHistory', title="All Patients", show=True, table=historyTable, name=name)}}><p style="text-align:center"> Go Back </a>    -->
+		<button type="button" class="btn btn-primary" onclick="goBack()">Go Back</button>
+   </div> 
+   <script>
+    function goBack() {
+        window.history.back();
+    }
+    </script>
+{% endblock %}
