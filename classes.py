@@ -9,12 +9,17 @@ class UserType(Enum):
     HOSPITAL = 3
     VAMPIRE = 4
 
+
 class User(UserMixin):
     def __init__(self,id,name,password,type):
         self.id = id
         self._name = name
         self._password = password
         self._type = type
+        if type != UserType.DONOR:
+            self._isCentre = True
+        else:
+            self._isCentre = False
 
     def getName(self):
         return self._name
@@ -24,6 +29,12 @@ class User(UserMixin):
 
     def getType(self):
         return self._type
+    
+    def getTypeName(self):
+        return self._type.name
+
+    def isCentre(self):
+        return self._isCentre
 
 class BloodPacket(object):
     def __init__(self,packetID,type,ml,donateDate,expireDate,donorID):
@@ -50,6 +61,15 @@ class Donor(User):
         self._givenName = givenName
         self._familyName = familyName
         self._email = email
+    
+    def getGivenName(self):
+        return self._givenName
+    
+    def getFamilyName(self):
+        return self._familyName
+    
+    def getEmail(self):
+        return self._email
 
 class Hospital(User):
     def __init__(self,hospitalID,hospitalName,password):

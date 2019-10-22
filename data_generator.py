@@ -39,3 +39,6 @@ def loadHospitals():
 			h = Hospital(hospitalID,name,password)
 			hospitalList.append(h)
 	return hospitalList
+
+def getLineCount(file):
+	return sum(1 for line in open(file))

@@ -3,7 +3,7 @@ import csv
 import math
 from classes import *
 from system import *
-from flask import Flask
+from flask import Flask, session
 from flask_login import LoginManager
 from flask_table import Table, Col
 import datetime

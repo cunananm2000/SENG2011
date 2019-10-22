@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+{% if current_user.isCentre() %}
+	<h1>Register a new donor</h1>
+	<hr/>
+	<br/>
+	
+	<form method="POST">
+	<div>
+		<div class="input-group">
+		  	<div class="input-group-prepend">
+	   	 	<span class="input-group-text">Given name: </span>
+		  	</div>
+		  	<input type="text" name="givenName" class="form-control">
+		  	<div class="input-group-prepend">
+	   	 	<span class="input-group-text">Family name: </span>
+		  	</div>
+		  	<input type="text" name="familyName" class="form-control">
+		</div>
+		<br>
+		<div class="input-group mb-3">
+			<div class="input-group-prepend">
+	   	 	<span class="input-group-text">Email: </span>
+		  	</div>
+		 	<input type="text" name="email" class="form-control" >
+		<input class="btn btn-primary" type="submit" value="Book">
+		<br>
+	</div>
+	</form>
+	<div>
+	{% if errors != [] %}
+		<hr>
+		<div class="alert alert-danger" role="alert">
+		Please enter:
+		<ul>
+		{% for error in errors %}
+		<li>
+		{{ error }}
+		</li>
+		{% endfor %}
+		</ul>
+		</div>
+	{% elif booked %}
+		<hr>
+		<div class="alert alert-success" role="alert">
+		Successfully added!
+		</div>
+	{% endif %}
+{% else %}
+	<h1>404 Page Not Found</h1>
+	<div class="alert alert-danger" role="alert">
+		You need to be important to do this.
+	</div>
+{% endif %}
+{% endblock %}
