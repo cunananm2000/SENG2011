@@ -37,6 +37,19 @@ class MainSystem(ABC):
         newID = "packet"+str(len(self._packetIDs))
         p = BloodPacket(newID,bloodType,donateDate,donateLoc)
         user._inventory.addPacket(p)
+
+    def disposePacket(self,user,packetID):
+        p = user.removePacket(packetID)
+        self._dump.append(p)
+
+    def sendPacket(self,user,packetID,addressID):
+        p = user.removePacket(packetID)
+        if (p.getStatus() != BloodStatus.CLEAN):
+            user.addPacket(p)
+            return False
+        address = self.get_user(addressID)
+        address.addPacket(p)
+        return True
     
     def getPathCentres(self):
         return self._pathCentres
@@ -99,7 +112,7 @@ class MainSystem(ABC):
             id = hospital['id']
             name = hospital['name']
             password = hospital['password']
-            h = PathCentre(id,name,password)
+            h = Hospital(id,name,password)
             self._hospitals.append(h)
 
 def getLineCount(file):
@@ -186,11 +199,17 @@ class BloodPacket(object):
     def getTypeName(self):
         return self.getType().name
 
+    def getStatus(self):
+        return self._status
+
     def getID(self):
         return self._packetID
 
     def printSummary(self):
         print(self._packetID,self._type.name,self._donateDate,self._donateLoc,self._donorID,self._status)
+
+    def setStatus(self,status):
+        self._status = status
 
 class Event(object):
     def __init__(self,packetID,status,location,otherInfo,date):
@@ -223,6 +242,21 @@ class Centre(User):
 
     def addPacket(self,p):
         self._inventory.addPacket(p)
+
+    def getPacket(self,packetID):
+        return self._inventory.getPacket(packetID)
+    
+    def removePacket(self,packetID):
+        return self._inventory.removePacket(packetID)
+
+    def printInventory(self):
+        self._inventory.printInventory()
+
+    def disposePacket(self,packetID):
+        p = self.getPacket(packetID)
+        p.setStatus(BloodStatus.DISPOSED)
+        self._inventory.removePacket(packetID)
+        return p
 
 class Hospital(Centre):
     def __init__(self,hospitalID,hospitalName,password):
@@ -264,13 +298,46 @@ class Inventory(object):
             self._maxBloodLevels[type] = 100
 
     def addPacket(self,packet):
-        self._newPackets.append(packet)
+        if (packet.getStatus() == BloodStatus.UNCLEAN):
+            self._badPackets.append(packet)
+        elif (packet.getStatus() == BloodStatus.CLEAN):
+            self._goodPackets.append(packet)
+        else:
+            self._newPackets.append(packet)
         self.updateCurrentLevels()
-        self.getSummary()
+        # self.getSummary()
 
     def getNewPackets(self):
-        print(self._newPackets)
+        # print(self._newPackets)
         return self._newPackets
+
+    def getPacket(self,packetID):
+        for packet in self._newPackets:
+            if packet.getID() == packetID:
+                return packet
+        for packet in self._goodPackets:
+            if packet.getID() == packetID:
+                return packet
+        for packet in self._badPackets:
+            if packet.getID() == packetID:
+                return packet
+
+    def removePacket(self,packetID):
+        for packet in self._newPackets:
+            if packet.getID() == packetID:
+                p = packet
+                self._newPackets.remove(p)
+                return p
+        for packet in self._goodPackets:
+            if packet.getID() == packetID:
+                p = packet
+                self._goodPackets.remove(p)
+                return p
+        for packet in self._badPackets:
+            if packet.getID() == packetID:
+                p = packet
+                self._badPackets.remove(p)
+                return p
 
     def updateCurrentLevels(self):
         for type in BloodType:
@@ -311,3 +378,9 @@ class PathCentre(Centre):
 
     def getPackets(self):
         return self._inventory.getNewPackets()
+
+    def markPacket(self,packetID,status):
+        newStatus = BloodStatus[status]
+        p = self._inventory.removePacket(packetID)
+        p.setStatus(newStatus)
+        self.addPacket(p)

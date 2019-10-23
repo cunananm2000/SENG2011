@@ -46,7 +46,6 @@ def login():
 			userList += system.getVampire()
 		
 		for user in userList:
-			print("AAAAAAA",user.id,user.getPassword())
 			if user.id == loginID and user.getPassword() == password:
 				login_user(user)
 				message = "Wassup " + user.getName()
