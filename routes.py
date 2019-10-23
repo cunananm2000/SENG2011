@@ -19,8 +19,6 @@ def login():
 		message = "Incorrect username or password"
 		password = request.form["password"]
 
-		print("USER TYPE:",userType)
-
 		error = False
 		if userType == "":
 			message = "Please choose one"
@@ -48,6 +46,7 @@ def login():
 			userList += system.getVampire()
 		
 		for user in userList:
+			print("AAAAAAA",user.id,user.getPassword())
 			if user.id == loginID and user.getPassword() == password:
 				login_user(user)
 				message = "Wassup " + user.getName()
@@ -85,7 +84,53 @@ def addDonor():
 			errors.append("Family Name")
 		if email == "":
 			errors.append("Email")
+
+		if (errors != []):
+			return render_template("addDonor.html",title="Add donor",added=False,errors=errors)
+
+		newID = system.addDonor(givenName,familyName,email)
+		if (newID == None):
+			message = "Taken"
+			errors.append("TAKEN")
+			return render_template("addDonor.html",title="Add donor",added=False,errors=errors,message=message)
+		else:
+			message = "newID: " + newID
+			return render_template("addDonor.html",title="Add donor",added=True,errors=errors,message=message)
+	return render_template("addDonor.html",title="Add donor",added=False,errors=errors)
+
+@app.route("/addBlood", methods=["POST","GET"])
+@login_required
+def addBlood():
+	bloodTypes = []
+	title = "Add blood"
+	for type in BloodType:
+		temp = type.name
+		# temp = temp.replace("_NEG","-")
+		# temp = temp.replace("_POS","+")
+		bloodTypes += [temp]
+	errors = []
+	if request.method == "POST":
+		bloodType = request.form["bloodType"]
+		donateDate = request.form["donateDate"]
+		donateLoc = request.form["donateLoc"]
+		if bloodType == "":
+			errors.append("Blood Type")
+		if donateDate == "":
+			errors.append("Donation Date")
+		if donateLoc == "":
+			errors.append("Donation Location")
 			
-		system.addDonor(givenName,familyName,email)
-		return render_template("addDonor.html",title="Add donor",booked=True,errors=errors)
-	return render_template("addDonor.html",title="Add donor",booked=False,errors=errors)
+		if (errors != []):
+			return render_template("addBlood.html",title=title,added=False,bloodTypes=bloodTypes,errors=errors)
+		
+		system.addPacket(current_user,bloodType,donateDate,donateLoc)
+		return render_template("addBlood.html",title=title,added=True,bloodTypes=bloodTypes,errors=errors)
+	return render_template("addBlood.html",title=title,added=False,bloodTypes=bloodTypes,errors=errors)
+
+@app.route("/inventory", methods=["POST","GET"])
+@login_required
+def inventory():
+    # if request.method == "POST":
+    #     return render_template("search.html",title="Search",message=message,show=show,data=matches,contentType=contentType)
+	print(current_user.getPackets())
+	return render_template("inventory.html",title="Search",show=True,packets=current_user.getPackets())

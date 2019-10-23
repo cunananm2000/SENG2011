@@ -1,0 +1,17 @@
+[
+ {
+   "id": "pc0",
+   "name": "UNSW Pathology",
+   "password": "UNSW"
+ },
+ {
+   "id": "pc1",
+   "name": "USYD Pathology",
+   "password": "USYD"
+ },
+ {
+   "id": "pc2",
+   "name": "WSU Pathology",
+   "password": " WSU"
+ }
+]

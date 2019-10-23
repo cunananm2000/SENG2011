@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+	<h1>Search blood</h1>
+	<hr/>
+	<br/>
+	GLHF.
+	<form method="POST">
+		<div>
+			<div class="input-group mb-3">
+				<input type="text" name="term" class="form-control" aria-describedby="inputGroup-sizing-default" placeholder="Enter a search term">
+			</div>
+		</div>
+		<div>
+			Search in: <br>
+
+			<input type="radio"	name="type" value="All" required> All<br>
+			<input type="radio" name="type" value="New" required> New<br>
+			<input type="radio" name="type" value="Good" required> Good<br>
+			<input type="radio" name="type" value="Bad" required> Bad<br>
+			<br>
+			<input class="btn btn-primary" type="submit" value="Submit">
+		</div>
+	</form>
+	<br>
+
+	<div>
+	{% if show == True %}
+		<table class="table" style="width: 100%">
+			<tr>
+				<th scope="col">PacketID</th>
+				<th scope="col">Type</th> 
+				<th scope="col">Donation Date</th>
+				<th scope="col">Donation Location</th>
+				<th scope="col">Act1</th>
+				<th scope="col">Act2</th>
+			</tr>
+			{% for packet in packets %}
+				<tr>
+					<td>{{ packet.getID() }}</td>
+					<td>{{ packet.getTypeName() }}</td>
+					<td>{{ packet.getDonateDate() }}</td>
+					<td>{{ packet.getDonateLoc() }}</td>
+					<td><button type="button" class="btn btn-success">Success</button></td>
+					<td><button type="button" class="btn btn-danger">Danger</button></td>
+				</tr>
+			{% endfor %}
+		</table>
+	{% endif %}
+	</div>
+
+{% endblock %}

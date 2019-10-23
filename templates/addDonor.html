@@ -23,7 +23,7 @@
 	   	 	<span class="input-group-text">Email: </span>
 		  	</div>
 		 	<input type="text" name="email" class="form-control" >
-		<input class="btn btn-primary" type="submit" value="Book">
+		<input class="btn btn-primary" type="submit" value="Submit">
 		<br>
 	</div>
 	</form>
@@ -40,10 +40,10 @@
 		{% endfor %}
 		</ul>
 		</div>
-	{% elif booked %}
+	{% elif added %}
 		<hr>
 		<div class="alert alert-success" role="alert">
-		Successfully added!
+		Successfully added!, {{ message }}
 		</div>
 	{% endif %}
 {% else %}
