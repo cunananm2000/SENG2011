@@ -6,10 +6,12 @@ from enum import Enum
 import csv
 import json
 import operator
+from datetime import datetime
 
 class MainSystem(ABC):
     def __init__(self):
-        self._packetIDs = []
+        self._packetCounter = 0
+        self._requestCounter = 0
         self._vampire = Vampire('password')
         self._donors = []
         self._pathCentres = []
@@ -34,21 +36,34 @@ class MainSystem(ABC):
         return newID
 
     def addPacket(self,user,bloodType,donateDate,donateLoc):
-        newID = "packet"+str(len(self._packetIDs))
+        newID = "packet"+str(self._packetCounter)
+        self._packetCounter += 1
         p = BloodPacket(newID,bloodType,donateDate,donateLoc)
         user._inventory.addPacket(p)
 
     def disposePacket(self,user,packetID):
         p = user.removePacket(packetID)
+        if (p == None):
+            return False
         self._dump.append(p)
+        return True
 
     def sendPacket(self,user,packetID,addressID):
         p = user.removePacket(packetID)
+        if (p == None):
+            return False
         if (p.getStatus() != BloodStatus.CLEAN):
             user.addPacket(p)
             return False
         address = self.get_user(addressID)
         address.addPacket(p)
+        return True
+
+    def makeRequest(self,user,requestDate,type,nPackets,useBy):
+        requestID = "request"+str(self._requestCounter)
+        self._requestCounter += 1
+        req = Request(requestID,user.getID(),requestDate,BloodType[type],nPackets,useBy)
+        self._vampire.addRequest(req)
         return True
     
     def getPathCentres(self):
@@ -114,6 +129,9 @@ class MainSystem(ABC):
             password = hospital['password']
             h = Hospital(id,name,password)
             self._hospitals.append(h)
+    
+    def loadVampireInventory(self):
+        return []
 
 def getLineCount(file):
 	return sum(1 for line in open(file))
@@ -158,6 +176,9 @@ class User(UserMixin):
             self._isCentre = True
         else:
             self._isCentre = False
+
+    def getID(self):
+        return self.id
 
     def getName(self):
         return self._name
@@ -252,8 +273,13 @@ class Centre(User):
     def printInventory(self):
         self._inventory.printInventory()
 
+    def printLevels(self):
+        self._inventory.printLevels()
+
     def disposePacket(self,packetID):
         p = self.getPacket(packetID)
+        if (p == None):
+            return p
         p.setStatus(BloodStatus.DISPOSED)
         self._inventory.removePacket(packetID)
         return p
@@ -263,12 +289,16 @@ class Hospital(Centre):
         super().__init__(hospitalID,hospitalName,password,UserType.HOSPITAL)
 
 class Request(object):
-    def __init__(self,hospitalID,requestDate,type,mL,useBy):
+    def __init__(self,requestID,hospitalID,requestDate,type,nPackets,useBy):
+        self._requestID = requestID
         self._hospitalID = hospitalID
         self._requestDate = requestDate
         self._type = type
-        self._mL = mL
+        self._nPackets = nPackets
         self._useBy = useBy
+
+    def toString(self):
+        return f"{self._requestID}: {self._hospitalID} wants {self._nPackets} packets of {self._type.name} blood by {self._requestDate} to be used by {self._useBy}"
 
 class Notification(object):
     def __init__(self,date,type,message,packetIDs):
@@ -283,6 +313,13 @@ class Vampire(Centre):
         self._notifications = []
         self._requests = []
 
+    def addRequest(self,req):
+        self._requests.append(req)
+
+    def showRequests(self):
+        for request in self._requests:
+            print(request.toString())
+
 class Inventory(object):
     def __init__(self):
         self._currBloodLevels = {}
@@ -294,8 +331,8 @@ class Inventory(object):
 
         for type in BloodType:
             self._currBloodLevels[type] = 0
-            self._lowBloodLevels[type] = 0
-            self._maxBloodLevels[type] = 100
+            self._lowBloodLevels[type] = 1
+            self._maxBloodLevels[type] = 10
 
     def addPacket(self,packet):
         if (packet.getStatus() == BloodStatus.UNCLEAN):
@@ -321,6 +358,7 @@ class Inventory(object):
         for packet in self._badPackets:
             if packet.getID() == packetID:
                 return packet
+        return None
 
     def removePacket(self,packetID):
         for packet in self._newPackets:
@@ -338,6 +376,7 @@ class Inventory(object):
                 p = packet
                 self._badPackets.remove(p)
                 return p
+        return None
 
     def updateCurrentLevels(self):
         for type in BloodType:
@@ -351,13 +390,16 @@ class Inventory(object):
     def getCurrentLevel(self,type):
         return self._currBloodLevels[type]
 
-    def getSummary(self):
-        for type in BloodType:
-            print(type.name,self.getCurrentLevel(type))
+    def getLowLevel(self,type):
+        return self._lowBloodLevels[type]
 
+    def getMaxLevel(self,type):
+        return self._maxBloodLevels[type]
+
+    def getSummary(self):
+        self.printLevels()
         self.printInventory()
     
-    #for debugging
     def printInventory(self):
         print("----new Packets----")
         for packet in self._newPackets:
@@ -370,6 +412,17 @@ class Inventory(object):
         print("----bad Packets----")
         for packet in self._badPackets:
             packet.printSummary()
+    
+    def printLevels(self):
+        lowBlood = []
+        for type in BloodType:
+            print(type.name,str(self.getCurrentLevel(type))+'/'+str(self.getMaxLevel(type)))
+            if (self.getCurrentLevel(type) <= self.getLowLevel(type)):
+                lowBlood.append(type)
+        if (lowBlood != []):
+            print("The following types are in low levels")
+            for type in lowBlood:
+                print(type.name)
 
 
 class PathCentre(Centre):
@@ -381,6 +434,8 @@ class PathCentre(Centre):
 
     def markPacket(self,packetID,status):
         newStatus = BloodStatus[status]
-        p = self._inventory.removePacket(packetID)
+        p = self._inventory.getPacket(packetID)
+        if (p == None):
+            return False
         p.setStatus(newStatus)
-        self.addPacket(p)
+        return True
