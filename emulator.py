@@ -34,9 +34,13 @@ def logout():
 def showHelp():
     global currentUser
     print("You can use commands:")
+    print("QUIT - Quit")
+    print("HELP - Show help")
     if (currentUser == None):
         print("LOGIN - Login")
-    elif (currentUser.getType() == UserType.DONOR):
+        return
+
+    if (currentUser.getType() == UserType.DONOR):
         print("You can't do sht yet")
         print("Have a nice day")
     elif (currentUser.getType() == UserType.PATH_CENTRE):
@@ -55,11 +59,11 @@ def showHelp():
         print("CHECK_REQUESTS - List the incoming requests")
     print("LOGOUT - Logout")
 
-def parseDate():
-    dateStr = input("Donation date (DD/MM/YYYY): ")
+def parseDate(dateStr):
     try:
         date = datetime.strptime(dateStr, '%d/%m/%Y')
-        return date
+        time = round(date.timestamp())
+        return time
     except:
         return None
 
@@ -133,14 +137,18 @@ def addBlood():
     if (bloodType == None):
         print("Cancelling submission")
         return True
-    donateDate = parseDate(donateDate)
+    dateStr = input("Donation date (DD/MM/YYYY): ")
+    donateDate = parseDate(dateStr)
     if donateDate == None:
         print("Bad date format, cancelling submission")
         return True
     donateLoc = input("Donation location: ")
+    donorID = input("Donor ID: ")
 
-    system.addPacket(currentUser,bloodType,donateDate,donateLoc)
-    print("Packet added!")
+    if (system.addPacket(currentUser,bloodType,donateDate,donateLoc,donorID)):
+        print("Packet added!")
+    else:
+        print("Bad request")
     return True
 
 def markBlood():
@@ -150,29 +158,38 @@ def markBlood():
         print("Not a valid status. Type CANCEL to cancel.")
         newStatus = input("New status (CLEAN/UNCLEAN): ").upper().replace(' ','_')
     if (newStatus == "CANCEL"):
+        print("Cancelling changes....")
         return True
-    if not (currentUser.markPacket(packetID,newStatus)):
+    # if not ():
+    if not (system.markPacket(currentUser,packetID,newStatus)):
         print("Packet",packetID,"not found")
         return True
     print("Status of",packetID,"set to",newStatus)
+    if (newStatus == "CLEAN"):
+        print("Sending off to vampire...")
+        sendBlood(packetID)
     return True
 
-def disposeBlood():
-    packetID = input("Packet ID: ")
+def disposeBlood(pID=None):
+    packetID = pID
+    if (packetID == None):
+        packetID = input("Packet ID: ")
     if (system.disposePacket(currentUser,packetID)):
         print("Disposed packet",packetID)
     else:
         print("Packet",packetID,"not found")
     return True
 
-def sendBlood():
-    packetID = input("Packet ID: ")
+def sendBlood(pID=None):
+    packetID = pID
+    if (packetID == None):
+        packetID = input("Packet ID: ")
 
     addressID = 'vampire'
     if (currentUser.getType() != UserType.PATH_CENTRE):
         addressID = input("Hospital ID: ")
 
-    if (system.sendPacket(currentUser,packetID,addressID)):
+    if (system.sendPacketByID(currentUser,packetID,addressID)):
         print("Sent packet",packetID,"to",addressID)
     else:
         print("Bad request")
@@ -185,9 +202,20 @@ def requestBlood():
         print("Cancelling submission")
         return True
     nPackets = int(input("Number of packets: "))
-    useBy = parseDate()
-    if (system.makeRequest(currentUser,datetime.date(datetime.now()),bloodType,nPackets,useBy)):
-        print("Request added")
+    if (nPackets <= 0):
+        print("Request must be a positive integer")
+        return True
+    dateStr = input("Use by (DD/MM/YYYY): ")
+    useBy = parseDate(dateStr)
+    if useBy == None:
+        print("Bad date format, cancelling submission")
+        return True
+    now = round(datetime.timestamp(datetime.now()))
+    if (useBy < now):
+        print("Date in the past not allowed")
+        return True
+    if (system.makeRequest(currentUser,now,bloodType,nPackets,useBy)):
+        print("Request got through")
     else:
         print("Request failed")
     return True
@@ -199,7 +227,7 @@ def pathCentreCommand(cmd):
     elif (cmd == "ADD_BLOOD"):
         addBlood()
     elif (cmd == "CHECK_INVENTORY"):
-        currentUser.printInventory()
+        system.printInventory(currentUser)
     elif (cmd == "MARK_BLOOD"):
         markBlood()
     elif (cmd == "SEND_BLOOD"):
@@ -211,11 +239,11 @@ def pathCentreCommand(cmd):
 def vampireCommand(cmd):
     found = True
     if (cmd == "CHECK_INVENTORY"):
-        currentUser.printInventory()
+        system.printInventory(currentUser)
     elif (cmd == "CHECK_LEVELS"):
-        currentUser.printLevels()
+        system.printLevels(currentUser)
     elif (cmd == "CHECK_REQUESTS"):
-        currentUser.showRequests()
+        system.showRequests(currentUser)
     else:
         found = False
     return found
@@ -223,7 +251,7 @@ def vampireCommand(cmd):
 def hospitalCommand(cmd):
     found = True
     if (cmd == "CHECK_INVENTORY"):
-        currentUser.printInventory()
+        system.printInventory(currentUser)
     elif (cmd == "DISPOSE_BLOOD"):
         disposeBlood()
     elif (cmd == "REQUEST_BLOOD"):

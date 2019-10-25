@@ -6,11 +6,14 @@ from enum import Enum
 import csv
 import json
 import operator
+import time
 from datetime import datetime
+from random import randint
 
 class MainSystem(ABC):
     def __init__(self):
-        self._packetCounter = 0
+        self._packetIDs = []
+        self._donorIDs = []
         self._requestCounter = 0
         self._vampire = Vampire('password')
         self._donors = []
@@ -21,6 +24,7 @@ class MainSystem(ABC):
         self.loadDonors()
         self.loadPathCentres()
         self.loadHospitals()
+        self.loadVampireInventory()
 
         
     def getVampire(self):
@@ -33,13 +37,18 @@ class MainSystem(ABC):
         nDonors = len(self._donors)
         newID = 'donor'+str(nDonors)
         self._donors.append(Donor(newID,givenName,familyName,'password',email))
+        self._donorIDs.append(newID)
         return newID
 
-    def addPacket(self,user,bloodType,donateDate,donateLoc):
-        newID = "packet"+str(self._packetCounter)
-        self._packetCounter += 1
-        p = BloodPacket(newID,bloodType,donateDate,donateLoc)
-        user._inventory.addPacket(p)
+    def addPacket(self,user,bloodType,donateDate,donateLoc,donorID):
+        newID = "packet"+str(randint(1111,9999))
+        while newID in self._packetIDs:
+            newID = "packet"+str(randint(1111,9999))
+        self._packetIDs.append(newID)
+        if (donorID not in self._donorIDs):
+            return False
+        p = BloodPacket(newID,bloodType,donateDate,donateLoc,donorID)
+        return user._inventory.addPacket(p)
 
     def disposePacket(self,user,packetID):
         p = user.removePacket(packetID)
@@ -48,7 +57,7 @@ class MainSystem(ABC):
         self._dump.append(p)
         return True
 
-    def sendPacket(self,user,packetID,addressID):
+    def sendPacketByID(self,user,packetID,addressID):
         p = user.removePacket(packetID)
         if (p == None):
             return False
@@ -56,15 +65,51 @@ class MainSystem(ABC):
             user.addPacket(p)
             return False
         address = self.get_user(addressID)
-        address.addPacket(p)
-        return True
+        # print('got address')
+        if not (address.addPacket(p)):
+            user.addPacket(p)
+            return False
+        else:
+            return True
+
+    # def sendPacketByRef(self,user,packet,address):
+    #     if (packet == None):
+    #         return False
+    #     if (packet.getStatus() != BloodStatus.CLEAN):
+    #         user.addPacket(packet)
+    #         return False
+    #     # print('got address')
+    #     if not (address.addPacket(packet)):
+    #         user.addPacket(packet)
+    #         return False
+    #     else:
+    #         return True
+    
+    def markPacket(self,user,packetID,newStatus):
+        return user.markPacket(packetID,newStatus)
+
+    def printInventory(self,user):
+        user.printInventory()
+
+    def printLevels(self,user):
+        user.printLevels()
+    
+    def showRequests(self,user):
+        user.showRequests()
 
     def makeRequest(self,user,requestDate,type,nPackets,useBy):
-        requestID = "request"+str(self._requestCounter)
+        # requestID = "request"+str(self._requestCounter)
         self._requestCounter += 1
-        req = Request(requestID,user.getID(),requestDate,BloodType[type],nPackets,useBy)
-        self._vampire.addRequest(req)
-        return True
+        # req = Request(requestID,user.getID(),requestDate,BloodType[type],nPackets,useBy)
+        
+        # self._vampire.addRequest(req)
+        returnPackets = self._vampire.doRequest(BloodType[type],nPackets,useBy)
+        if (returnPackets != None):
+            for p in returnPackets:
+                user.addPacket(p)
+            return True
+        else:
+            return False
     
     def getPathCentres(self):
         return self._pathCentres
@@ -103,6 +148,7 @@ class MainSystem(ABC):
             familyName = donor['familyName']
             email = donor['email']
             d = Donor(donorID,givenName,familyName,password,email)
+
             self._donors.append(d)
 
 
@@ -131,7 +177,24 @@ class MainSystem(ABC):
             self._hospitals.append(h)
     
     def loadVampireInventory(self):
-        return []
+        with open('vampireInventory.json', 'r') as data_file:
+            json_data = data_file.read()
+        # ,packetID,type,donateDate,donateLoc,donorID)
+        data = json.loads(json_data)
+        for packet in data:
+            packetID = packet['packetID']
+            type = packet['type']
+            donateDate = packet['donateDate']
+            donateLoc = packet['donateLoc']
+            donorID = packet['donorID']
+            status = BloodStatus[packet['status']]
+            expiryDate = packet['expiryDate']
+
+            b = BloodPacket(packetID,type,donateDate,donateLoc,donorID)
+            b.setStatus(status)
+            b.setExpiry(expiryDate)
+
+            self._vampire.addPacket(b)
 
 def getLineCount(file):
 	return sum(1 for line in open(file))
@@ -196,17 +259,18 @@ class User(UserMixin):
         return self._isCentre
 
 class BloodPacket(object):
-    def __init__(self,packetID,type,donateDate,donateLoc):
+    def __init__(self,packetID,type,donateDate,donateLoc,donorID):
         self._packetID = packetID
         self._type = BloodType[type]
         self._donateDate = donateDate
         self._donateLoc = donateLoc
-        self._donorID = "madlad"
+        self._donorID = donorID
         self._events = []
         self._status = BloodStatus.UNTESTED
+        self._expiryDate = -1
     
     def setExpiry(self,date):
-        self._expireDate = date
+        self._expiryDate = date
 
     def getType(self):
         return self._type
@@ -226,8 +290,11 @@ class BloodPacket(object):
     def getID(self):
         return self._packetID
 
+    def getExpiryDate(self):
+        return self._expiryDate
+
     def printSummary(self):
-        print(self._packetID,self._type.name,self._donateDate,self._donateLoc,self._donorID,self._status)
+        print(self._packetID,self._type.name,self._donateDate,self._donateLoc,self._donorID,self._status,self._expiryDate)
 
     def setStatus(self,status):
         self._status = status
@@ -262,7 +329,7 @@ class Centre(User):
         self._inventory = Inventory()
 
     def addPacket(self,p):
-        self._inventory.addPacket(p)
+        return self._inventory.addPacket(p)
 
     def getPacket(self,packetID):
         return self._inventory.getPacket(packetID)
@@ -320,6 +387,9 @@ class Vampire(Centre):
         for request in self._requests:
             print(request.toString())
 
+    def doRequest(self,type,nPackets,useBy):
+        return self._inventory.doRequest(type,nPackets,useBy)
+
 class Inventory(object):
     def __init__(self):
         self._currBloodLevels = {}
@@ -335,14 +405,32 @@ class Inventory(object):
             self._maxBloodLevels[type] = 10
 
     def addPacket(self,packet):
+        type = packet.getType()
         if (packet.getStatus() == BloodStatus.UNCLEAN):
             self._badPackets.append(packet)
         elif (packet.getStatus() == BloodStatus.CLEAN):
-            self._goodPackets.append(packet)
+            if (self._currBloodLevels[type] < self._maxBloodLevels[type]):
+                self._goodPackets.append(packet)
+                self.sortPackets(self._goodPackets)
+            else:
+                return False
         else:
             self._newPackets.append(packet)
         self.updateCurrentLevels()
-        # self.getSummary()
+        return True
+
+    def sortPackets(self,a):
+        i = 0
+        swapped = True
+        while (i < len(a) and swapped):
+            swapped = False
+            j = 0
+            while (j < len(a) - 1 - i):
+                if a[j].getExpiryDate() > a[j+1].getExpiryDate():
+                    a[j],a[j+1] = a[j+1],a[j]
+                    swapped = True
+                j += 1
+            i += 1
 
     def getNewPackets(self):
         # print(self._newPackets)
@@ -382,8 +470,8 @@ class Inventory(object):
         for type in BloodType:
             self._currBloodLevels[type] = 0
 
-        for packet in self._newPackets:
-            self._currBloodLevels[packet.getType()] += 1
+        # for packet in self._newPackets:
+        #     self._currBloodLevels[packet.getType()] += 1
         for packet in self._goodPackets:
             self._currBloodLevels[packet.getType()] += 1
 
@@ -424,6 +512,23 @@ class Inventory(object):
             for type in lowBlood:
                 print(type.name)
 
+    def doRequest(self,type,nPackets,useBy):
+        packets = []
+        i = 0
+        # print("GOT HERE",useBy)
+        while i < len(self._goodPackets) and useBy < self._goodPackets[i].getExpiryDate() and len(packets) < nPackets:
+            if (self._goodPackets[i].getType() == type):
+                packets.append(self._goodPackets[i])
+                # print("FOUND A MATCH")
+            i += 1
+        
+        if (len(packets) != nPackets):
+            return None
+
+        for p in packets:
+            self._goodPackets.remove(p)
+
+        return packets
 
 class PathCentre(Centre):
     def __init__(self,pathCentreID,pathCentreName,password):
