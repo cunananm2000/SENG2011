@@ -33,22 +33,27 @@ class MainSystem(ABC):
     def getDonors(self):
         return self._donors
 
-    def addDonor(self,givenName,familyName,email):
+    def addDonor(self,givenName,surname,email):
         nDonors = len(self._donors)
         newID = 'donor'+str(nDonors)
-        self._donors.append(Donor(newID,givenName,familyName,'password',email))
+        self._donors.append(Donor(newID,givenName,surname,'password',email))
         self._donorIDs.append(newID)
         return newID
 
     def addPacket(self,user,bloodType,donateDate,donateLoc,donorID):
+        d = self.get_user(donorID)
+        if (d == None):
+            return None
         newID = "packet"+str(randint(1111,9999))
         while newID in self._packetIDs:
             newID = "packet"+str(randint(1111,9999))
         self._packetIDs.append(newID)
-        if (donorID not in self._donorIDs):
-            return False
-        p = BloodPacket(newID,bloodType,donateDate,donateLoc,donorID)
-        return user._inventory.addPacket(p)
+        p = BloodPacket(newID,bloodType,donateDate,donateLoc,d.getID(),d.getGivenName(),d.getSurname())
+        if (user._inventory.addPacket(p)):
+            p.setCurrLoc(user.getID())
+            return newID
+        else:
+            return None
 
     def disposePacket(self,user,packetID):
         p = user.removePacket(packetID)
@@ -72,24 +77,21 @@ class MainSystem(ABC):
         else:
             return True
 
-    # def sendPacketByRef(self,user,packet,address):
-    #     if (packet == None):
-    #         return False
-    #     if (packet.getStatus() != BloodStatus.CLEAN):
-    #         user.addPacket(packet)
-    #         return False
-    #     # print('got address')
-    #     if not (address.addPacket(packet)):
-    #         user.addPacket(packet)
-    #         return False
-    #     else:
-    #         return True
+    def setPacketDate(self,user,packetID,expiryDate):
+        return user.setPacketDate(packetID,expiryDate)
     
     def markPacket(self,user,packetID,newStatus):
         return user.markPacket(packetID,newStatus)
 
-    def printInventory(self,user):
-        user.printInventory()
+    def printInventory(self,user,field):
+        user.printInventory(field)
+
+    def searchInventory(self,user,field,value):
+        if (field == "type"):
+            newValue = value.upper().replace(" ","_")
+            user.searchInventory(field,BloodType[newValue].value)
+        else:
+            user.searchInventory(field,value)
 
     def printLevels(self,user):
         user.printLevels()
@@ -98,11 +100,7 @@ class MainSystem(ABC):
         user.showRequests()
 
     def makeRequest(self,user,requestDate,type,nPackets,useBy):
-        # requestID = "request"+str(self._requestCounter)
         self._requestCounter += 1
-        # req = Request(requestID,user.getID(),requestDate,BloodType[type],nPackets,useBy)
-        
-        # self._vampire.addRequest(req)
         returnPackets = self._vampire.doRequest(BloodType[type],nPackets,useBy)
         if (returnPackets != None):
             for p in returnPackets:
@@ -135,6 +133,7 @@ class MainSystem(ABC):
         for user in self._hospitals:
             if user.id == id:
                 return user
+        return None
         
     def loadDonors(self):
         with open('donors.json', 'r') as data_file:
@@ -145,11 +144,12 @@ class MainSystem(ABC):
             donorID = donor['id']
             password = donor['password']
             givenName = donor['givenName']
-            familyName = donor['familyName']
+            surname = donor['surname']
             email = donor['email']
-            d = Donor(donorID,givenName,familyName,password,email)
+            d = Donor(donorID,givenName,surname,password,email)
 
             self._donors.append(d)
+            self._donorIDs.append(donorID)
 
 
     def loadPathCentres(self):
@@ -189,10 +189,13 @@ class MainSystem(ABC):
             donorID = packet['donorID']
             status = BloodStatus[packet['status']]
             expiryDate = packet['expiryDate']
+            currLoc = packet['currLoc']
 
-            b = BloodPacket(packetID,type,donateDate,donateLoc,donorID)
+            d = self.get_user(donorID)
+            b = BloodPacket(packetID,type,donateDate,donateLoc,d.getID(),d.getGivenName(),d.getSurname())
             b.setStatus(status)
             b.setExpiry(expiryDate)
+            b.setCurrLoc(currLoc)
 
             self._vampire.addPacket(b)
 
@@ -259,18 +262,24 @@ class User(UserMixin):
         return self._isCentre
 
 class BloodPacket(object):
-    def __init__(self,packetID,type,donateDate,donateLoc,donorID):
+    def __init__(self,packetID,type,donateDate,donateLoc,donorID,donorFirstName,donorLastName):
         self._packetID = packetID
         self._type = BloodType[type]
         self._donateDate = donateDate
         self._donateLoc = donateLoc
         self._donorID = donorID
+        self._donorFirstName = donorFirstName
+        self._donorLastName = donorLastName
         self._events = []
         self._status = BloodStatus.UNTESTED
         self._expiryDate = -1
+        self._currLoc = None
     
     def setExpiry(self,date):
         self._expiryDate = date
+
+    def setCurrLoc(self,loc):
+        self._currLoc = loc
 
     def getType(self):
         return self._type
@@ -294,10 +303,29 @@ class BloodPacket(object):
         return self._expiryDate
 
     def printSummary(self):
-        print(self._packetID,self._type.name,self._donateDate,self._donateLoc,self._donorID,self._status,self._expiryDate)
+        print(self._packetID,self._type.name,self._donateDate,self._donateLoc,self._donorID,self._donorFirstName,self._donorLastName,self._status,self._expiryDate,self._currLoc)
 
     def setStatus(self,status):
         self._status = status
+
+    # Return an integer/string version of it
+    def getSortableField(self,field):
+        if (field == "type"):
+            return self._type.value
+        elif (field == "donatedate"):
+            return self._donateDate
+        elif (field == "expirydate"):
+            return self._expiryDate
+        elif (field == "donateloc"):
+            return self._donateLoc
+        elif (field == "firstname"):
+            return self._donorFirstName
+        elif (field == "lastname"):
+            return self._donorLastName
+        elif (field == "currloc"):
+            return self._currLoc
+        return None
+
 
 class Event(object):
     def __init__(self,packetID,status,location,otherInfo,date):
@@ -308,17 +336,17 @@ class Event(object):
         self._date = date
 
 class Donor(User):
-    def __init__(self,donorID,givenName,familyName,password,email):
-        super().__init__(donorID,givenName+' '+familyName,password,UserType.DONOR)
+    def __init__(self,donorID,givenName,surname,password,email):
+        super().__init__(donorID,givenName+' '+surname,password,UserType.DONOR)
         self._givenName = givenName
-        self._familyName = familyName
+        self._surname = surname
         self._email = email
     
     def getGivenName(self):
         return self._givenName
     
-    def getFamilyName(self):
-        return self._familyName
+    def getSurname(self):
+        return self._surname
     
     def getEmail(self):
         return self._email
@@ -337,8 +365,8 @@ class Centre(User):
     def removePacket(self,packetID):
         return self._inventory.removePacket(packetID)
 
-    def printInventory(self):
-        self._inventory.printInventory()
+    def printInventory(self,field):
+        self._inventory.printInventory(field)
 
     def printLevels(self):
         self._inventory.printLevels()
@@ -350,6 +378,9 @@ class Centre(User):
         p.setStatus(BloodStatus.DISPOSED)
         self._inventory.removePacket(packetID)
         return p
+
+    def searchInventory(self,field,value):
+        self._inventory.searchInventory(field,value)
 
 class Hospital(Centre):
     def __init__(self,hospitalID,hospitalName,password):
@@ -419,21 +450,25 @@ class Inventory(object):
         self.updateCurrentLevels()
         return True
 
-    def sortPackets(self,a):
+    def sortPackets(self,a,field='expiryDate'):
+        if (len(a) == 0):
+            return True
+        if (a[0].getSortableField(field) == None):
+            return False
         i = 0
         swapped = True
         while (i < len(a) and swapped):
             swapped = False
             j = 0
             while (j < len(a) - 1 - i):
-                if a[j].getExpiryDate() > a[j+1].getExpiryDate():
+                if a[j].getSortableField(field) > a[j+1].getSortableField(field):
                     a[j],a[j+1] = a[j+1],a[j]
                     swapped = True
                 j += 1
             i += 1
+        return True
 
     def getNewPackets(self):
-        # print(self._newPackets)
         return self._newPackets
 
     def getPacket(self,packetID):
@@ -470,8 +505,6 @@ class Inventory(object):
         for type in BloodType:
             self._currBloodLevels[type] = 0
 
-        # for packet in self._newPackets:
-        #     self._currBloodLevels[packet.getType()] += 1
         for packet in self._goodPackets:
             self._currBloodLevels[packet.getType()] += 1
 
@@ -486,9 +519,13 @@ class Inventory(object):
 
     def getSummary(self):
         self.printLevels()
-        self.printInventory()
+        self.printInventory('expiryDate')
     
-    def printInventory(self):
+    def printInventory(self,field='expiryDate'):
+        if not (self.sortPackets(self._goodPackets,field)):
+            print("Can't sort by "+field)
+            return
+
         print("----new Packets----")
         for packet in self._newPackets:
             packet.printSummary()
@@ -500,6 +537,15 @@ class Inventory(object):
         print("----bad Packets----")
         for packet in self._badPackets:
             packet.printSummary()
+
+    def searchInventory(self,field,value):
+        if not (self.sortPackets(self._goodPackets,field)):
+            print("Can't search by "+field)
+            return
+
+        for packet in self._goodPackets:
+            if (packet.getSortableField(field) == value):
+                packet.printSummary()
     
     def printLevels(self):
         lowBlood = []
@@ -519,7 +565,6 @@ class Inventory(object):
         while i < len(self._goodPackets) and useBy < self._goodPackets[i].getExpiryDate() and len(packets) < nPackets:
             if (self._goodPackets[i].getType() == type):
                 packets.append(self._goodPackets[i])
-                # print("FOUND A MATCH")
             i += 1
         
         if (len(packets) != nPackets):
@@ -543,4 +588,11 @@ class PathCentre(Centre):
         if (p == None):
             return False
         p.setStatus(newStatus)
+        return True
+
+    def setPacketDate(self,packetID,expiryDate):
+        p = self._inventory.getPacket(packetID)
+        if (p == None):
+            return False
+        p.setExpiry(expiryDate)
         return True

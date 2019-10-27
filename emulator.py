@@ -46,15 +46,15 @@ def showHelp():
     elif (currentUser.getType() == UserType.PATH_CENTRE):
         print("ADD_DONOR - Add a new donor")
         print("ADD_BLOOD - Add a new packet of blood")
-        print("CHECK_INVENTORY - Check the inventory")
+        print("PRINT_INVENTORY - Check the inventory, sorted by a field")
         print("MARK_BLOOD - Mark blood as clean/unclean")
         print("SEND_BLOOD - Send a specific packet to vampire")
     elif (currentUser.getType() == UserType.HOSPITAL):
-        print("CHECK_INVENTORY - Check the inventory")
+        print("PRINT_INVENTORY - Check the inventory, sorted by a field")
         print("DISPOSE_BLOOD - Mark blood as unclean and dispose")
         print("REQUEST_BLOOD - Request packets of a specific blood type")
     elif (currentUser.getType() == UserType.VAMPIRE):
-        print("CHECK_INVENTORY - Check the inventory")
+        print("PRINT_INVENTORY - Check the inventory, sorted by a field")
         print("CHECK_LEVELS - Get a summary of the blood levels")
         print("CHECK_REQUESTS - List the incoming requests")
     print("LOGOUT - Logout")
@@ -122,8 +122,8 @@ def addDonor():
     print("New ID:",newID,", Password: password")
     return True
 
-def parseBlood():
-    bloodType = input("Blood type (O_NEG,O_POS,etc.): ").upper().replace(' ','_')
+def parseBlood(type):
+    bloodType = type.upper().replace(' ','_')
     if bloodType not in BloodType.__members__ and bloodType != "CANCEL":
         print("Invalid blood type. Type CANCEL to cancel")
         bloodType = input("Blood type (O_NEG,O_POS,etc.): ").upper().replace(' ','_')
@@ -133,20 +133,20 @@ def parseBlood():
         return bloodType
 
 def addBlood():
-    bloodType = parseBlood()
+    bloodType = parseBlood(input("Blood type (O_NEG,O_POS,etc.): "))
     if (bloodType == None):
         print("Cancelling submission")
         return True
-    dateStr = input("Donation date (DD/MM/YYYY): ")
-    donateDate = parseDate(dateStr)
-    if donateDate == None:
-        print("Bad date format, cancelling submission")
-        return True
+    donateDate = parseDate(input("Donation date (DD/MM/YYYY): "))
+    while (donateDate == None):
+        print("Bad date format, try again")
+        donateDate = parseDate(input("Donation date (DD/MM/YYYY): "))
     donateLoc = input("Donation location: ")
     donorID = input("Donor ID: ")
 
-    if (system.addPacket(currentUser,bloodType,donateDate,donateLoc,donorID)):
-        print("Packet added!")
+    newID = system.addPacket(currentUser,bloodType,donateDate,donateLoc,donorID)
+    if (newID != None):
+        print("Packet "+str(newID)+" added!")
     else:
         print("Bad request")
     return True
@@ -154,16 +154,21 @@ def addBlood():
 def markBlood():
     packetID = input("Packet ID: ")
     newStatus = input("New status (CLEAN/UNCLEAN): ").upper().replace(' ','_')
-    if (newStatus != "CLEAN" and newStatus != "UNCLEAN" and newStatus != "QUIT"):
+    while (newStatus != "CLEAN" and newStatus != "UNCLEAN" and newStatus != "CANCEL"):
         print("Not a valid status. Type CANCEL to cancel.")
         newStatus = input("New status (CLEAN/UNCLEAN): ").upper().replace(' ','_')
     if (newStatus == "CANCEL"):
         print("Cancelling changes....")
         return True
-    # if not ():
     if not (system.markPacket(currentUser,packetID,newStatus)):
         print("Packet",packetID,"not found")
         return True
+    if (newStatus == "CLEAN"):
+        expiryDate = parseDate(input("Expiry date: "))
+        while (expiryDate == None):
+            print("Invalid date format:")
+            expiryDate = parseDate(input("Expiry date: "))
+        system.setPacketDate(currentUser,packetID,expiryDate)
     print("Status of",packetID,"set to",newStatus)
     if (newStatus == "CLEAN"):
         print("Sending off to vampire...")
@@ -196,8 +201,7 @@ def sendBlood(pID=None):
     return True
 
 def requestBlood():
-    # requestID,user.getID(),requestDate,type,nPackets,useBy
-    bloodType = parseBlood()
+    bloodType = parseBlood(input("Blood type (O_NEG,O_POS,etc.): "))
     if (bloodType == None):
         print("Cancelling submission")
         return True
@@ -220,14 +224,27 @@ def requestBlood():
         print("Request failed")
     return True
 
+def printInventory():
+    field = input("Field to sort by (type|donation date/loc|first/last name| current loc): ").lower().replace(' ','')
+    system.printInventory(currentUser,field)
+
+def searchInventory():
+    field = input("Field to search by (type|donation date/loc|first/last name| current loc): ").lower().replace(' ','')
+    value = input("Value: ")
+    if (field == "type"):
+        if (parseBlood(value) == None):
+            print("Bad value")
+            return
+    system.searchInventory(currentUser,field,value)
+
 def pathCentreCommand(cmd):
     found = True
     if (cmd == "ADD_DONOR"):
         addDonor()
     elif (cmd == "ADD_BLOOD"):
         addBlood()
-    elif (cmd == "CHECK_INVENTORY"):
-        system.printInventory(currentUser)
+    elif (cmd == "PRINT_INVENTORY"):
+        printInventory()
     elif (cmd == "MARK_BLOOD"):
         markBlood()
     elif (cmd == "SEND_BLOOD"):
@@ -238,8 +255,10 @@ def pathCentreCommand(cmd):
 
 def vampireCommand(cmd):
     found = True
-    if (cmd == "CHECK_INVENTORY"):
-        system.printInventory(currentUser)
+    if (cmd == "PRINT_INVENTORY"):
+        printInventory()
+    elif (cmd == "SEARCH_INVENTORY"):
+        searchInventory()
     elif (cmd == "CHECK_LEVELS"):
         system.printLevels(currentUser)
     elif (cmd == "CHECK_REQUESTS"):
@@ -250,8 +269,8 @@ def vampireCommand(cmd):
 
 def hospitalCommand(cmd):
     found = True
-    if (cmd == "CHECK_INVENTORY"):
-        system.printInventory(currentUser)
+    if (cmd == "PRINT_INVENTORY"):
+        printInventory()
     elif (cmd == "DISPOSE_BLOOD"):
         disposeBlood()
     elif (cmd == "REQUEST_BLOOD"):
