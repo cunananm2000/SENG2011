@@ -1,0 +1,42 @@
+[
+    {
+        "type": "O_NEG",
+        "lowLevel": 5,
+        "maxLevel": 10
+    },
+    {
+        "type": "O_POS",
+        "lowLevel": 5,
+        "maxLevel": 10
+    },
+    {
+        "type": "A_NEG",
+        "lowLevel": 5,
+        "maxLevel": 10
+    },
+    {
+        "type": "A_POS",
+        "lowLevel": 5,
+        "maxLevel": 10
+    },
+    {
+        "type": "B_NEG",
+        "lowLevel": 5,
+        "maxLevel": 10
+    },
+    {
+        "type": "B_POS",
+        "lowLevel": 5,
+        "maxLevel": 10
+    },
+    {
+        "type": "AB_NEG",
+        "lowLevel": 5,
+        "maxLevel": 10
+    },
+    {
+        "type": "AB_POS",
+        "lowLevel": 5,
+        "maxLevel": 10
+    }
+]

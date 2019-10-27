@@ -1,7 +1,6 @@
 import json
 from abc import ABC
 from flask_login import UserMixin
-from flask_table import Table, Col, LinkCol, ButtonCol
 from enum import Enum
 import csv
 import json
@@ -25,6 +24,7 @@ class MainSystem(ABC):
         self.loadPathCentres()
         self.loadHospitals()
         self.loadVampireInventory()
+        self.loadVampireSettings()
 
         
     def getVampire(self):
@@ -87,14 +87,13 @@ class MainSystem(ABC):
         user.printInventory(field)
 
     def searchInventory(self,user,field,value):
-        if (field == "type"):
-            newValue = value.upper().replace(" ","_")
-            user.searchInventory(field,BloodType[newValue].value)
-        else:
-            user.searchInventory(field,value)
+        user.searchInventory(field,BloodType[value].value)
 
     def printLevels(self,user):
         user.printLevels()
+
+    def setLevel(self,user,type,levelName,value):
+        user.setLevel(BloodType[type],levelName,value)
     
     def showRequests(self,user):
         user.showRequests()
@@ -199,13 +198,18 @@ class MainSystem(ABC):
 
             self._vampire.addPacket(b)
 
-def getLineCount(file):
-	return sum(1 for line in open(file))
+    def loadVampireSettings(self):
+        with open('vampireSettings.json', 'r') as data_file:
+            json_data = data_file.read()
+        # ,packetID,type,donateDate,donateLoc,donorID)
+        data = json.loads(json_data)
+        for bloodType in data:
+            type = BloodType[bloodType['type']]
+            lowLevel = bloodType['lowLevel']
+            maxLevel = bloodType['maxLevel']
 
-def stringToID(string):
-    string = string.replace(' ','')
-    string = string[::-1]
-    return string
+            self._vampire.setLevel(type,'lowLevel',lowLevel)
+            self._vampire.setLevel(type,'maxLevel',maxLevel)
 
 class UserType(Enum): 
     DONOR = 0
@@ -230,7 +234,6 @@ class BloodStatus(Enum):
     IN_STORAGE = 3
     WITH_HOSPITAL = 4
     UNTESTED = 5
-
 
 class User(UserMixin):
     def __init__(self,id,name,password,type):
@@ -382,6 +385,12 @@ class Centre(User):
     def searchInventory(self,field,value):
         self._inventory.searchInventory(field,value)
 
+    def setLevel(self,type,levelName,value):
+        if (levelName == "lowLevel"):
+            self._inventory.setLowLevel(type,value)
+        elif (levelName == "maxLevel"):
+            self._inventory.setMaxLevel(type,value)
+
 class Hospital(Centre):
     def __init__(self,hospitalID,hospitalName,password):
         super().__init__(hospitalID,hospitalName,password,UserType.HOSPITAL)
@@ -516,6 +525,12 @@ class Inventory(object):
 
     def getMaxLevel(self,type):
         return self._maxBloodLevels[type]
+
+    def setLowLevel(self,type,value):
+        self._lowBloodLevels[type] = value
+
+    def setMaxLevel(self,type,value):
+        self._maxBloodLevels[type] = value
 
     def getSummary(self):
         self.printLevels()

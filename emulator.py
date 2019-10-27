@@ -57,6 +57,8 @@ def showHelp():
         print("PRINT_INVENTORY - Check the inventory, sorted by a field")
         print("CHECK_LEVELS - Get a summary of the blood levels")
         print("CHECK_REQUESTS - List the incoming requests")
+        print("SET_LOW_LEVEL - Set low level of a blood type")
+        print("SET_MAX_LEVEL - Set max level of a blood type")
     print("LOGOUT - Logout")
 
 def parseDate(dateStr):
@@ -121,6 +123,15 @@ def addDonor():
 
     print("New ID:",newID,", Password: password")
     return True
+
+def setLevel(levelName):
+    bloodType = parseBlood(input("Blood type (O_NEG,O_POS,etc.): "))
+    if (bloodType == None):
+        print("Cancelling submission")
+        return True
+    value = str(input("New level: "))
+    system.setLevel(currentUser,bloodType,levelName,value)
+    
 
 def parseBlood(type):
     bloodType = type.upper().replace(' ','_')
@@ -263,6 +274,10 @@ def vampireCommand(cmd):
         system.printLevels(currentUser)
     elif (cmd == "CHECK_REQUESTS"):
         system.showRequests(currentUser)
+    elif (cmd == "SET_LOW_LEVEL"):
+        setLevel('lowLevel')
+    elif (cmd == "SET_MAX_LEVEL"):
+        setLevel('maxLevel')
     else:
         found = False
     return found
