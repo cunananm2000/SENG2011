@@ -28,13 +28,10 @@ requires PermOf(a,a')
 requires PermOf(b,b')
 ensures PermOf(a+b,a'+b')
 {
-  assert forall i:: count(a,i) == count(a',i);
-  assert forall i:: count(b,i) == count(b',i);
   assert forall k:: count(a,k) + count(b,k) == count(a',k) + count(b',k);
   distributiveCount(a,b);
   distributiveCount(a',b');
-  assert forall k:: count(a + b,k) == count(a,k) + count(b,k);
-  assert forall k:: count(a' + b',k) == count(a',k) + count(b',k);
+  assert forall k:: count(a + b,k) == count(a,k) + count(b,k) == count(a',k) + count(b',k) == count(a'+b',k);
   assert PermOf(a+b,a'+b');
 }
 
@@ -59,6 +56,7 @@ predicate Less(a: seq<int>, i: int)
 }
 
 method BubbleSort(a: array<int>)
+requires a != null;
 modifies a;
 ensures Less(a[..],0)
 ensures Sorted(a[..],0)
