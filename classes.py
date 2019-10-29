@@ -9,6 +9,30 @@ import time
 from datetime import datetime
 from random import randint
 
+class UserType(Enum): 
+    DONOR = 0
+    PATH_CENTRE = 1
+    HOSPITAL = 2
+    VAMPIRE = 3
+
+class BloodType(Enum):
+    O_NEG = 0
+    O_POS = 1
+    A_NEG = 2
+    A_POS = 3
+    B_NEG = 4
+    B_POS = 5
+    AB_NEG = 6
+    AB_POS = 7
+
+class BloodStatus(Enum):
+    UNCLEAN = 0
+    DISPOSED = 1
+    CLEAN = 2
+    IN_STORAGE = 3
+    WITH_HOSPITAL = 4
+    UNTESTED = 5
+
 class MainSystem(ABC):
     def __init__(self):
         self._packetIDs = []
@@ -211,30 +235,6 @@ class MainSystem(ABC):
             self._vampire.setLevel(type,'lowLevel',lowLevel)
             self._vampire.setLevel(type,'maxLevel',maxLevel)
 
-class UserType(Enum): 
-    DONOR = 0
-    PATH_CENTRE = 1
-    HOSPITAL = 2
-    VAMPIRE = 3
-
-class BloodType(Enum):
-    O_NEG = 0
-    O_POS = 1
-    A_NEG = 2
-    A_POS = 3
-    B_NEG = 4
-    B_POS = 5
-    AB_NEG = 6
-    AB_POS = 7
-
-class BloodStatus(Enum):
-    UNCLEAN = 0
-    DISPOSED = 1
-    CLEAN = 2
-    IN_STORAGE = 3
-    WITH_HOSPITAL = 4
-    UNTESTED = 5
-
 class User(UserMixin):
     def __init__(self,id,name,password,type):
         self.id = id
@@ -306,7 +306,7 @@ class BloodPacket(object):
         return self._expiryDate
 
     def printSummary(self):
-        print(self._packetID,self._type.name,self._donateDate,self._donateLoc,self._donorID,self._donorFirstName,self._donorLastName,self._status,self._expiryDate,self._currLoc)
+        print(self._packetID,self._type.name,datetime.fromtimestamp(self._donateDate),self._donateLoc,self._donorID,self._donorFirstName,self._donorLastName,self._status.name,datetime.fromtimestamp(self._expiryDate),self._currLoc)
 
     def setStatus(self,status):
         self._status = status
@@ -410,9 +410,14 @@ class Request(object):
 class Notification(object):
     def __init__(self,date,type,message,packetIDs):
         self._date = date
-        self._type = type
+        self._type = type #Normal, Warning or Danger
         self._message = message
         self._packetIDs = packetIDs
+
+    def printSummary(self):
+        print(datetime.fromtimestamp(self._date),"will expire in")
+        print("The following blood will soon expire:")
+
 
 class Vampire(Centre):
     def __init__(self,password):
@@ -464,17 +469,17 @@ class Inventory(object):
             return True
         if (a[0].getSortableField(field) == None):
             return False
-        i = 0
+        i = len(a) - 1
         swapped = True
-        while (i < len(a) and swapped):
+        while (i > 0 and swapped):
             swapped = False
             j = 0
-            while (j < len(a) - 1 - i):
+            while (j < i):
                 if a[j].getSortableField(field) > a[j+1].getSortableField(field):
                     a[j],a[j+1] = a[j+1],a[j]
                     swapped = True
                 j += 1
-            i += 1
+            i -= 1
         return True
 
     def getNewPackets(self):
@@ -576,7 +581,6 @@ class Inventory(object):
     def doRequest(self,type,nPackets,useBy):
         packets = []
         i = 0
-        # print("GOT HERE",useBy)
         while i < len(self._goodPackets) and useBy < self._goodPackets[i].getExpiryDate() and len(packets) < nPackets:
             if (self._goodPackets[i].getType() == type):
                 packets.append(self._goodPackets[i])

@@ -55,6 +55,7 @@ def showHelp():
         print("REQUEST_BLOOD - Request packets of a specific blood type")
     elif (currentUser.getType() == UserType.VAMPIRE):
         print("PRINT_INVENTORY - Check the inventory, sorted by a field")
+        print("SEARCH_INVENTORY - Search inventory by a specific criteria")
         print("CHECK_LEVELS - Get a summary of the blood levels")
         print("CHECK_REQUESTS - List the incoming requests")
         print("SET_LOW_LEVEL - Set low level of a blood type")
@@ -184,6 +185,9 @@ def markBlood():
     if (newStatus == "CLEAN"):
         print("Sending off to vampire...")
         sendBlood(packetID)
+    else:
+        print("Disposing off immediately...")
+        system.disposePacket(currentUser,packetID)
     return True
 
 def disposeBlood(pID=None):
@@ -241,7 +245,7 @@ def printInventory():
 
 def searchInventory():
     field = input("Field to search by (type|donation date/loc|first/last name| current loc): ").lower().replace(' ','')
-    value = input("Value: ")
+    value = parseBlood(input("Value: "))
     if (field == "type"):
         if (parseBlood(value) == None):
             print("Bad value")
