@@ -32,6 +32,13 @@ class BloodStatus(Enum):
     IN_STORAGE = 3
     WITH_HOSPITAL = 4
     UNTESTED = 5
+    ALMOST_EXPIRED = 6
+    UNUSABLE = 7
+
+class NotifType(Enum):
+    NORMAL = 0
+    WARNING = 1
+    DANGER = 2
 
 class MainSystem(ABC):
     def __init__(self):
@@ -113,6 +120,9 @@ class MainSystem(ABC):
     def searchInventory(self,user,field,value):
         user.searchInventory(field,BloodType[value].value)
 
+    def printNotificatons(self,user):
+        user.printNotificatons()
+
     def printLevels(self,user):
         user.printLevels()
 
@@ -131,6 +141,10 @@ class MainSystem(ABC):
             return True
         else:
             return False
+
+    def filterBadBlood(self,user):
+        for id in user.filterBadBlood():
+            self.disposePacket(user,id)
     
     def getPathCentres(self):
         return self._pathCentres
@@ -223,17 +237,9 @@ class MainSystem(ABC):
             self._vampire.addPacket(b)
 
     def loadVampireSettings(self):
-        with open('vampireSettings.json', 'r') as data_file:
-            json_data = data_file.read()
-        # ,packetID,type,donateDate,donateLoc,donorID)
-        data = json.loads(json_data)
-        for bloodType in data:
-            type = BloodType[bloodType['type']]
-            lowLevel = bloodType['lowLevel']
-            maxLevel = bloodType['maxLevel']
-
-            self._vampire.setLevel(type,'lowLevel',lowLevel)
-            self._vampire.setLevel(type,'maxLevel',maxLevel)
+        for type in BloodType:
+            self._vampire.setLevel(type,'lowLevel',2)
+            self._vampire.setLevel(type,'maxLevel',10)
 
 class User(UserMixin):
     def __init__(self,id,name,password,type):
@@ -408,22 +414,26 @@ class Request(object):
         return f"{self._requestID}: {self._hospitalID} wants {self._nPackets} packets of {self._type.name} blood by {self._requestDate} to be used by {self._useBy}"
 
 class Notification(object):
-    def __init__(self,date,type,message,packetIDs):
+    def __init__(self,date,type,packetIDs):
         self._date = date
         self._type = type #Normal, Warning or Danger
-        self._message = message
         self._packetIDs = packetIDs
 
     def printSummary(self):
-        print(datetime.fromtimestamp(self._date),"will expire in")
-        print("The following blood will soon expire:")
-
+        print("***Notif on:", datetime.fromtimestamp(self._date),"***")
+        if (self._type == NotifType.WARNING):
+            print("The following blood will soon expire:")
+        elif (self._type == NotifType.DANGER):
+            print("The following blood has expired:")
+        for id in self._packetIDs:
+            print("     ",id)
 
 class Vampire(Centre):
     def __init__(self,password):
         super().__init__('vampire','Vampire',password,UserType.VAMPIRE)
         self._notifications = []
         self._requests = []
+        self._warningPeriod = 10
 
     def addRequest(self,req):
         self._requests.append(req)
@@ -434,6 +444,34 @@ class Vampire(Centre):
 
     def doRequest(self,type,nPackets,useBy):
         return self._inventory.doRequest(type,nPackets,useBy)
+
+    def printNotificatons(self):
+        for notif in self._notifications:
+            notif.printSummary()
+    
+    def setWarningPeriod(self,days):
+        self._warningPeriod = days
+
+    def filterBadBlood(self):
+        badIDs = self._inventory.filterBadBlood(self._warningPeriod)
+        badBlood = []
+        almostBadBlood = []
+        for id in badIDs:
+            packet = self.getPacket(id)
+            if (packet.getStatus() == BloodStatus.UNUSABLE):
+                badBlood.append(id)
+            elif (packet.getStatus() == BloodStatus.ALMOST_EXPIRED):
+                almostBadBlood.append(id)
+
+        if (badBlood != []):
+            notif = Notification(time.time(),NotifType.DANGER,badBlood)
+            self._notifications.append(notif)
+
+        if (almostBadBlood != []):
+            notif = Notification(time.time(),NotifType.WARNING,almostBadBlood)
+            self._notifications.append(notif)
+
+        return badBlood
 
 class Inventory(object):
     def __init__(self):
@@ -450,6 +488,7 @@ class Inventory(object):
             self._maxBloodLevels[type] = 10
 
     def addPacket(self,packet):
+        self.updateCurrentLevels()
         type = packet.getType()
         if (packet.getStatus() == BloodStatus.UNCLEAN):
             self._badPackets.append(packet)
@@ -461,7 +500,6 @@ class Inventory(object):
                 return False
         else:
             self._newPackets.append(packet)
-        self.updateCurrentLevels()
         return True
 
     def sortPackets(self,a,field='expiryDate'):
@@ -568,6 +606,7 @@ class Inventory(object):
                 packet.printSummary()
     
     def printLevels(self):
+        self.updateCurrentLevels()
         lowBlood = []
         for type in BloodType:
             print(type.name,str(self.getCurrentLevel(type))+'/'+str(self.getMaxLevel(type)))
@@ -579,6 +618,7 @@ class Inventory(object):
                 print(type.name)
 
     def doRequest(self,type,nPackets,useBy):
+        self.updateCurrentLevels()
         packets = []
         i = 0
         while i < len(self._goodPackets) and useBy < self._goodPackets[i].getExpiryDate() and len(packets) < nPackets:
@@ -593,6 +633,23 @@ class Inventory(object):
             self._goodPackets.remove(p)
 
         return packets
+
+    def setWarningPeriod(self,days):
+        self._warningPeriod = days
+
+    def filterBadBlood(self,days):
+        now = time.time()
+        targetBlood = []
+        for packet in self._goodPackets:
+            timeDiff = packet.getExpiryDate() - now
+            if (timeDiff < 0):
+                targetBlood.append(packet.getID())
+                packet.setStatus(BloodStatus.UNUSABLE)
+            elif (timeDiff < days*24*60*60):
+                targetBlood.append(packet.getID())
+                packet.setStatus(BloodStatus.ALMOST_EXPIRED)
+
+        return targetBlood
 
 class PathCentre(Centre):
     def __init__(self,pathCentreID,pathCentreName,password):

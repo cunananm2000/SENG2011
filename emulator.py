@@ -56,7 +56,9 @@ def showHelp():
     elif (currentUser.getType() == UserType.VAMPIRE):
         print("PRINT_INVENTORY - Check the inventory, sorted by a field")
         print("SEARCH_INVENTORY - Search inventory by a specific criteria")
+        print("CLEAN_INVENTORY - Remove expired blood, get warnings about almost expired blood")
         print("CHECK_LEVELS - Get a summary of the blood levels")
+        print("CHECK_NOTIFS - List the notifications")
         print("CHECK_REQUESTS - List the incoming requests")
         print("SET_LOW_LEVEL - Set low level of a blood type")
         print("SET_MAX_LEVEL - Set max level of a blood type")
@@ -278,6 +280,10 @@ def vampireCommand(cmd):
         system.printLevels(currentUser)
     elif (cmd == "CHECK_REQUESTS"):
         system.showRequests(currentUser)
+    elif (cmd == "CLEAN_INVENTORY"):
+        system.filterBadBlood(currentUser)
+    elif (cmd == "CHECK_NOTIFS"):
+        system.printNotificatons(currentUser)
     elif (cmd == "SET_LOW_LEVEL"):
         setLevel('lowLevel')
     elif (cmd == "SET_MAX_LEVEL"):
