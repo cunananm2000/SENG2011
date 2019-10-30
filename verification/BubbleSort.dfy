@@ -32,7 +32,7 @@ ensures PermOf(a+b,a'+b')
   distributiveCount(a,b);
   distributiveCount(a',b');
   assert forall k:: count(a + b,k) == count(a,k) + count(b,k) == count(a',k) + count(b',k) == count(a'+b',k);
-  assert PermOf(a+b,a'+b');
+  // assert PermOf(a+b,a'+b');
 }
 
 // Check if one sequence is a permutation of another by counting appearances of keys
