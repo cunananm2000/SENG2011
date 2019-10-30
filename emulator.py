@@ -62,6 +62,7 @@ def showHelp():
         print("CHECK_REQUESTS - List the incoming requests")
         print("SET_LOW_LEVEL - Set low level of a blood type")
         print("SET_MAX_LEVEL - Set max level of a blood type")
+        print("SET_WARNING_TIME - Set no. of days before a warning appears")
     print("LOGOUT - Logout")
 
 def parseDate(dateStr):
@@ -254,6 +255,11 @@ def searchInventory():
             return
     system.searchInventory(currentUser,field,value)
 
+def setWarningPeriod():
+    days = int(input("Number of days for a warning"))
+    system.setWarningPeriod(currentUser,days)
+    print("Set to",days,"days")
+
 def pathCentreCommand(cmd):
     found = True
     if (cmd == "ADD_DONOR"):
@@ -282,12 +288,16 @@ def vampireCommand(cmd):
         system.showRequests(currentUser)
     elif (cmd == "CLEAN_INVENTORY"):
         system.filterBadBlood(currentUser)
+        print("Cleaning...")
+        print("Cleaned.")
     elif (cmd == "CHECK_NOTIFS"):
         system.printNotificatons(currentUser)
     elif (cmd == "SET_LOW_LEVEL"):
         setLevel('lowLevel')
     elif (cmd == "SET_MAX_LEVEL"):
         setLevel('maxLevel')
+    elif (cmd == "SET_WARNING_TIME"):
+        setWarningPeriod()
     else:
         found = False
     return found

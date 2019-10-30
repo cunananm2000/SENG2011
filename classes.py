@@ -132,6 +132,9 @@ class MainSystem(ABC):
     def showRequests(self,user):
         user.showRequests()
 
+    def setWarningPeriod(self,user,days):
+        user.setWarningPeriod(days)
+
     def makeRequest(self,user,requestDate,type,nPackets,useBy):
         self._requestCounter += 1
         returnPackets = self._vampire.doRequest(BloodType[type],nPackets,useBy)
@@ -463,6 +466,7 @@ class Vampire(Centre):
             elif (packet.getStatus() == BloodStatus.ALMOST_EXPIRED):
                 almostBadBlood.append(id)
 
+
         if (badBlood != []):
             notif = Notification(time.time(),NotifType.DANGER,badBlood)
             self._notifications.append(notif)
@@ -503,6 +507,7 @@ class Inventory(object):
         return True
 
     def sortPackets(self,a,field='expiryDate'):
+        newField = field
         if (len(a) == 0):
             return True
         if (a[0].getSortableField(field) == None):
@@ -513,12 +518,12 @@ class Inventory(object):
             swapped = False
             j = 0
             while (j < i):
-                if a[j].getSortableField(field) > a[j+1].getSortableField(field):
+                if a[j].getSortableField(newField) > a[j+1].getSortableField(newField):
                     a[j],a[j+1] = a[j+1],a[j]
                     swapped = True
                 j += 1
             i -= 1
-        return True
+        return newField == field
 
     def getNewPackets(self):
         return self._newPackets
@@ -581,8 +586,7 @@ class Inventory(object):
     
     def printInventory(self,field='expiryDate'):
         if not (self.sortPackets(self._goodPackets,field)):
-            print("Can't sort by "+field)
-            return
+            print("Can't sort by "+field, "sorting by expiry date instead")
 
         print("----new Packets----")
         for packet in self._newPackets:
@@ -638,16 +642,18 @@ class Inventory(object):
         self._warningPeriod = days
 
     def filterBadBlood(self,days):
+        self.sortPackets(self._goodPackets)
         now = time.time()
         targetBlood = []
         for packet in self._goodPackets:
             timeDiff = packet.getExpiryDate() - now
+            targetBlood.append(packet.getID())
             if (timeDiff < 0):
-                targetBlood.append(packet.getID())
                 packet.setStatus(BloodStatus.UNUSABLE)
             elif (timeDiff < days*24*60*60):
-                targetBlood.append(packet.getID())
                 packet.setStatus(BloodStatus.ALMOST_EXPIRED)
+            else:
+                packet.setStatus(BloodStatus.CLEAN)
 
         return targetBlood
 
