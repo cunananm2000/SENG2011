@@ -1,4 +1,3 @@
-from abc import ABC
 from algos import objectBubbleSort,objectSortedInsert,objectLinearSearch
 
 
@@ -17,8 +16,7 @@ from algos import objectBubbleSort,objectSortedInsert,objectLinearSearch
     #     if (user != None):
     #         return "hospital"
 
-class Vampire(object):
-    # Invariant: Day >= 0, increasing
+class System(object):
     def __init__(self):
         self._bloodTypeTable = {
             "O_NEG" : 0,
@@ -36,43 +34,24 @@ class Vampire(object):
             "CLEAN": 1
         }
 
-        self._locationTable = {
-            "DUMP": 0,
-            "VAMPIRE": 1
-        }
-
-        self._password = "password"
-
-        self._inventory = Inventory(len(self._bloodTypeTable))
-
-        self._donorDatabase = DonorDatabase()
-        self._bloodDatabase = BloodDatabase()
-        self._hospitalDatabase = HospitalDatabase()
-
         self._day = 0
         self._buffer = 1
 
-        self._currentUser = None
-
-#     method containsValue(m: map<int,char>, val: char) returns (b: bool) 
-#     ensures b <==> exists i :: i in m && m[i] == val;
-# {
-#     return val in m.Values;
-# }
+        self._vampire = Vampire(len(self._bloodTypeTable))
+        self._donorDatabase = DonorDatabase()
+        self._hospitalDatabase = HospitalDatabase()
+        self._bloodDatabase = BloodDatabase()
 
     # Add a donor to the system
     def addDonor(self,firstName,lastName,password):
         self._donorDatabase.addDonor(firstName,lastName,password)
 
     def addHospital(self,name,password):
-        self._locationTable[name] = len(self._locationTable)
         self._hospitalDatabase.addHospital(name,password)
 
-    def printLocations(self):
-        for key in self._locationTable:
-            print(str(self._locationTable[key])+":",key)
+    def printHospitals(self):
+        self._hospitalDatabase.printHospitals()
 
-    # Accept blood
     def makeDeposit(self,bloodTypeStr,donateDate,donateLoc,expiryDate,donorID):
         if bloodTypeStr not in self._bloodTypeTable:
             return False
@@ -80,30 +59,32 @@ class Vampire(object):
         if d == None:
             return False
         bloodIndex = self._bloodTypeTable[bloodTypeStr]
-        newPacket = self._bloodDatabase.addPacket(bloodIndex,donateDate,donateLoc,expiryDate,donorID,d.getField("FIRST_NAME"),d.getField("LAST_NAME"))
-        self._inventory.addPacketID(newPacket)
-        return True
+        firstName = d.getField("FIRST_NAME")
+        lastName = d.getField("LAST_NAME")
+        newPacket = self._bloodDatabase.addPacket(bloodIndex,donateDate,donateLoc,expiryDate,donorID,firstName,lastName)
+        self._vampire.makeDeposit(newPacket)
 
-    # Give blood
     def makeRequest(self,bloodTypeStr,nPackets,useBy,dest):
         if bloodTypeStr not in self._bloodTypeTable:
             return False
-        if dest not in self._locationTable:
+        if self._hospitalDatabase.search(dest) == None:
             return False
-        destIndex = self._locationTable[dest]
         bloodIndex = self._bloodTypeTable[bloodTypeStr]
-        accepted = self._inventory.doRequest(bloodIndex,nPackets,useBy,destIndex)
-        return accepted
+        return self._vampire.makeRequest(bloodIndex,nPackets,useBy,dest)
 
-    # Increment the day and remove bad blood
-    def cleanUp(self):
-        self._day += 1
-        self._inventory.cleanUp(self._day)
+    def searchBlood(self,field,value):
+        val = value
+        if (field == "TYPE" and value.upper().replace(" ","_") in self._bloodTypeTable):
+            val = self._bloodTypeTable[value.upper().replace(" ","_")]
+        packets = self._bloodDatabase.searchBlood(field,val)
+        for p in packets:
+            p.toString(self._day,self._buffer)
 
-    # Debugging
-    def printInventory(self,field):
-        print("Current day:",self._day)
-        self._inventory.printInventory(field,self._day,self._buffer)
+    def setLowLevel(self,bloodTypeStr,amount):
+        if bloodTypeStr not in self._bloodTypeTable:
+            return False
+        bloodIndex = self._bloodTypeTable[bloodTypeStr]
+        self._vampire.setLowLevel(bloodIndex,amount)
 
     # Debugging
     def printDonors(self):
@@ -114,26 +95,64 @@ class Vampire(object):
         print("Current day:",self._day)
         self._bloodDatabase.printBlood(field,self._day,self._buffer)
 
-    # Search blood database
-    def searchBlood(self,field,value):
-        val = value
-        if (field == "TYPE" and value.upper().replace(" ","_") in self._bloodTypeTable):
-            val = self._bloodTypeTable[value.upper().replace(" ","_")]
-        packets = self._bloodDatabase.searchBlood(field,val)
-        for p in packets:
-            p.toString(self._day,self._buffer)
+    def searchDonor(self,id):
+        d = self._donorDatabase.search(id)
+        return d
+    
+    def printInventory(self,field):
+        print("Current day:",self._day)
+        self._vampire.printInventory(field,self._day,self._buffer)
+
+    def cleanUp(self):
+        self._vampire.cleanUp(self._day)
+
+    def printLevels(self):
+        self._vampire.printLevels()
+
+
+class User(object):
+    def __init__(self,id,password):
+        self._id = id
+        self._password = password
+
+    def getID(self):
+        return self._id
+
+    def getPassword(self):
+        return self._password
+
+class Vampire(User):
+    # Invariant: Day >= 0, increasing
+    def __init__(self,nTypes):
+        super().__init__("vampire","password")
+
+        self._inventory = Inventory(nTypes)
+
+        self._buffer = 1
+
+    # Accept blood
+    def makeDeposit(self,newPacket):
+        self._inventory.addPacket(newPacket)
+        return True
+
+    # Give blood
+    def makeRequest(self,bloodIndex,nPackets,useBy,dest):
+        accepted = self._inventory.doRequest(bloodIndex,nPackets,useBy,dest)
+        return accepted
+
+    # Increment the day and remove bad blood
+    def cleanUp(self,currDay):
+        self._inventory.cleanUp(currDay)
+
+    # Debugging
+    def printInventory(self,field,currDay,buffer):
+        print("Current day:",currDay)
+        self._inventory.printInventory(field,currDay,buffer)
 
     def printLevels(self):
         self._inventory.printLevels()
 
-    def searchDonor(self,id):
-        d = self._donorDatabase.search(id)
-        return d
-
-    def setLowLevel(self,bloodTypeStr,amount):
-        if bloodTypeStr not in self._bloodTypeTable:
-            return False
-        bloodIndex = self._bloodTypeTable[bloodTypeStr]
+    def setLowLevel(self,bloodIndex,amount):
         return self._inventory.setLowLevel(bloodIndex,amount)
 
     def login(self,loginID,password):
@@ -168,7 +187,7 @@ class Inventory(object):
             i += 1
 
     # Put a packet into the inventory
-    def addPacketID(self,packetObj):
+    def addPacket(self,packetObj):
         bloodType = packetObj.getField("TYPE")
         if (self._currBloodLevels[bloodType] == self._maxBloodLevels[bloodType]):
             return
@@ -182,7 +201,7 @@ class Inventory(object):
             if p.getField("EXPIRY_DATE") < currDay:
                 trash.append(p)
         for p in trash:
-            p.sendTo(0)
+            p.sendTo("dump")
             self._packets.remove(p)
 
     # Debugging, print the inventory
@@ -248,7 +267,7 @@ class BloodPacket(object):
         self._firstName = firstName
         self._lastName = lastName
         self._status = 1
-        self._currLoc = 1
+        self._currLoc = "warehouse"
     
     def toString(self,currDay,buffer):
         if (self._expiryDate - currDay < 0):
@@ -283,17 +302,6 @@ class BloodPacket(object):
         self._currLoc = dest
         if (dest == 0):
             self._status = 0
-
-class User(object):
-    def __init__(self,id,password):
-        self._id = id
-        self._password = password
-
-    def getID(self):
-        return self._id
-
-    def getPassword(self):
-        return self._password
 
 class UserDatabase(object):
     def __init__(self):
@@ -350,8 +358,7 @@ class HospitalDatabase(UserDatabase):
         h = Hospital('hospital'+str(len(self._entries)),name,password)
         objectSortedInsert(self._entries,"ID",h)
 
-    def printDonors(self):
-        objectBubbleSort(self._entries,"ID")
+    def printHospitals(self):
         for h in self._entries:
             h.toString()
 
