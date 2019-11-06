@@ -16,14 +16,18 @@ def processCommand(cmd):
         vampire.cleanUp()
     elif (cmd == "PRINT_INVENTORY"):
         printInventory()
+    elif (cmd == "PRINT_LEVELS"):
+        vampire.printLevels()
     elif (cmd == "PRINT_DONORS"):
-        vampire.printDonors()
+        printDonors()
     elif (cmd == "PRINT_LOCATIONS"):
         vampire.printLocations()
     elif (cmd == "PRINT_BLOOD_DATABASE"):
         printBlood()
     elif (cmd == "SEARCH_BLOOD"):
         searchBlood()
+    elif (cmd == "SET_LOW_LEVEL"):
+        setLowLevel()
     else:
         return False
     return True
@@ -31,13 +35,16 @@ def processCommand(cmd):
 def addDonor():
     firstName = input("First name: ")
     lastName = input("Last name: ")
-    vampire.addDonor(firstName,lastName)
+    password = input("Password: ")
+    vampire.addDonor(firstName,lastName,password)
 
 def addBlood():
     donorID = input("Donor ID: ")
     bloodTypeStr = input("Blood type: ").upper().replace(" ","_")
+    donateDate = int(input("Donation date: "))
+    donateLoc = input("Donation location: ")
     expiryDate = int(input("Expiry date: "))
-    vampire.makeDeposit(bloodTypeStr,expiryDate,donorID)
+    vampire.makeDeposit(bloodTypeStr,donateDate,donateLoc,expiryDate,donorID)
 
 def requestBlood():
     bloodTypeStr = input("Blood type: ").upper().replace(" ","_")
@@ -55,30 +62,53 @@ def searchBlood():
     vampire.searchBlood(field,value)
 
 def printInventory():
-    field = input("Search by: ").upper().replace(" ","_")
+    field = input("Sort by: ").upper().replace(" ","_")
     vampire.printInventory(field)
 
 def printBlood():
-    field = input("Search by: ").upper().replace(" ","_")
+    field = input("Sort by: ").upper().replace(" ","_")
     vampire.printBlood(field)
+
+def printDonors():
+    field = input("Sort by: ").upper().replace(" ","_")
+    vampire.printDonors(field)
+
+def setLowLevel():
+    bloodTypeStr = input("Blood type: ").upper().replace(" ","_")
+    nPackets = int(input("New low level: "))
+    if vampire.setLowLevel(bloodTypeStr,nPackets):
+        print("Success")
+    else:
+        print("Failed")
 
 vampire = Vampire()
 
-vampire.addDonor("Michael","Cunanan")
-vampire.addDonor("Mark","Estoque")
-vampire.addDonor("David","Leydon")
-vampire.addDonor("Tushar","Virk")
-vampire.addDonor("Kenvin","Yu")
-vampire.addDonor("Some","Guy")
+# vampire.addDonor("Michael","Cunanan")
+# vampire.addDonor("Mark","Estoque")
+# vampire.addDonor("David","Leydon")
+# vampire.addDonor("Tushar","Virk")
+# vampire.addDonor("Kenvin","Yu")
+# vampire.addDonor("Some","Guy")
+
+with open('donors.json', 'r') as data_file:
+    json_data = data_file.read()
+    data = json.loads(json_data)
+    for donor in data:
+        password = donor['password']
+        firstName = donor['givenName']
+        lastName = donor['surname']
+        vampire.addDonor(firstName,lastName,password)
 
 with open('inventory.json', 'r') as data_file:
     json_data = data_file.read()
     data = json.loads(json_data)
     for packet in data:
         bloodTypeStr = packet["type"]
+        donateDate = packet["donateDate"]
+        donateLoc = packet["donateLoc"]
         expiryDate = packet["expiryDate"]
         donorID = packet["donorID"]
-        vampire.makeDeposit(bloodTypeStr,expiryDate,donorID)
+        vampire.makeDeposit(bloodTypeStr,donateDate,donateLoc,expiryDate,donorID)
 
 while (True):
     cmd = input("$ ").upper().replace(" ","_")

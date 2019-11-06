@@ -11,8 +11,8 @@ def objectLinearSearch(a, field, key):
     while (i < len(a) and a[i].getField(field) != key):
         i = i + 1
     if (i == len(a)):
-        i = -1
-    return i
+        return None
+    return a[i]
 
 def objectBubbleSort(a,field):
     if (len(a) <= 1):
