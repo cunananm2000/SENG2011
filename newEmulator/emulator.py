@@ -10,7 +10,7 @@ mainSystem = System()
 
 def processCommand(cmd):
     if (cmd == "LOGIN"):
-        pass
+        login()
     if (cmd == "ADD_DONOR"):
         addDonor()
     elif (cmd == "ADD_BLOOD"):
@@ -37,13 +37,13 @@ def processCommand(cmd):
         return False
     return True
 
-# def login():
-#     loginID = input("Login ID: ")
-#     password = input("Password: ")
-#     if mainSystem.login(loginID,password):
-#         print("GOOD")
-#     else:
-#         print("BAD")
+def login():
+    loginID = input("Login ID: ")
+    password = input("Password: ")
+    if mainSystem.login(loginID,password) != "":
+        print("GOOD")
+    else:
+        print("BAD")
 
 def addDonor():
     firstName = input("First name: ")

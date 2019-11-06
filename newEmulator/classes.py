@@ -42,6 +42,21 @@ class System(object):
         self._hospitalDatabase = HospitalDatabase()
         self._bloodDatabase = BloodDatabase()
 
+    def login(self,loginID,password):
+        if (loginID == self._vampire.getID()):
+            if (password == self._vampire.getPassword()):
+                return self._vampire.getID()
+            else:
+                return ""
+        user = self._donorDatabase.login(loginID,password)
+        if (user != None):
+            return user.getID()
+        if (user !- None):
+        user = self._hospitalDatabase.login(loginID,password)
+            return user.getID()
+        return = ""
+        
+
     # Add a donor to the system
     def addDonor(self,firstName,lastName,password):
         self._donorDatabase.addDonor(firstName,lastName,password)
@@ -125,9 +140,7 @@ class Vampire(User):
     # Invariant: Day >= 0, increasing
     def __init__(self,nTypes):
         super().__init__("vampire","password")
-
         self._inventory = Inventory(nTypes)
-
         self._buffer = 1
 
     # Accept blood
