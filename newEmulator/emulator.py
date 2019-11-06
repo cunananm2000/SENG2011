@@ -6,6 +6,8 @@ import json
 # locationTypes = ["DUMP","VAMPIRE"]
 
 def processCommand(cmd):
+    if (cmd == "LOGIN"):
+        login()
     if (cmd == "ADD_DONOR"):
         addDonor()
     elif (cmd == "ADD_BLOOD"):
@@ -31,6 +33,14 @@ def processCommand(cmd):
     else:
         return False
     return True
+
+def login():
+    loginID = input("Login ID: ")
+    password = input("Password: ")
+    if vampire.login(loginID,password):
+        print("GOOD")
+    else:
+        print("BAD")
 
 def addDonor():
     firstName = input("First name: ")
@@ -70,8 +80,7 @@ def printBlood():
     vampire.printBlood(field)
 
 def printDonors():
-    field = input("Sort by: ").upper().replace(" ","_")
-    vampire.printDonors(field)
+    vampire.printDonors()
 
 def setLowLevel():
     bloodTypeStr = input("Blood type: ").upper().replace(" ","_")
@@ -98,6 +107,14 @@ with open('donors.json', 'r') as data_file:
         firstName = donor['givenName']
         lastName = donor['surname']
         vampire.addDonor(firstName,lastName,password)
+
+with open('hospitals.json', 'r') as data_file:
+    json_data = data_file.read()
+    data = json.loads(json_data)
+    for hospital in data:
+        name = hospital['name']
+        password = hospital['password']
+        vampire.addHospital(name,password)
 
 with open('inventory.json', 'r') as data_file:
     json_data = data_file.read()

@@ -1,8 +1,21 @@
+from abc import ABC
 from algos import objectBubbleSort,objectSortedInsert,objectLinearSearch
 
-class User(object):
-    def __init__(self,type):
-        self._type = type
+
+
+    # def Login(self,loginID,password):
+    #     if (loginID == "vampire"):
+    #         if (password == self._password):
+    #             return "vampire"
+    #         else:
+    #             return ""
+    #     user = self._donorDatabase.login(loginID,password)
+    #     if (user != None):
+    #         self._currentUser = user
+    #         return "donor"
+    #     user = self._hospitalDatabase.login(loginID,password)
+    #     if (user != None):
+    #         return "hospital"
 
 class Vampire(object):
     # Invariant: Day >= 0, increasing
@@ -28,13 +41,18 @@ class Vampire(object):
             "VAMPIRE": 1
         }
 
+        self._password = "password"
+
         self._inventory = Inventory(len(self._bloodTypeTable))
 
         self._donorDatabase = DonorDatabase()
         self._bloodDatabase = BloodDatabase()
+        self._hospitalDatabase = HospitalDatabase()
 
         self._day = 0
         self._buffer = 1
+
+        self._currentUser = None
 
 #     method containsValue(m: map<int,char>, val: char) returns (b: bool) 
 #     ensures b <==> exists i :: i in m && m[i] == val;
@@ -46,8 +64,9 @@ class Vampire(object):
     def addDonor(self,firstName,lastName,password):
         self._donorDatabase.addDonor(firstName,lastName,password)
 
-    def addLocation(self,loc):
-        self._locationTable[loc] = len(self._locationTable)
+    def addHospital(self,name,password):
+        self._locationTable[name] = len(self._locationTable)
+        self._hospitalDatabase.addHospital(name,password)
 
     def printLocations(self):
         for key in self._locationTable:
@@ -70,7 +89,7 @@ class Vampire(object):
         if bloodTypeStr not in self._bloodTypeTable:
             return False
         if dest not in self._locationTable:
-            self.addLocation(dest)
+            return False
         destIndex = self._locationTable[dest]
         bloodIndex = self._bloodTypeTable[bloodTypeStr]
         accepted = self._inventory.doRequest(bloodIndex,nPackets,useBy,destIndex)
@@ -87,8 +106,8 @@ class Vampire(object):
         self._inventory.printInventory(field,self._day,self._buffer)
 
     # Debugging
-    def printDonors(self,field):
-        self._donorDatabase.printDonors(field)
+    def printDonors(self):
+        self._donorDatabase.printDonors()
 
     # Debugging
     def printBlood(self,field):
@@ -116,6 +135,14 @@ class Vampire(object):
             return False
         bloodIndex = self._bloodTypeTable[bloodTypeStr]
         return self._inventory.setLowLevel(bloodIndex,amount)
+
+    def login(self,loginID,password):
+        if (loginID == "vampire"):
+            if (password == self._password):
+                return True
+            else:
+                return False
+        
 
 class Inventory(object):
     # Invariant: packets always sorted by expiry date
@@ -257,30 +284,49 @@ class BloodPacket(object):
         if (dest == 0):
             self._status = 0
 
-class DonorDatabase(object):
+class User(object):
+    def __init__(self,id,password):
+        self._id = id
+        self._password = password
+
+    def getID(self):
+        return self._id
+
+    def getPassword(self):
+        return self._password
+
+class UserDatabase(object):
     def __init__(self):
         self._entries = []
-        self._sortedBy = "LAST_NAME"
+
+    def login(self,id,password):
+        user = objectLinearSearch(self._entries,"ID",id)
+        if (user.getPassword() == password):
+            return user
+        else:
+            return None
+
+class DonorDatabase(UserDatabase):
+    def __init__(self):
+        super().__init__()
 
     def addDonor(self,firstName,lastName,password):
         d = Donor(firstName,lastName,password,'donor'+str(len(self._entries)))
-        objectSortedInsert(self._entries,self._sortedBy,d)
+        objectSortedInsert(self._entries,"LAST_NAME",d)
 
-    def printDonors(self,field):
-        objectBubbleSort(self._entries,field)
-        self._sortedBy = field
+    def printDonors(self):
+        objectBubbleSort(self._entries,"LAST_NAME")
         for d in self._entries:
             d.toString()
 
     def search(self,id):
         return objectLinearSearch(self._entries,"ID",id)
 
-class Donor(object):
+class Donor(User):
     def __init__(self,firstName,lastName,password,id):
-        self._id = id
+        super().__init__(id,password)
         self._firstName = firstName
         self._lastName = lastName
-        self._password = password
 
     def toString(self):
         print(self._id,self._firstName,self._lastName,self._password)
@@ -292,4 +338,37 @@ class Donor(object):
             return self._lastName
         elif (field == "ID"):
             return self._id
+        elif (field == "PASSWORD"):
+            return self._password
+        return -1
+
+class HospitalDatabase(UserDatabase):
+    def __init__(self):
+        super().__init__()
+
+    def addHospital(self,name,password):
+        h = Hospital('hospital'+str(len(self._entries)),name,password)
+        objectSortedInsert(self._entries,"ID",h)
+
+    def printDonors(self):
+        objectBubbleSort(self._entries,"ID")
+        for h in self._entries:
+            h.toString()
+
+    def search(self,id):
+        return objectLinearSearch(self._entries,"ID",id)
+
+class Hospital(User):
+    def __init__(self,id,name,password):
+        super().__init__(id,password)
+        self._name = name
+
+    def toString(self):
+        print(self._id,self._password)
+
+    def getField(self,field):
+        if (field == "ID"):
+            return self._id
+        elif (field == "PASSWORD"):
+            return self._password
         return -1
