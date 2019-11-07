@@ -5,18 +5,47 @@ import json
 # statusTypes = ["UNCLEAN","CLEAN"]
 # locationTypes = ["DUMP","VAMPIRE"]
 
-currentUser = None
+currentUserID = ""
+currentUserType = ""
 mainSystem = System()
 
-def processCommand(cmd):
+def routeCommand(cmd):
+    global currentUserType
+    if currentUserType == "":
+        return processNormalCmd(cmd)
+    if currentUserType == "donor":
+        return False
+    if currentUserType == "hospital":
+        return processHospitalCmd(cmd)
+    if currentUserType == "vampire":
+        return processVampireCmd(cmd)
+    if currentUserType == "pathCentre":
+        return processPathCentreCmd(cmd)
+
+def processNormalCmd(cmd):
     if (cmd == "LOGIN"):
         login()
+        return True
+    else:
+        return False
+
+def processHospitalCmd(cmd):
+    if (cmd == "REQUEST_BLOOD"):
+        requestBlood()
+        return True
+    else:
+        return False
+
+def processPathCentreCmd(cmd):
+    if (cmd == "ADD_BLOOD"):
+        addBlood()
+        return True
+    else:
+        return False
+
+def processVampireCmd(cmd):
     if (cmd == "ADD_DONOR"):
         addDonor()
-    elif (cmd == "ADD_BLOOD"):
-        addBlood()
-    elif (cmd == "REQUEST_BLOOD"):
-        requestBlood()
     elif (cmd == "CLEAN_UP"):
         mainSystem.cleanUp()
     elif (cmd == "PRINT_INVENTORY"):
@@ -27,12 +56,16 @@ def processCommand(cmd):
         printDonors()
     elif (cmd == "PRINT_HOSPITALS"):
         mainSystem.printHospitals()
+    elif (cmd == "PRINT_PATH_CENTRES"):
+        mainSystem.printPathCentres()
     elif (cmd == "PRINT_BLOOD_DATABASE"):
         printBlood()
     elif (cmd == "SEARCH_BLOOD"):
         searchBlood()
     elif (cmd == "SET_LOW_LEVEL"):
         setLowLevel()
+    elif (cmd == "SET_BUFFER"):
+        setBuffer()
     else:
         return False
     return True
@@ -40,31 +73,46 @@ def processCommand(cmd):
 def login():
     loginID = input("Login ID: ")
     password = input("Password: ")
-    if mainSystem.login(loginID,password) != "":
-        print("GOOD")
+
+    userID,userType = mainSystem.login(loginID,password)
+    if userID != "" and userType != "":
+        global currentUserID
+        currentUserID = userID
+        global currentUserType
+        currentUserType = userType
+        print("Hello",userID+", a",userType)
     else:
-        print("BAD")
+        print("BAD LOGIN")
+
+def logout():
+    global currentUserID
+    currentUserID = ""
+    global currentUserType
+    currentUserType = ""
 
 def addDonor():
     firstName = input("First name: ")
     lastName = input("Last name: ")
     password = input("Password: ")
-    mainSystem.addDonor(firstName,lastName,password)
+    print(mainSystem.addDonor(firstName,lastName,password))
 
 def addBlood():
     donorID = input("Donor ID: ")
     bloodTypeStr = input("Blood type: ").upper().replace(" ","_")
     donateDate = int(input("Donation date: "))
-    donateLoc = input("Donation location: ")
+    global currentUserID
     expiryDate = int(input("Expiry date: "))
-    mainSystem.makeDeposit(bloodTypeStr,donateDate,donateLoc,expiryDate,donorID)
+    if mainSystem.makeDeposit(bloodTypeStr,donateDate,currentUserID,expiryDate,donorID):
+        print("Added!")
+    else:
+        print("Failed")
 
 def requestBlood():
     bloodTypeStr = input("Blood type: ").upper().replace(" ","_")
     nPackets = int(input("Number of packets: "))
     useBy = int(input("Use by: "))
-    dest = input("Dest: ")
-    if mainSystem.makeRequest(bloodTypeStr,nPackets,useBy,dest):
+    global currentUserID
+    if mainSystem.makeRequest(bloodTypeStr,nPackets,useBy,currentUserID):
         print("Success")
     else:
         print("Failed")
@@ -82,6 +130,10 @@ def printBlood():
     field = input("Sort by: ").upper().replace(" ","_")
     mainSystem.printBlood(field)
 
+def setBuffer():
+    nDays = int(input("Number of days for warning: "))
+    mainSystem.setWarning(nDays)
+
 def printDonors():
     mainSystem.printDonors()
 
@@ -92,13 +144,6 @@ def setLowLevel():
         print("Success")
     else:
         print("Failed")
-
-# mainSystem.addDonor("Michael","Cunanan")
-# mainSystem.addDonor("Mark","Estoque")
-# mainSystem.addDonor("David","Leydon")
-# mainSystem.addDonor("Tushar","Virk")
-# mainSystem.addDonor("Kenvin","Yu")
-# mainSystem.addDonor("Some","Guy")
 
 with open('donors.json', 'r') as data_file:
     json_data = data_file.read()
@@ -117,6 +162,14 @@ with open('hospitals.json', 'r') as data_file:
         password = hospital['password']
         mainSystem.addHospital(name,password)
 
+with open('pathCentres.json', 'r') as data_file:
+    json_data = data_file.read()
+    data = json.loads(json_data)
+    for pathCentre in data:
+        name = pathCentre['name']
+        password = pathCentre['password']
+        mainSystem.addPathCentre(name,password)
+
 with open('inventory.json', 'r') as data_file:
     json_data = data_file.read()
     data = json.loads(json_data)
@@ -132,7 +185,11 @@ while (True):
     cmd = input("$ ").upper().replace(" ","_")
     if (cmd == "QUIT"):
         break
-    if not (processCommand(cmd)):
+    elif (cmd == "LOGOUT"):
+        logout()
+        print("Logging out...")
+        print("Logged out")
+    elif not (routeCommand(cmd)):
         print("'"+cmd+"'","is not a real command")
     print("---------------------------------")
 print("Quitting....")

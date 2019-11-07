@@ -1,21 +1,6 @@
 from algos import objectBubbleSort,objectSortedInsert,objectLinearSearch
 
 
-
-    # def Login(self,loginID,password):
-    #     if (loginID == "vampire"):
-    #         if (password == self._password):
-    #             return "vampire"
-    #         else:
-    #             return ""
-    #     user = self._donorDatabase.login(loginID,password)
-    #     if (user != None):
-    #         self._currentUser = user
-    #         return "donor"
-    #     user = self._hospitalDatabase.login(loginID,password)
-    #     if (user != None):
-    #         return "hospital"
-
 class System(object):
     def __init__(self):
         self._bloodTypeTable = {
@@ -40,32 +25,41 @@ class System(object):
         self._vampire = Vampire(len(self._bloodTypeTable))
         self._donorDatabase = DonorDatabase()
         self._hospitalDatabase = HospitalDatabase()
+        self._pathCentreDatabase = PathCentreDatabase()
         self._bloodDatabase = BloodDatabase()
 
     def login(self,loginID,password):
         if (loginID == self._vampire.getID()):
             if (password == self._vampire.getPassword()):
-                return self._vampire.getID()
+                return self._vampire.getID(),"vampire"
             else:
-                return ""
+                return "",""
         user = self._donorDatabase.login(loginID,password)
         if (user != None):
-            return user.getID()
-        if (user !- None):
+            return user.getID(),"donor"
         user = self._hospitalDatabase.login(loginID,password)
-            return user.getID()
-        return = ""
+        if (user != None):
+            return user.getID(),"hospital"
+        user = self._pathCentreDatabase.login(loginID,password)
+        if (user != None):
+            return user.getID(),"pathCentre"
+        return "",""
         
-
     # Add a donor to the system
     def addDonor(self,firstName,lastName,password):
-        self._donorDatabase.addDonor(firstName,lastName,password)
+        return self._donorDatabase.addDonor(firstName,lastName,password)
 
     def addHospital(self,name,password):
         self._hospitalDatabase.addHospital(name,password)
 
+    def addPathCentre(self,name,password):
+        self._pathCentreDatabase.addPathCentre(name,password)
+
     def printHospitals(self):
         self._hospitalDatabase.printHospitals()
+
+    def printPathCentres(self):
+        self._pathCentreDatabase.printPathCentres()
 
     def makeDeposit(self,bloodTypeStr,donateDate,donateLoc,expiryDate,donorID):
         if bloodTypeStr not in self._bloodTypeTable:
@@ -78,6 +72,7 @@ class System(object):
         lastName = d.getField("LAST_NAME")
         newPacket = self._bloodDatabase.addPacket(bloodIndex,donateDate,donateLoc,expiryDate,donorID,firstName,lastName)
         self._vampire.makeDeposit(newPacket)
+        return True
 
     def makeRequest(self,bloodTypeStr,nPackets,useBy,dest):
         if bloodTypeStr not in self._bloodTypeTable:
@@ -92,6 +87,7 @@ class System(object):
         if (field == "TYPE" and value.upper().replace(" ","_") in self._bloodTypeTable):
             val = self._bloodTypeTable[value.upper().replace(" ","_")]
         packets = self._bloodDatabase.searchBlood(field,val)
+        print("Current day:",self._day)
         for p in packets:
             p.toString(self._day,self._buffer)
 
@@ -120,9 +116,13 @@ class System(object):
 
     def cleanUp(self):
         self._vampire.cleanUp(self._day)
+        self._day += 1
 
     def printLevels(self):
         self._vampire.printLevels()
+
+    def setWarning(self,buffer):
+        self._buffer = buffer
 
 
 class User(object):
@@ -159,7 +159,6 @@ class Vampire(User):
 
     # Debugging
     def printInventory(self,field,currDay,buffer):
-        print("Current day:",currDay)
         self._inventory.printInventory(field,currDay,buffer)
 
     def printLevels(self):
@@ -322,7 +321,7 @@ class UserDatabase(object):
 
     def login(self,id,password):
         user = objectLinearSearch(self._entries,"ID",id)
-        if (user.getPassword() == password):
+        if (user != None and user.getPassword() == password):
             return user
         else:
             return None
@@ -332,8 +331,10 @@ class DonorDatabase(UserDatabase):
         super().__init__()
 
     def addDonor(self,firstName,lastName,password):
-        d = Donor(firstName,lastName,password,'donor'+str(len(self._entries)))
+        newID = 'donor'+str(len(self._entries))
+        d = Donor(firstName,lastName,password,newID)
         objectSortedInsert(self._entries,"LAST_NAME",d)
+        return newID
 
     def printDonors(self):
         objectBubbleSort(self._entries,"LAST_NAME")
@@ -379,6 +380,36 @@ class HospitalDatabase(UserDatabase):
         return objectLinearSearch(self._entries,"ID",id)
 
 class Hospital(User):
+    def __init__(self,id,name,password):
+        super().__init__(id,password)
+        self._name = name
+
+    def toString(self):
+        print(self._id,self._password)
+
+    def getField(self,field):
+        if (field == "ID"):
+            return self._id
+        elif (field == "PASSWORD"):
+            return self._password
+        return -1
+
+class PathCentreDatabase(UserDatabase):
+    def __init__(self):
+        super().__init__()
+    
+    def addPathCentre(self,name,password):
+        pc = PathCentre('path'+str(len(self._entries)),name,password)
+        objectSortedInsert(self._entries,"ID",pc)
+
+    def printPathCentres(self):
+        for pc in self._entries:
+            pc.toString()
+
+    def search(self,id):
+        return objectLinearSearch(self._entries,"ID",id)
+
+class PathCentre(User):
     def __init__(self,id,name,password):
         super().__init__(id,password)
         self._name = name
