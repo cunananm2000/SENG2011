@@ -1,5 +1,5 @@
-from algos import objectBubbleSort,objectSortedInsert,objectLinearSearch
-
+from algos import objectBubbleSort,objectSortedInsert,objectLinearSearch,notifSortedInsert
+from enum import Enum
 
 class System(object):
     def __init__(self):
@@ -15,8 +15,9 @@ class System(object):
         }
 
         self._statusTable = {
-            "UNCLEAN": 0,
-            "CLEAN": 1
+            "BAD": 0,
+            "ALMOST_BAD": 1,
+            "CLEAN": 2
         }
 
         self._day = 0
@@ -70,9 +71,12 @@ class System(object):
         bloodIndex = self._bloodTypeTable[bloodTypeStr]
         firstName = d.getField("FIRST_NAME")
         lastName = d.getField("LAST_NAME")
-        newPacket = self._bloodDatabase.addPacket(bloodIndex,donateDate,donateLoc,expiryDate,donorID,firstName,lastName)
-        self._vampire.makeDeposit(newPacket)
-        return True
+        newPacket = self._vampire.makeDeposit(self._day,bloodIndex,donateDate,donateLoc,expiryDate,donorID,firstName,lastName)
+        if (newPacket != None):
+            self._bloodDatabase.addPacket(newPacket)
+            return True
+        else:
+            return False
 
     def makeRequest(self,bloodTypeStr,nPackets,useBy,dest):
         if bloodTypeStr not in self._bloodTypeTable:
@@ -80,7 +84,7 @@ class System(object):
         if self._hospitalDatabase.search(dest) == None:
             return False
         bloodIndex = self._bloodTypeTable[bloodTypeStr]
-        return self._vampire.makeRequest(bloodIndex,nPackets,useBy,dest)
+        return self._vampire.makeRequest(self._day,bloodIndex,nPackets,useBy,dest)
 
     def searchBlood(self,field,value):
         val = value
@@ -89,7 +93,7 @@ class System(object):
         packets = self._bloodDatabase.searchBlood(field,val)
         print("Current day:",self._day)
         for p in packets:
-            p.toString(self._day,self._buffer)
+            p.toString()
 
     def setLowLevel(self,bloodTypeStr,amount):
         if bloodTypeStr not in self._bloodTypeTable:
@@ -115,15 +119,23 @@ class System(object):
         self._vampire.printInventory(field,self._day,self._buffer)
 
     def cleanUp(self):
-        self._vampire.cleanUp(self._day)
         self._day += 1
+        self._vampire.cleanUp(self._day,self._buffer)
 
     def printLevels(self):
-        self._vampire.printLevels()
+        self._vampire.printLevels(self._day)
 
     def setWarning(self,buffer):
         self._buffer = buffer
 
+    def setMaxLevel(self,bloodTypeStr,amount):
+        if bloodTypeStr not in self._bloodTypeTable:
+            return False
+        bloodIndex = self._bloodTypeTable[bloodTypeStr]
+        self._vampire.setMaxLevel(bloodIndex,amount)
+
+    def printNotifs(self):
+        self._vampire.printNotifs()
 
 class User(object):
     def __init__(self,id,password):
@@ -140,32 +152,154 @@ class Vampire(User):
     # Invariant: Day >= 0, increasing
     def __init__(self,nTypes):
         super().__init__("vampire","password")
-        self._inventory = Inventory(nTypes)
         self._buffer = 1
+        self._notifs = []
+        self._piles = []
+        self._packetID = 0
+
+        i = 0
+        while (i < nTypes):
+            self._piles.append(PacketPile(10,1))
+            i += 1
+
+        # self._notifPriorityTable = ["EXPIRED_PACKETS","LOW_BLOOD_LEVELS","ALMOST_EXPIRED","REQUEST_MADE","DEPOSIT_MADE"]
+        self._notifPriorityTable = {
+            "EXPIRED_PACKETS": 0,
+            "LOW_BLOOD_LEVELS": 1,
+            "ALMOST_EXPIRED": 2,
+            "REQUEST_MADE": 3,
+            "DEPOSIT_MADE": 4
+        }
+
+        self._notifMsgTable = {
+            "EXPIRED_PACKETS": "The following packets have expired:",
+            "LOW_BLOOD_LEVELS": "The following levels are very low:",
+            "ALMOST_EXPIRED": "The following packets are about to expire:",
+            "REQUEST_MADE": "The following packets were sent to",
+            "DEPOSIT_MADE": "The following packet was just deposited from"
+        }
 
     # Accept blood
-    def makeDeposit(self,newPacket):
-        self._inventory.addPacket(newPacket)
-        return True
+    def makeDeposit(self,currDay,bloodIndex,donateDate,donateLoc,expiryDate,donorID,firstName,lastName):
+        newID = 'packet'+str(self._packetID)
+        p = BloodPacket(newID,bloodIndex,donateDate,donateLoc,expiryDate,donorID,firstName,lastName)
+        # print("PUSHING",newID,"TO",bloodType)
+        self._piles[bloodIndex].Push(p)
+        self._packetID += 1
 
+        typeStr = "DEPOSIT_MADE"
+        priority = self._notifPriorityTable[typeStr]
+        desc = self._notifMsgTable[typeStr] + " " + donateLoc
+        things = [newID]
+        n = Notification(priority,typeStr,desc,currDay,things)
+        notifSortedInsert(self._notifs,n)
+
+        return p
+    
     # Give blood
-    def makeRequest(self,bloodIndex,nPackets,useBy,dest):
-        accepted = self._inventory.doRequest(bloodIndex,nPackets,useBy,dest)
-        return accepted
+    def makeRequest(self,currDay,bloodIndex,nPackets,useBy,dest):
+        packets = self._piles[bloodIndex].doRequest(nPackets,useBy,dest)
 
+        if (len(packets) > 0):
+            typeStr = "REQUEST_MADE"
+            priority = self._notifPriorityTable[typeStr]
+            desc = self._notifMsgTable[typeStr] + " " + dest
+            things = []
+            i = 0
+            while (i < len(packets)):
+                things.append(packets[i].getField("ID"))
+                i += 1
+            n = Notification(priority,typeStr,desc,currDay,things)
+            notifSortedInsert(self._notifs,n)
+            return True
+        return False
     # Increment the day and remove bad blood
-    def cleanUp(self,currDay):
-        self._inventory.cleanUp(currDay)
+    def cleanUp(self,currDay,buffer):
+        expired = []
+        almostExpired = []
+        i = 0
+        while (i < len(self._piles)):
+            newExpired,newAlmostExpired = self._piles[i].cleanUp(currDay,buffer)
+            expired += newExpired
+            almostExpired += newAlmostExpired
+            i += 1
+        
+        if (len(expired) > 0):
+            typeStr = "EXPIRED_PACKETS"
+            priority = self._notifPriorityTable[typeStr]
+            desc = self._notifMsgTable[typeStr]
+            things = []
+            i = 0
+            while (i < len(expired)):
+                things.append(expired[i].getField("ID"))
+                i += 1
+            n = Notification(priority,typeStr,desc,currDay,things)
+            notifSortedInsert(self._notifs,n)
 
+        if (len(almostExpired) > 0):
+            typeStr = "ALMOST_EXPIRED"
+            priority = self._notifPriorityTable[typeStr]
+            desc = self._notifMsgTable[typeStr]
+            things = []
+            i = 0
+            while (i < len(almostExpired)):
+                things.append(almostExpired[i].getField("ID"))
+                i += 1
+            n = Notification(priority,typeStr,desc,currDay,things)
+            notifSortedInsert(self._notifs,n)
+
+        lows = []
+        i = 0
+        while (i < len(self._piles)):
+            if (self._piles[i].isLow()):
+                lows.append(str(i))
+            i += 1
+        if (len(lows) > 0):
+            typeStr = "LOW_BLOOD_LEVELS"
+            priority = self._notifPriorityTable[typeStr]
+            desc = self._notifMsgTable[typeStr]
+            n = Notification(priority,typeStr,desc,currDay,lows)
+            notifSortedInsert(self._notifs,n)
+
+    def printNotifs(self):
+        i = 0
+        while (i < len(self._notifs)):
+            self._notifs[i].toString()
+            i += 1
+        
     # Debugging
     def printInventory(self,field,currDay,buffer):
-        self._inventory.printInventory(field,currDay,buffer)
+        everything = []
+        for p in self._piles:
+            everything += p.getBuf()
+        objectBubbleSort(everything,field)
+        for p in everything:
+            p.toString()
 
-    def printLevels(self):
-        self._inventory.printLevels()
+    def printLevels(self,currDay):
+        i = 0
+        while (i < len(self._piles)):
+            self._piles[i].printLevel()
+            i += 1
+
+        lows = []
+        i = 0
+        while (i < len(self._piles)):
+            if (self._piles[i].isLow()):
+                lows.append(str(i))
+            i += 1
+        if (len(lows) > 0):
+            typeStr = "LOW_BLOOD_LEVELS"
+            priority = self._notifPriorityTable[typeStr]
+            desc = self._notifMsgTable[typeStr]
+            n = Notification(priority,typeStr,desc,currDay,lows)
+            notifSortedInsert(self._notifs,n)
 
     def setLowLevel(self,bloodIndex,amount):
-        return self._inventory.setLowLevel(bloodIndex,amount)
+        return self._piles[bloodIndex].setLow(amount)
+
+    def setMaxLevel(self,bloodIndex,amount):
+        return self._piles[bloodIndex].Resize(amount)
 
     def login(self,loginID,password):
         if (loginID == "vampire"):
@@ -173,104 +307,35 @@ class Vampire(User):
                 return True
             else:
                 return False
-        
-
-class Inventory(object):
-    # Invariant: packets always sorted by expiry date
-    def __init__(self,nBloodTypes):
-        self._lowBloodLevels = [1] * nBloodTypes
-        self._maxBloodLevels = [10] * nBloodTypes
-        self._currBloodLevels = [0] * nBloodTypes
-        self._packets = []
-
-    def setLowLevel(self,bloodIndex,amount):
-        if (amount <= 0):
-            return False
-        self._lowBloodLevels[bloodIndex] = amount
-        return True
-
-    def printLevels(self):
-        i = 0
-        while (i < len(self._currBloodLevels)):
-            if (self._currBloodLevels[i] <= self._lowBloodLevels[i]):
-                print(str(i)+": "+str(self._currBloodLevels[i])+"/"+str(self._maxBloodLevels[i])+" <----- Low Level")
-            else:
-                print(str(i)+": "+str(self._currBloodLevels[i])+"/"+str(self._maxBloodLevels[i]))
-            i += 1
-
-    # Put a packet into the inventory
-    def addPacket(self,packetObj):
-        bloodType = packetObj.getField("TYPE")
-        if (self._currBloodLevels[bloodType] == self._maxBloodLevels[bloodType]):
-            return
-        self._currBloodLevels[bloodType] += 1
-        objectSortedInsert(self._packets,"EXPIRY_DATE",packetObj)
-        
-    # Remove anything past expiry
-    def cleanUp(self,currDay):
-        trash = []
-        for p in self._packets:
-            if p.getField("EXPIRY_DATE") < currDay:
-                trash.append(p)
-        for p in trash:
-            p.sendTo("dump")
-            self._packets.remove(p)
-
-    # Debugging, print the inventory
-    def printInventory(self,field,currDay,buffer):
-        objectBubbleSort(self._packets,field)
-        for p in self._packets:
-            p.toString(currDay,buffer)
-        objectBubbleSort(self._packets,"EXPIRY_DATE")
-
-    # Do the request
-    def doRequest(self,type,nPackets,useBy,dest):
-        sendPackets = []
-        i = 0
-        while i < len(self._packets) and len(sendPackets) < nPackets:
-            if (self._packets[i].getField("TYPE") == type and useBy <= self._packets[i].getField("EXPIRY_DATE")):
-                sendPackets.append(self._packets[i])
-            i += 1
-
-        if len(sendPackets) < nPackets:
-            return False
-
-        for p in sendPackets:
-            self._packets.remove(p)
-            bloodIndex = p.getField("TYPE")
-            self._currBloodLevels[bloodIndex] -= 1
-            p.sendTo(dest)
-
-        return True
 
 class BloodDatabase(object):
     # Invariant: Entries sorted by expiry date
     def __init__(self):
         self._entries = []
-        self._sortedBy = "EXPIRY_DATE"
 
-    def addPacket(self,bloodType,donateDate,donateLoc,expiryDate,donorID,firstName,lastName):
-        p = BloodPacket(bloodType,donateDate,donateLoc,expiryDate,donorID,firstName,lastName)
-        objectSortedInsert(self._entries,self._sortedBy,p)
-        return p
+    def addPacket(self,newPacket):
+        objectSortedInsert(self._entries,"EXPIRY_DATE",newPacket)
 
     def printBlood(self,field,currDay,buffer):
         objectBubbleSort(self._entries,field)
         for p in self._entries:
-            p.toString(currDay,buffer)
-        objectBubbleSort(self._entries,self._sortedBy)
+            p.toString()
+        objectBubbleSort(self._entries,"EXPIRY_DATE")
 
     def searchBlood(self,field,value):
+        objectBubbleSort(self._entries,field)
         returnPackets = []
         for p in self._entries:
             if (p.getField(field) == value):
                 returnPackets.append(p)
+        objectBubbleSort(self._entries,"EXPIRY_DATE")
         return returnPackets
 
 class BloodPacket(object):
     # Invariant: status >= 0 and currLoc >= 0
     # Invariant: old(status) == 0 ==> status == 0
-    def __init__(self,bloodType,donateDate,donateLoc,expiryDate,donorID,firstName,lastName):
+    def __init__(self,id,bloodType,donateDate,donateLoc,expiryDate,donorID,firstName,lastName):
+        self._id = id
         self._bloodType = bloodType
         self._donateDate = donateDate
         self._donateLoc = donateLoc
@@ -278,19 +343,21 @@ class BloodPacket(object):
         self._donorID = donorID
         self._firstName = firstName
         self._lastName = lastName
-        self._status = 1
+        self._status = 2
         self._currLoc = "warehouse"
     
-    def toString(self,currDay,buffer):
-        if (self._expiryDate - currDay < 0):
-            print("TYPE:",self._bloodType,"DON DATE:",self._donateDate,"DON LOC:",self._donateLoc,"EXP DATE:",self._expiryDate,"DONOR:",self._donorID,self._firstName,self._lastName,"STATUS:",self._status,"LOC:",self._currLoc,"<---- Expired")
-        elif (self._expiryDate - currDay <= buffer):
-            print("TYPE:",self._bloodType,"DON DATE:",self._donateDate,"DON LOC:",self._donateLoc,"EXP DATE:",self._expiryDate,"DONOR:",self._donorID,self._firstName,self._lastName,"STATUS:",self._status,"LOC:",self._currLoc,"<---- Almost expired")
+    def toString(self):
+        if (self._status == 0):
+            print(self._id, "TYPE:",self._bloodType,"DON DATE:",self._donateDate,"DON LOC:",self._donateLoc,"EXP DATE:",self._expiryDate,"DONOR:",self._donorID,self._firstName,self._lastName,"STATUS:",self._status,"LOC:",self._currLoc,"<---- Expired")
+        elif (self._status == 1):
+            print(self._id, "TYPE:",self._bloodType,"DON DATE:",self._donateDate,"DON LOC:",self._donateLoc,"EXP DATE:",self._expiryDate,"DONOR:",self._donorID,self._firstName,self._lastName,"STATUS:",self._status,"LOC:",self._currLoc,"<---- Almost expired")
         else:
-            print("TYPE:",self._bloodType,"DON DATE:",self._donateDate,"DON LOC:",self._donateLoc,"EXP DATE:",self._expiryDate,"DONOR:",self._donorID,self._firstName,self._lastName,"STATUS:",self._status,"LOC:",self._currLoc)
+            print(self._id, "TYPE:",self._bloodType,"DON DATE:",self._donateDate,"DON LOC:",self._donateLoc,"EXP DATE:",self._expiryDate,"DONOR:",self._donorID,self._firstName,self._lastName,"STATUS:",self._status,"LOC:",self._currLoc)
         
     def getField(self,field):
-        if (field == "TYPE"):
+        if (field == "ID"):
+            return self._id
+        elif (field == "TYPE"):
             return self._bloodType
         elif (field == "DONATE_DATE"):
             return self._donateDate
@@ -312,8 +379,9 @@ class BloodPacket(object):
 
     def sendTo(self,dest):
         self._currLoc = dest
-        if (dest == 0):
-            self._status = 0
+
+    def setStatus(self,status):
+        self._status = status
 
 class UserDatabase(object):
     def __init__(self):
@@ -423,3 +491,150 @@ class PathCentre(User):
         elif (field == "PASSWORD"):
             return self._password
         return -1
+
+class PacketPile(object):
+    def __init__(self,n,low):
+        self._buf = [None]*n
+        self._count = 0
+        self._low = low
+
+    #Ensure that nothing between 0 and count is None
+    def Pop(self,n):
+        if (n < 0 or n >= self._count):
+            return None
+        el = self._buf[n]
+        i = 0
+        while (i < self._count - 1):
+            self._buf[i] = self._buf[i+1]
+            i += 1
+        self._count -= 1
+        return el
+
+    def Push(self,el):
+        if (self._count == len(self._buf)):
+            p = self.Pop(0)
+            p.setStatus(0)
+            p.sendTo("dump")
+        n = 0
+        while (n < self._count and self._buf[n].getField("EXPIRY_DATE") < el.getField("EXPIRY_DATE")):
+            n += 1
+        i = self._count-1
+        while (i >= n):
+            self._buf[i+1] = self._buf[i]
+            i -= 1
+        self._count += 1
+        self._buf[n] = el
+
+    def Remove(self,el):
+        i = 0
+        while (i < self._count and self._buf[i] != el):
+            i += 1
+        if (i == self._count):
+            return None
+        return self.Pop(i)
+        
+
+    def Resize(self,n):
+        newBuf = [None]*n
+        i = 0
+        while (i < n and i < len(self._buf)):
+            newBuf[i] = self._buf[i]
+            i += 1
+        self._buf = newBuf
+
+    def isLow(self):
+        return (self._count <= self._low)
+
+    def setLow(self,low):
+        self._low = low
+
+    def getSize(self):
+        return len(self._buf)
+
+    def getCount(self):
+        return self._count
+
+    def cleanUp(self,currDay,buffer):
+        trash = []
+        almostTrash = []
+        i = 0
+        while i < self._count:
+            p = self._buf[i]
+            if p.getField("EXPIRY_DATE") - currDay <= 0:
+                trash.append(p)
+                p.setStatus(0)
+            elif p.getField("EXPIRY_DATE") - currDay <= buffer:
+                almostTrash.append(p)
+                p.setStatus(1)
+            i += 1
+        i = 0
+        while (i < len(trash)):
+            self.Remove(trash[i])
+            i += 1
+        return trash,almostTrash
+    
+    def getBuf(self):
+        packets = [None]*self._count
+        i = 0
+        while (i < self._count):
+            packets[i] = self._buf[i]
+            i += 1
+        return packets
+
+    def printLevel(self):
+        if (self.isLow()):
+            print(str(self._count)+"/"+str(len(self._buf))+" <----- Low level")
+        else:
+            print(str(self._count)+"/"+str(len(self._buf)))
+
+    def doRequest(self,nPackets,useBy,dest):
+        sendPackets = []
+
+        i = 0
+        while i < len(self._buf) and len(sendPackets) < nPackets:
+            if (useBy <= self._buf[i].getField("EXPIRY_DATE")):
+                sendPackets.append(self._buf[i])
+            i += 1
+
+        if len(sendPackets) < nPackets:
+            return []
+
+        for p in sendPackets:
+            p.sendTo(dest)
+            self.Remove(p)
+        
+        return sendPackets
+
+    def printPackets(self):
+        for p in self._buf:
+            if p == None:
+                break
+            p.toString()
+
+class Notification(object):
+    def __init__(self,priority,typeStr,desc,date,things):
+        self._priority = priority
+        self._typeStr = typeStr
+        self._desc = desc
+        self._date = date
+        self._things = things
+
+    def getDate(self):
+        return self._date
+
+    def getPriority(self):
+        return self._priority
+    
+    def toString(self):
+        print("************************")
+        print("* TYPE:",self._typeStr)
+        print("* DATE:",self._date)
+        print("* DESC:",self._desc)
+        if (len(self._things) > 0):
+            i = 0
+            while (i < len(self._things)):
+                print("*    -",self._things[i])
+                i += 1
+        else:
+            print("NO DETIALS?")
+        print("************************")

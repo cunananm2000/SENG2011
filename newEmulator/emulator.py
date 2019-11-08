@@ -50,6 +50,8 @@ def processVampireCmd(cmd):
         mainSystem.cleanUp()
     elif (cmd == "PRINT_INVENTORY"):
         printInventory()
+    elif (cmd == "PRINT_NOTIFS"):
+        mainSystem.printNotifs()
     elif (cmd == "PRINT_LEVELS"):
         mainSystem.printLevels()
     elif (cmd == "PRINT_DONORS"):
@@ -141,6 +143,14 @@ def setLowLevel():
     bloodTypeStr = input("Blood type: ").upper().replace(" ","_")
     nPackets = int(input("New low level: "))
     if mainSystem.setLowLevel(bloodTypeStr,nPackets):
+        print("Success")
+    else:
+        print("Failed")
+
+def setMaxLevel():
+    bloodTypeStr = input("Blood type: ").upper().replace(" ","_")
+    nPackets = int(input("New max level: "))
+    if mainSystem.setMaxLevel(bloodTypeStr,nPackets):
         print("Success")
     else:
         print("Failed")

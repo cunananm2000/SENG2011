@@ -31,7 +31,10 @@ def objectSortedInsert(a,field,obj):
     i = 0
     while(i < len(a) and a[i].getField(field) < obj.getField(field)):
         i += 1
-    if (i == len(a)):
-        a.append(obj)
-    else:
-        a.insert(i,obj)
+    a.insert(i,obj)
+
+def notifSortedInsert(a,obj):
+    i = 0
+    while(i < len(a) and (a[i].getDate() < obj.getDate() or (a[i].getDate() == obj.getDate() and a[i].getPriority() >= obj.getPriority()))):
+        i += 1
+    a.insert(i,obj)
