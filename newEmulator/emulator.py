@@ -22,6 +22,31 @@ def routeCommand(cmd):
     if currentUserType == "pathCentre":
         return processPathCentreCmd(cmd)
 
+def printHelp():
+    global currentUserType
+    if currentUserType == "":
+        print("LOGIN ----------------- Login")
+    if currentUserType == "donor":
+        return True
+    if currentUserType == "hospital":
+        print("REQUEST_BLOOD --------- Request blood")
+    if currentUserType == "vampire":
+        print("ADD_DONOR ------------- Add a new donor")
+        print("CLEAN_UP -------------- Remove bad blood packets")
+        print("PRINT_INVENTORY ------- Print inventory")
+        print("PRINT_NOTIFS ---------- Print notifications")
+        print("PRINT_LEVELS ---------- Print current levels")
+        print("PRINT_DONORS ---------- Print donors")
+        print("PRINT_HOSPITALS ------- Print hospitals")
+        print("PRINT_PATH_CENTRES ---- Print pathology centres")
+        print("PRINT_BLOOD_DATABASE -- Print blood database")
+        print("SEARCH_BLOOD ---------- Search blood database")
+        print("SET_LOW_LEVEL --------- Set low level of a specific blood type")
+        print("SET_BUFFER ------------ Set a warning buffer")
+    if currentUserType == "pathCentre":
+        print("ADD_BLOOD ------------- Add a new blood packet")
+    return True
+
 def processNormalCmd(cmd):
     if (cmd == "LOGIN"):
         login()
@@ -191,6 +216,7 @@ with open('inventory.json', 'r') as data_file:
         donorID = packet["donorID"]
         mainSystem.makeDeposit(bloodTypeStr,donateDate,donateLoc,expiryDate,donorID)
 
+print("Print HELP for help, QUIT to quit")
 while (True):
     cmd = input("$ ").upper().replace(" ","_")
     if (cmd == "QUIT"):
@@ -199,6 +225,8 @@ while (True):
         logout()
         print("Logging out...")
         print("Logged out")
+    elif (cmd == "HELP"):
+        printHelp()
     elif not (routeCommand(cmd)):
         print("'"+cmd+"'","is not a real command")
     print("---------------------------------")
