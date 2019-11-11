@@ -92,48 +92,30 @@ ensures s == [i] + r
 	}
 }
 
+
+// Merges 2 adjacent sub arrays within an array
+// low, mid and high are the indcies for these arrays
 method MergeSubarrays(a:array<int>, low:nat, mid:nat, high:nat)
 modifies a
 requires a != null
-requires low<mid<high<a.Length
+requires low<mid<high<=a.Length
 requires InOrder(a[low..mid]) && InOrder(a[mid..high])
 ensures multiset(a[low..high]) == multiset(old(a[low..high]))
 ensures InOrder(a[low..high])
 ensures old(a[..low]) == a[..low] && old(a[high..]) == a[high..];
 ensures multiset(a[..]) == multiset(old(a[..]))
 {
-	assert multiset(a[..]) == multiset(old(a[..]));
-	assert old(a[..low]) == a[..low] && old(a[high..] ==a[high..]);
-
 	var m := Merge(a[low..mid], a[mid..high]);
 
 	assert a[low..mid]+a[mid..high] == a[low..high]; 
-	assert multiset(a[low..mid] + a[mid..high]) == multiset(m);
 	assert |m| == high-low;
-	assert InOrder(m) && |m| < a.Length;
 
 	var high : nat := |m|+low;
-	assert multiset(a[..]) == multiset(old(a[..]));
 	CopyIntoArray(m, a, low);
-	assert multiset(a[..low]) == multiset(old(a[..low]));
-	assert multiset(a[high..]) == multiset(old(a[high..]));
-	assert multiset(m) == multiset(old(a[low..high]));
-	assert m == a[low..high];
-	assert multiset(a[low..high]) == multiset(old(a[low..high]));
-	// assert multiset(a[..low]) + multiset(a[low..high]) + multiset(a[high..])
-		// == multiset(old(a[..low])) + multiset(old(a[low..high])) + multiset(old(a[high..]));
-	assert multiset(a[..low] + a[low..high] + a[high..]) 
-		== multiset(old(a[..low] + a[low..high] + a[high..]));
-	assert a[..] == a[..low]+a[low..high]+a[high..];
-	assert multiset(a[..]) == multiset(a[..low] + a[low..high] + a[high..]);
-	assert old(a[..] == a[..low]+a[low..high]+a[high..]);
-	assert old(multiset(a[..]) == multiset(a[..low] + a[low..high] + a[high..]));
-	assert multiset(a[..]) == multiset(old(a[..]));
 
-	assert old(a[..low]) == a[..low] && old(a[high..] ==a[high..]);
-	assert m[..] == a[low..high];
-	assert multiset(a[low..high]) == multiset(m);
-	assert InOrder(a[low..high]);
+	assert m == a[low..high];
+	assert a[..] == a[..low]+a[low..high]+a[high..];
+	assert old(a[..] == a[..low]+a[low..high]+a[high..]);
 }
 
 // Sorts given array within indices low to high
@@ -142,79 +124,39 @@ method MergeSortArray(a:array<int>, low:nat, high:nat)
 decreases a, high - low
 modifies a
 requires a != null
-requires a.Length > 0
-requires low<high<a.Length
+requires a.Length >= 0
+requires low<=high<=a.Length
 ensures multiset(old(a[low..high])) == multiset(a[low..high])
 ensures a[..low] == old(a[..low]) && a[high..] == old(a[high..])
 ensures multiset(a[..]) == multiset(old(a[..]))
 ensures InOrder(a[low..high])
 {
-	assert a[..low] == old(a[..low]) && a[high..] == old(a[high..]);
 	var mid:nat := low + (high-low)/2;	// finding midpoint in subsection of array
 	// If array is more than one value, sort
-	if (a.Length > 1 && low < mid){
-		assert multiset(old(a[mid..])) == multiset(a[mid..]);
-
-		MergeSortArray(a, low, mid);
-		
-		assert old(a[..low]) == a[..low] && old(a[high..] == a[high..]);
-		assert multiset(old(a[low..mid])) == multiset(a[low..mid]);
+	if (a.Length > 1 && low < mid)
+	{
+		MergeSortArray(a, low, mid);	// Recursively sort left array
 		assert old(a[mid..high]) == a[mid..high];
-		assert multiset(old(a[..])) == multiset(a[..]);
-		// assert InOrder(a[low..mid]);
-		// assert old(a[mid..high]) == a[mid..high];
-		// assert multiset(old(a[mid..high])) == multiset(a[mid..high]);
-		assert multiset(old(a[mid..high])) == multiset(a[mid..high]);
 
-		MergeSortArray(a, mid, high);
-
-		assert multiset(old(a[mid..high])) == multiset(a[mid..high]);
-		assert multiset(old(a[low..mid])) == multiset(a[low..mid]);
-		assert a[low..mid]+a[mid..high] == a[low..high];
+		MergeSortArray(a, mid, high);	// Recursively sort right array
 		assert old(a[low..mid]+a[mid..high] == a[low..high]);
-		assert multiset(old(a[low..high])) == multiset(a[low..high]);
-		assert old(a[..low]) == a[..low] && old(a[high..]) == a[high..];
-		// assert multiset(old(a[..])) == multiset(a[..]);
-		// assert old(a[..low]) == a[..low] && old(a[high..] == a[high..]);
-		// assert InOrder(a[mid..high]);
+		assert a[low..mid]+a[mid..high] == a[low..high];	// Remind dafny something super obvious
 
-		// assert multiset(old(a[low..mid])) == multiset(a[low..mid]);
-		// assert multiset(old(a[mid..high])) == multiset(a[mid..high]);
-		assert multiset(old(a[..])) == multiset(a[..]);
-		// assert multiset(old(a[low..mid])) + multiset(old(a[mid..high])) 
-		// 	== multiset(a[low..mid]) + multiset(a[mid..high]);
-
-		// assert forall i:nat :: 0<=i<a.Length ==> a[..i] + a[i..] == a[..];
-		// assert forall i:nat :: low<=i<high<a.Length ==> a[low..i] + a[i..high] == a[low..high];
-		// assert forall i:nat :: 0<=i<a.Length ==> multiset(a[..i])+multiset(a[i..]) == multiset(a[..]);
-
-
-		// assert multiset(a[low..mid])+ multiset(a[mid..high]) == multiset(a[low..high]);
-		//assert multiset(old(a[low..mid]+a[mid..high])) == multiset(old(a[low..high]));
-		// assert multiset(old(a[low..high])) == multiset(a[low..high]);
-
-		//assert multiset(old(a[low..high])) == multiset(old(a[low..mid])+old(a[mid..high]));
-		MergeSubarrays(a, low, mid, high);
-		assert multiset(old(a[low..high])) == multiset(a[low..high]);
-		assert old(a[..low]) == a[..low] && old(a[high..]) == a[high..];
-		assert multiset(old(a[..])) == multiset(a[..]); 
-		// assert old(a[..low]) == a[..low] && old(a[high..] == a[high..]);
-		//assert multiset(old(a[low..mid] + a[mid..high])) == multiset(a[low..mid] + a[mid..high]);
-	}
-	assert old(a[high..]) == a[high..];
-	assert a[..low] == old(a[..low]) && a[high..] == old(a[high..]);
-	// Else no need to sort array
+		MergeSubarrays(a, low, mid, high);	// Merging left and right
+	} // Else no need to sort array
 }
 
+// Copies a given sequence into an array, at a given starting index low
 method CopyIntoArray(s:seq<int>, a:array<int>, low:nat)
 modifies a
+requires a != null
 requires |s| > 0
 requires |s| <= a.Length - low;
 ensures forall i :: 0<=i<|s| ==> (s[i] == a[i+low])
 ensures old(a[..low]) == a[..low] && old(a[|s|+low..]) == a[|s|+low..]
 {
+	// Simple loop that seq into array
 	var i := 0;
-
 	while (i < |s|)
 	decreases |s| - i
 	invariant i <= |s|
@@ -226,21 +168,53 @@ ensures old(a[..low]) == a[..low] && old(a[|s|+low..]) == a[|s|+low..]
 	}
 }
 
+// Super simple print array
+method printArray(a:array)
+requires a != null
+{
+	var i := 0;
+	while (i < a.Length)
+	decreases a.Length - i
+	{
+		print a[i], " ";
+		i := i + 1;
+	}
+	print '\n';
+}
 
 // Real simple tests
 method Main(){
+	// Testing with sequences
 	var a := [9, 4, 6, 3, 8];
-    var r := MergeSort(a);
-	// assert (r == [3,4,6,8,9]);
+	var r := MergeSort(a);
+	assert (r == [3,4,6,8,9]);
 	print r, '\n';
 
-    var b := [];
-    r := MergeSort(b[..]);
-	// assert (r == []);
+	var b := [];
+	r := MergeSort(b[..]);
+	assert (r == []);
 	print r, '\n';
 
 	var c := [1,2,3,4,5];
 	r := MergeSort(c);
-	// assert (r == c);
+	assert (r == c);
 	print r, '\n';
+
+	var d := new int[5];
+	d[0], d[1], d[2], d[3], d[4] := 9, 4, 6, 3, 8;
+	assert d[0]==9 && d[1]==4 && d[2]==6 && d[3]==3 && d[4]==8;
+	MergeSortArray(d, 0, 5);
+	printArray(d);
+	// NOTE: below asserts commented out as they change verification time from 5 sec to 30 sec
+	//assert InOrder(d[0..5]);
+
+	var e := new int[0];
+	MergeSortArray(e, 0, 0);
+	//assert InOrder(e[..]);
+
+	var f := new int[5];
+	CopyIntoArray(c, f, 0);
+	MergeSortArray(f, 0, f.Length);
+	printArray(f);
+	//assert InOrder(f[..]);
 }
