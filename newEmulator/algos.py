@@ -76,23 +76,18 @@ def _merge(left, right, cmp):
         # If there is items in both list, compare them and append the smaller one
         if len(l) > 0 and len(r) > 0:
             if (cmp(l[0], r[0])):
-                n = l.pop(0)
-                m.append(n)
+                m.append(l.pop(0))
             else:
-                n = r.pop(0)
-                m.append(n)
+                m.append(r.pop(0))
         # Else append from whichever list has items remaining
         elif len(l) > 0:
-            n = l.pop(0)
-            m.append(n)
+            m.append(l.pop(0))
         else:
-            n = r.pop(0)
-            m.append(n)
+            m.append(r.pop(0))
     return m
 
+# Merges to subarrays in a given by indices using given comparator
 def _mergeSubarrays(a, low, mid, high, cmp):
     m = _merge(a[low:mid], a[mid:high], cmp)
-
-    for i in range(0, len(m)):
-        a[low+i] = m[i]
+    a[low:high] = m[:]
 
