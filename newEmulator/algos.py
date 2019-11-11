@@ -38,3 +38,61 @@ def notifSortedInsert(a,obj):
     while(i < len(a) and (a[i].getDate() < obj.getDate() or (a[i].getDate() == obj.getDate() and a[i].getPriority() >= obj.getPriority()))):
         i += 1
     a.insert(i,obj)
+
+# Returns a sorted list using given comparator, doesn't change original list
+# NOTE python has recursive limit that can be changed
+def mergeSorted(a, cmp):
+    if len(a) > 1:
+        mid = len(a)//2
+        l = mergeSorted(a[:mid], cmp)
+        r = mergeSorted(a[mid:], cmp)
+        m = _merge(l,r, cmp)
+    else:
+        m = a.copy() 
+    return m
+
+# Sorts a given list using given comparator, modifies list
+# Wrapper function for _mergeSortArray
+def mergeSort(a, cmp):
+    _mergeSortArray(a, 0, len(a), cmp)
+
+# Sorts a list using comparator within the given indices
+def _mergeSortArray(a, low, high, cmp):
+    mid = low + (high-low)//2
+    if len(a) > 1 and low < mid:
+        _mergeSortArray(a, low, mid, cmp)
+        _mergeSortArray(a, mid, high, cmp)
+        _mergeSubarrays(a, low, mid, high, cmp)
+
+# Takes 2 sorted lists and returns a merged list
+def _merge(left, right, cmp):
+    # Make copies of l and r and treat them as queues
+    l = left.copy()     
+    r = right.copy()
+    m = []
+
+    # While there are items in either list
+    while len(l) > 0 or len(r) > 0:
+        # If there is items in both list, compare them and append the smaller one
+        if len(l) > 0 and len(r) > 0:
+            if (cmp(l[0], r[0])):
+                n = l.pop(0)
+                m.append(n)
+            else:
+                n = r.pop(0)
+                m.append(n)
+        # Else append from whichever list has items remaining
+        elif len(l) > 0:
+            n = l.pop(0)
+            m.append(n)
+        else:
+            n = r.pop(0)
+            m.append(n)
+    return m
+
+def _mergeSubarrays(a, low, mid, high, cmp):
+    m = _merge(a[low:mid], a[mid:high], cmp)
+
+    for i in range(0, len(m)):
+        a[low+i] = m[i]
+
