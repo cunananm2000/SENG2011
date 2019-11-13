@@ -6,26 +6,67 @@
 
 
 
-// class PacketPile 
-// {
-//     var buf: array<>;
-//     var count: int; 
-//     var low: int; 
+class PacketPile 
+{
+    var buf: array<BloodPacket>;
+    var count: int; 
+    var low: int; 
 
-//     predicate Valid() 
-//     reads this; 
-//     {
-//         true
-//     }
+    // ghost var shadow: seq<BloodPacket>; 
 
-//     method Init(n: int, l: int) 
-//     modifies this 
-//     requires n >= 0;
-//     ensures Valid();
-//     {
-//         buf = new 
-//     }
-// }
+    predicate Valid()
+    reads this, this.buf; 
+    { 
+        buf != null && 
+        0 <= count <= buf.Length && 
+        forall i :: (0 <= i < count ==> buf[i] != null) &&
+        0 <= low <= buf.Length
+        // shadow == buf[..count]
+    }
+
+    method Init(n: int, low1: int) 
+    modifies this 
+    requires n >= 0;
+    requires 0 <= low1 <= n;
+    ensures Valid();
+    ensures fresh(buf);
+    ensures buf.Length == n; 
+    ensures count == 0; 
+    ensures low == low1;
+    {
+        buf := new BloodPacket[n];
+        // shadow := [];
+        count := 0; 
+        low := low1;
+    }
+
+
+    // ensures el == old(shadow)[n];
+    // ensures shadow == old(shadow[0..n]) + old(shadow[n+1..]);
+    // ensures |shadow| == |old(shadow)| - 1;
+
+    // method Pop(n: int) returns (el: BloodPacket)
+    // modifies this, this.buf; 
+    // requires Valid(); ensures Valid(); 
+    // requires count > 0;
+    // requires 0 <= n < count; 
+    // ensures el == old(buf)[n];
+    // ensures old(buf)[..old(count)] == buf[..n] + [el] + buf[n..count];
+    // ensures count == old(count) - 1;
+    // {
+    //     el := buf[n]; 
+    //     var i: int := n; 
+
+    //     while (i < count - 1) 
+    //     invariant n <= i <= count - 1; 
+    //     invariant old(buf)[..old(count)] == buf[..n] + [el] + buf[n..i] + buf[(i+1)..count]
+    //     {
+    //         buf[i] := buf[i + 1];
+    //         i := i + 1;
+    //     }
+    //     count := count - 1; 
+    // }
+}
 
 class BloodPacket
 {
@@ -67,7 +108,7 @@ class BloodPacket
     ensures donorID == donorID1;
     ensures firstName == firstName1;
     ensures lastName == lastName1; 
-    ensures status == 2; 
+    ensures status == 2; // Assuming blood packets we get are clean
     ensures currLoc == "warehouse";
     {
         id := id1; 
