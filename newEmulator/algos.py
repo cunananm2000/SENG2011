@@ -91,6 +91,10 @@ def _mergeSubarrays(a, low, mid, high, cmp):
     m = _merge(a[low:mid], a[mid:high], cmp)
     a[low:high] = m[:]
 
+# Xand needed to accomadate comparators which return true upon equivalence (=), and those which don't
+def xand(a,b,cmp):
+    return (cmp(a,b) and cmp(b,a)) or (not cmp(a,b) and not cmp(b,a))
+
 # Returns index of object matching key using given comparator
 # Assumes that list is already ordered by given cmp
 # Returns index of first it finds, not first in list
@@ -98,10 +102,17 @@ def binarySearch(a, key, cmp):
     low, high = 0, len(a)
     while low < high:
         mid = (low+high)//2
-        if key == a[mid]:       # Found key
+        if xand(a[mid], key, cmp):       # Found key
             return mid
         elif cmp(key, a[mid]):  # Check bottom half
             high = mid
         elif cmp(a[mid], key):  # Check top half
             low = mid + 1
     return -1   # Couldn't find key
+
+# Wrapper for above which returns object instead, or None if key not found
+def objectBinarySearch(a, key, cmp):
+    i = binarySearch(a, key, cmp)
+    if i == -1:
+        return None
+    return a[i]

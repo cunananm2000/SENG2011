@@ -445,7 +445,8 @@ class HospitalDatabase(UserDatabase):
             h.toString()
 
     def search(self,id):
-        return objectLinearSearch(self._entries,"ID",id)
+        return objectLinearSearch(self._entries,"ID",id) 
+
 
 class Hospital(User):
     def __init__(self,id,name,password):

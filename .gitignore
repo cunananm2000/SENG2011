@@ -3,3 +3,4 @@ newEmulator/__pycache__/*
 oldEmulator/__pycache__/*
 verification/*.exe*
 verification/*.dll*
+.pytest_cache/*
