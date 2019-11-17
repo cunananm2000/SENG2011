@@ -110,9 +110,9 @@ class System(object):
         print("Current day:",self._day)
         self._bloodDatabase.printBlood(field,self._day,self._buffer)
 
-    def searchDonor(self,id):
-        d = self._donorDatabase.search(id)
-        return d
+    # def searchDonor(self,id):
+    #     d = self._donorDatabase.search(id)
+    #     return d
     
     def printInventory(self,field):
         print("Current day:",self._day)
