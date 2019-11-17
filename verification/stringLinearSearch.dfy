@@ -1,12 +1,12 @@
-predicate inList(a: seq<seq<char>>, key: seq<char>)
+predicate inList(a: seq<string>, key: string)
 {
-    exists j :: 0 <= j < |a| && |a[j]| == |key| && a[j] == key
+    exists i :: 0 <= i < |a| && a[i] == key
 }
 
-method findWord(a: array<seq<char>>, key: seq<char>) returns (idx: int)
+method findWord(a: array<string>, key: string) returns (idx: int)
     requires a != null
     ensures idx == -1 || 0 <= idx < a.Length
-    ensures idx == -1 <==> !inList(a[..], key);
+    ensures idx == -1 <==> !inList(a[..], key)
     ensures (0 <= idx < a.Length) <==> (inList(a[..], key) && a[idx] == key)
 {
     idx := 0;
@@ -20,22 +20,22 @@ method findWord(a: array<seq<char>>, key: seq<char>) returns (idx: int)
 }
 
 method Test() {
-    var s1: seq<char> := ['a', 'b', 'c'];
-    var s2: seq<char> := ['d', 'e', 'f'];
-    var s3: seq<char> := ['g', 'h', 'i'];
+    var s1: string := "abc";
+    var s2: string := "def";
+    var s3: string := "ghi";
 
-    var a: array<seq<char>> := new seq<char>[3];
+    var a: array<string> := new string[3];
     a[0], a[1], a[2] := s1, s2, s3;
 
     assert a[0] == s1;
     assert a[1] == s2;
     assert a[2] == s3;
 
-    var key: seq<char> := ['a', 'b', 'c'];
+    var key: string := "abc";
     var idx := findWord(a, key);
     assert 0 <= idx < a.Length && a[idx] == key;
 
-    key := ['x', 'y', 'z'];
+    key := "xyz";
     idx := findWord(a, key);
     assert key[0] == 'x' && key[1] == 'y' && key[2] == 'z';
     assert idx == -1;
