@@ -140,6 +140,7 @@ public class PacketPile {
 			sendIDs[i] = sendPackets[i].getID();
 			sendPackets[i].sendTo(dest);
 			this.removePacket(sendPackets[i]);
+			i += 1;
 		}
 		
 		return sendIDs;
@@ -179,15 +180,6 @@ public class PacketPile {
 			i += 1;
 		}
 		return packets;
-	}
-	
-	public void printLevel() {
-		System.out.print(count+"/"+buf.length);
-		if (this.isLow()) {
-			System.out.println("<--- LOW LEVEL");
-		} else {
-			System.out.println("");
-		}
 	}
 	
 	public void printOut() {

@@ -4,8 +4,8 @@ public abstract class PacketSorter {
 	public final static BloodTypeTable bloodTypes = new BloodTypeTable();
 	public final static BloodStatusTable statusTypes = new BloodStatusTable();
 	
-	public void sort(BloodPacket[] packets, String field) {
-		
+	public BloodPacket[] sort(BloodPacket[] packets, String field) {
+		return packets;
 	}
 	
 	

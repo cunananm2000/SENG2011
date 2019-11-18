@@ -67,12 +67,8 @@ public class UserDatabase {
 		users[i] = newUser;
 	}
 	
-	public void printOut() {
-		int i = 0;
-		while (i < count) {
-			users[i].printOut();
-			i += 1;
-		}
+	public User[] getUsers() {
+		return this.users;
 	}
 	
 }

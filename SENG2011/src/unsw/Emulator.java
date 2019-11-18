@@ -98,6 +98,30 @@ public class Emulator {
 		}
 		return false;
 	}
+	
+	private void printLevels() {
+		int[][] levels = mainSystem.getLevels();
+		int i = 0;
+		while (i < levels[0].length) {
+			if (levels[2][i] == 1) {
+				System.out.println(levels[0][i]+"/"+levels[1][i]+" <---- LOW LEVEL");
+			} else {
+				System.out.println(levels[0][i]+"/"+levels[1][i]);
+			}
+			i += 1;
+		}
+	}
+	
+	private void printNotifs() {
+		Notification[] notifs = mainSystem.getNotifs();
+		int i = 0;
+		while (i < notifs.length) {
+			notifs[i].printOut();
+			i += 1;
+		}
+	}
+	
+	
 
 	private boolean processVampireCmd(String cmd) throws IOException {
 		if (cmd.equals("ADD_DONOR")) {
@@ -107,15 +131,15 @@ public class Emulator {
 		} else if (cmd.equals("PRINT_INVENTORY")) {
 	        printInventory();
 		} else if (cmd.equals("PRINT_NOTIFS")) {
-	        mainSystem.printNotifs();
+	        printNotifs();
 		} else if (cmd.equals("PRINT_LEVELS")) {
-	        mainSystem.printLevels();
+	        printLevels();
 		} else if (cmd.equals("PRINT_DONORS")) {
 	        printDonors();
 		} else if (cmd.equals("PRINT_HOSPITALS")) {
-	        mainSystem.printHospitals();
+	        printHospitals();
 		} else if (cmd.equals("PRINT_PATH_CENTRES")) {
-	        mainSystem.printPathCentres();
+	        printPathCentres();
 		} else if (cmd.equals("PRINT_BLOOD_DATABASE")) {
 	        printBlood();
 		} else if (cmd.equals("SEARCH_BLOOD")) {
@@ -177,11 +201,11 @@ public class Emulator {
 	}
 
 	public void requestBlood() throws IOException {
-		String bloodTypeStr = input("Blood type: ").toUpperCase().replace(" ","_");
-	    int nPackets =Integer.parseInt(input("Number of packets: "));
+		int bloodType = Integer.parseInt(input("Blood Type: "));
+	    int nPackets = Integer.parseInt(input("Number of packets: "));
 	    int useBy = Integer.parseInt(input("Use by: "));
 	    Hospital h = (Hospital) user;
-	    if (mainSystem.makeRequest(bloodTypeStr,nPackets,useBy,h.getName())) {
+	    if (mainSystem.makeRequest(bloodType,nPackets,useBy,h.getName())) {
 	        println("Success");
 		} else {
 	        println("Failed");
@@ -208,12 +232,23 @@ public class Emulator {
 
     public void printInventory() throws IOException {
 	    String field = input("Sort by: ").toUpperCase().replace(" ","_");
-	    mainSystem.printInventory(field);
+	    BloodPacket[] packets = mainSystem.getInventory(field);
+	    System.out.println(packets.length + " packets");
+	    int i = 0;
+	    while (i < packets.length) {
+	    	packets[i].printOut();
+	    	i += 1;
+	    }
     }
     
     public void printBlood() throws IOException {
         String field = input("Sort by: ").toUpperCase().replace(" ","_");
-        mainSystem.printBloodDatabase(field);
+        BloodPacket[] packets = mainSystem.getBloodDatabase(field);
+        int i = 0;
+	    while (i < packets.length) {
+	    	packets[i].printOut();
+	    	i += 1;
+	    }
     }
 
     public void setBuffer() throws NumberFormatException, IOException {
@@ -222,14 +257,37 @@ public class Emulator {
 	}
     
     public void printDonors() {
-        mainSystem.printDonors();
+        User[] users = mainSystem.getDonors();
+        int i = 0;
+        while (i < users.length) {
+        	users[i].printOut();
+        	i += 1;
+        }
+    }
+    
+    public void printHospitals() {
+        User[] users = mainSystem.getHospitals();
+        int i = 0;
+        while (i < users.length) {
+        	users[i].printOut();
+        	i += 1;
+        }
+    }
+    
+    public void printPathCentres() {
+        User[] users = mainSystem.getPathCentres();
+        int i = 0;
+        while (i < users.length) {
+        	users[i].printOut();
+        	i += 1;
+        }
     }
 
     public void setLowLevel() throws NumberFormatException, IOException {
-        String bloodTypeStr = input("Blood type: ").toUpperCase().replace(" ","_");
+        int bloodType = Integer.parseInt((input("Blood type: ")));
         int nPackets = Integer.parseInt((input("New low level: ")));
         if (nPackets > 0) {
-        	mainSystem.setLowLevel(bloodTypeStr,nPackets);
+        	mainSystem.setLowLevel(bloodType,nPackets);
             println("Success");
         } else {
             println("Failed");
@@ -237,10 +295,10 @@ public class Emulator {
     }
 
     public void setMaxLevel() throws NumberFormatException, IOException {
-        String bloodTypeStr = input("Blood type: ").toUpperCase().replace(" ","_");
+        int bloodType = Integer.parseInt((input("Blood type: ")));
         int nPackets = Integer.parseInt((input("New low level: ")));
         if (nPackets > 0) {
-        	mainSystem.setMaxLevel(bloodTypeStr,nPackets);
+        	mainSystem.setMaxLevel(bloodType,nPackets);
             println("Success");
         } else {
             println("Failed");

@@ -44,11 +44,7 @@ public class NotifPile {
 		buf[index] = el;
 	}
 
-	public void printOut() {
-		int i = 0;
-		while (i < buf.length) {
-			buf[i].printOut();
-			i += 1;
-		}
+	public Notification[] getNotifs() {
+		return this.buf;
 	}
 }

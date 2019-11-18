@@ -3,10 +3,17 @@ package unsw;
 public class PacketBubbleSort extends PacketSorter {
 
 	@Override
-	public void sort(BloodPacket[] packets, String field) {
-		if (packets.length <= 1) return;
+	public BloodPacket[] sort(BloodPacket[] oldPackets, String field) {
+		BloodPacket[] packets = new BloodPacket[oldPackets.length];
+		int i = 0;
+		while (i < packets.length) {
+			packets[i] = oldPackets[i];
+			i += 1;
+		}
+		
+		if (packets.length <= 1) return packets;
 	    
-	    int i = packets.length - 1;
+	    i = packets.length - 1;
 	    while (i > 0) {
 	        int j = 0;
 	        while (j < i) {
@@ -20,7 +27,7 @@ public class PacketBubbleSort extends PacketSorter {
 	        i -= 1;
 	    }
 	    
-	    return;
+	    return packets;
 	}
 
 }

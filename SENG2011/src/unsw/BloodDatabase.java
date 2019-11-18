@@ -40,14 +40,8 @@ public class BloodDatabase {
 		packets = newPackets;
 	}
 	
-	public void printBlood(String field) {
-		sorter.sort(packets, field);
-		int i = 0;
-		while (i < count) {
-			packets[i].printOut();
-			i += 1;
-		}
-		sorter.sort(packets, "EXPIRY_DATE");
+	public BloodPacket[] getBlood(String field) {
+		return sorter.sort(packets, field);
 	}
 	
 	public BloodPacket[] searchBloodInt(String field, int value) {
@@ -65,7 +59,7 @@ public class BloodDatabase {
 		return returnPackets;
 	}
 	
-	public void searchBloodString(String field, String value) {
+	public BloodPacket[] searchBloodString(String field, String value) {
 		int i = 0;
 		int total = 0;
 		BloodPacket[] returnPackets = new BloodPacket[packets.length];
@@ -78,11 +72,7 @@ public class BloodDatabase {
 		}
 		returnPackets = truncate(returnPackets,total);
 		sorter.sort(returnPackets, field);
-		i = 0;
-		while (i < total) {
-			returnPackets[i].printOut();
-			i += 1;
-		}
+		return returnPackets;
 	}
 	
 //	private int id;

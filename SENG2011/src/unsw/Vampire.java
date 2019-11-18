@@ -7,7 +7,6 @@ public class Vampire extends User {
 	
 	private NotifPriorityTable notifPriority = new NotifPriorityTable();
 	private NotifMsgTable notifMsg = new NotifMsgTable();
-	private BloodTypeTable bloodTypes = new BloodTypeTable();
 	
 	private PacketSorter sorter = new PacketBubbleSort();
 	
@@ -30,13 +29,10 @@ public class Vampire extends User {
 		BloodPacket p = new BloodPacket(newID,bloodType,donateDate,donateLoc,expiryDate,donorID,firstName,lastName);
 		packetCounter += 1;
 		
-//		System.out.println("About to push "+p.toString());
 		piles[bloodType].push(p);
-//		System.out.println("Pushed "+p.toString());
 		
 		int[] things = {newID};
 		this.addNotif("DEPOSIT_MADE", donateLoc, things);
-//		System.out.println("Added notif for "+p.toString());
 		return p;
 	}
 	
@@ -47,9 +43,8 @@ public class Vampire extends User {
 		this.notifs.push(n);
 	}
 	
-	public boolean makeRequest(String bloodType, int nPackets, int useBy, String dest) {
-		int bloodIndex = bloodTypes.get(bloodType);
-		int[] packets = piles[bloodIndex].doRequest(nPackets, useBy, dest);
+	public boolean makeRequest(int bloodType, int nPackets, int useBy, String dest) {
+		int[] packets = piles[bloodType].doRequest(nPackets, useBy, dest);
 		
 		if (packets != null) {
             this.addNotif("REQUEST_MADE", dest, packets);
@@ -77,7 +72,6 @@ public class Vampire extends User {
 			i += 1;
 		}
 		
-//		System.out.println("A");
 		
 		i = 0;
 		int expiredCount = 0;
@@ -119,7 +113,7 @@ public class Vampire extends User {
 //		System.out.println("D");
 		
 		this.findLows();
-		System.out.println("Found lows");
+//		System.out.println("Found lows");
 		
 		this.currDay += 1;
 	}
@@ -139,14 +133,12 @@ public class Vampire extends User {
 		this.addNotif("LOW_BLOOD_LEVELS", "", lows);
 	}
 	
-	public void setLowLevel(String bloodType, int amount) {
-		int bloodIndex = bloodTypes.get(bloodType);
-		piles[bloodIndex].setLow(amount);
+	public void setLowLevel(int bloodType, int amount) {
+		piles[bloodType].setLow(amount);
 	}
 	
-	public void setMaxLevel(String bloodType, int amount) {
-		int bloodIndex = bloodTypes.get(bloodType);
-		piles[bloodIndex].resize(amount);
+	public void setMaxLevel(int bloodType, int amount) {
+		piles[bloodType].resize(amount);
 	}
 	
 	public int[] truncate(int[] a, int newSize) {
@@ -164,11 +156,12 @@ public class Vampire extends User {
 		return (this.id == loginID && this.password.equals(password));
 	}
 	
-	public void printNotifs() {
-		notifs.printOut();
+	public Notification[] getNotifs() {
+		return notifs.getNotifs();
 	}
 	
-	public void printInventory(String field) {
+	public BloodPacket[] getInventory(String field) {
+//		System.out.println("A");
 		int totalSize = 0;
 		int i = 0;
 		while (i < piles.length) {
@@ -176,7 +169,7 @@ public class Vampire extends User {
 			i += 1;
 		}
 		BloodPacket[] everything = new BloodPacket[totalSize];
-		
+//		System.out.println("B");
 		i = 0;
 		int next = 0;
 		while (i < piles.length) {
@@ -190,21 +183,24 @@ public class Vampire extends User {
 			i += 1;
 		}
 		
-		
-		sorter.sort(everything, field);
-	    
-		i = 0;
-		while (i < totalSize) {
-			everything[i].printOut();
-			i += 1;
-		}
+//		System.out.println("C");
+		BloodPacket[] sortedEverything = sorter.sort(everything, field);
+		System.out.println("D");
+	    return sortedEverything;
 	}
 	
-	public void printLevels() {
+	public int[][] getLevels() {
+		int[][] levels = new int[3][8];
+		
 		int i = 0;
 		while (i < piles.length) {
-			piles[i].printLevel();
+			levels[0][i] = piles[i].getCount();
+			levels[1][i] = piles[i].getSize();
+			levels[2][i] = piles[i].isLow() ? 1 : 0;
+			i += 1;
 		}
+		
+		return levels;
 	}
 
 	public void setBuffer(int newBuffer) {

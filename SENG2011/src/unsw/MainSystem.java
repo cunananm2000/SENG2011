@@ -32,56 +32,56 @@ public class MainSystem {
 		return donorDatabase.addDonor(password, firstName, lastName);
 	}
 	
-	public void printDonors() {
-		donorDatabase.printOut();
+	public User[] getDonors() {
+		return donorDatabase.getUsers();
 	}
 	
 	public void addHospital(String name, String password) {
 		hospitalDatabase.addHospital(name, password);
 	}
 	
-	public void printHospitals() {
-		hospitalDatabase.printOut();
+	public User[] getHospitals() {
+		return hospitalDatabase.getUsers();
 	}
 	
 	public void addPathCentre(String name, String password) {
 		pathCentreDatabase.addPathCentre(name, password);
 	}
 	
-	public void printPathCentres() {
-		pathCentreDatabase.printOut();
+	public User[] getPathCentres() {
+		return pathCentreDatabase.getUsers();
 	}
 	
-	public void printBloodDatabase(String field) {
-		bloodDatabase.printBlood(field);
+	public BloodPacket[] getBloodDatabase(String field) {
+		return bloodDatabase.getBlood(field);
 	}
 	
-	public void printInventory(String field) {
-		vampire.printInventory(field);
+	public BloodPacket[] getInventory(String field) {
+		return vampire.getInventory(field);
 	}
 	
 	public void cleanUp() {
 		vampire.cleanUp();
 	}
 	
-	public void printLevels() {
-		vampire.printLevels();
+	public int[][] getLevels() {
+		return vampire.getLevels();
 	}
 	
 	public void setWarning(int buffer) {
 		vampire.setBuffer(buffer);
 	}
 	
-	public void setLowLevel(String bloodType, int level) {
+	public void setLowLevel(int bloodType, int level) {
 		vampire.setLowLevel(bloodType, level);
 	}
 	
-	public void setMaxLevel(String bloodType, int level) {
+	public void setMaxLevel(int bloodType, int level) {
 		vampire.setMaxLevel(bloodType, level);
 	}
 	
-	public void printNotifs() {
-		vampire.printNotifs();
+	public Notification[] getNotifs() {
+		return vampire.getNotifs();
 	}
 	
 	public void searchBloodInt(String field,int value) {
@@ -104,7 +104,7 @@ public class MainSystem {
 //		System.out.println("Added"+p.getID());
 	}
 	
-	public boolean makeRequest(String bloodType, int nPackets, int useBy, String dest) {
+	public boolean makeRequest(int bloodType, int nPackets, int useBy, String dest) {
 		if (hospitalDatabase.searchByName(dest) == null) return false;
 		return vampire.makeRequest(bloodType, nPackets, useBy, dest);
 	}
