@@ -1,11 +1,13 @@
 // Checks if key is in array
 predicate InsideArray(a:array<int>, key:int)
+requires a != null
 reads a 
 {	
 	exists i:nat :: i<a.Length && a[i] == key
 }
 
 predicate InsideUpTo(a:array<int>, key:int, high:nat)
+requires a != null
 requires high <= a.Length
 reads a
 {
@@ -42,6 +44,7 @@ requires a != null
 // Uses LinearSearch to return objects which match key
 method LinearSearchMultiple(a:array<int>, key:int) returns (r:array<int>)
 requires a != null
+ensures r != null
 ensures forall i:nat :: i<r.Length ==> r[i] == key
 // If returned array has no values, there are no matches
 ensures r.Length == 0 ==> Matches(a[..],key) == 0
