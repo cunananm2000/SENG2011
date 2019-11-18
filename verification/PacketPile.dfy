@@ -4,23 +4,7 @@ class PacketPile
     var count: int; 
     var low: int; 
     // bloodStatuses 
-
-
-    predicate Sorted(a: array<int>, low: int, high: int)
-    reads a;
-    requires a != null;
-    requires 0 <= low <= high <= a.Length;  
-    {
-        forall i, j :: low <= i < j < high ==> a[i] <= a[j]
-    }
-
-    function DualRange(a: array<int>, low: int, mid1: int, mid2: int, high: int): seq<int>
-    reads a;
-    requires a != null;
-    requires 0 <= low <= mid1 <= mid2 <= high <= a.Length;
-    {
-        a[low..mid1] + a[mid2..high]
-    }
+   
 
     predicate Valid()
     reads this, this.buf; 
@@ -70,37 +54,7 @@ class PacketPile
         count := count - 1; 
     }
 
-    predicate SortedIgnore(a: array<int>, low: int, high: int, index: int)
-    reads a;
-    requires a != null;
-    requires 0 <= low <= high <= a.Length;  
-    {
-        forall i, j :: low <= i < j < high && i != index && j != index ==> a[i] <= a[j]
-    }
-
-    predicate LTRange(a: array<int>, low: int, high: int, key: int) 
-    reads a; 
-    requires a != null;
-    requires 0 <= low <= high <= a.Length;
-    {
-        forall j :: low <= j < high ==> a[j] < key
-    }
-
-    predicate GERange(a: array<int>, low: int, high: int, key: int)
-    reads a;
-    requires a != null;
-    requires 0 <= low <= high <= a.Length;
-    {
-        forall j :: low <= j < high ==> a[j] >= key
-    }
-
-    predicate GERangeIgnore(a: array<int>, low: int, high: int, key: int, ignore: int)
-    reads a;
-    requires a != null;
-    requires 0 <= low <= high <= a.Length;
-    {
-        forall j :: low <= j < high && j != ignore ==> a[j] >= key
-    }
+    
 
     // Times out verifying these 
     // ensures old(count) == buf.Length ==> multiset(buf[..count]) == multiset(old(buf[1..old(count)])) + multiset([el]);
@@ -192,40 +146,119 @@ class PacketPile
         }
     }
 
-    // method resize(newSize: int)
-    // modifies this.buf, this`count;
-    // requires Valid(); ensures Valid();
-    // requires newSize >= 0;
-    // ensures fresh(buf);
-    // ensures buf.Length == newSize;
-    // {
-    //     var newBuf := new int[newSize];
-    //     if (newSize < count) // Less inventory space
-    //     {
-    //         // Keep newest blood packets
-    //         var i: int := 0; 
-    //         var shift: int := count - newSize;
-    //         while (i < newSize) 
-    //         invariant 0 <= i <= newSize;
-    //         invariant newBuf[..i] == buf[shift..shift+i]
-    //         {
-    //             newBuf[i] := buf[shift + i];
-    //             i := i + 1; 
-    //         }
-    //         count := newSize; 
-    //     } 
-    //     else 
-    //     {
-    //         // Directly copy 
-    //         var i: int := 0; 
-    //         while (i < count) 
-    //         invariant 0 <= i <= count; 
-    //         invariant newBuf[..i] == buf[..i];
-    //         {
-    //             newBuf[i] := buf[i]; 
-    //             i := i + 1;
-    //         }
-    //     }
-    //     buf := newBuf;
-    // }
+    method resize(newSize: int)
+    modifies this, this.buf, this`count, this`low;
+    requires Valid(); ensures Valid();
+    requires newSize >= 0;
+    ensures fresh(buf);
+    ensures buf.Length == newSize;
+    ensures low == if (old(low) > newSize) then newSize else old(low);
+    ensures count == if (newSize < old(count)) then newSize else old(count);
+    ensures buf[..count] == if (newSize < old(count)) then old(buf[old(count)-newSize..old(count)]) else old(buf[..old(count)]);
+    {
+        var newBuf := new int[newSize];
+        if newSize < count // Less inventory space
+        {
+            // Keep newest blood packets
+            var i: int := 0; 
+            var shift: int := count - newSize;
+            assert buf[count-newSize..count] == old(buf[old(count)-newSize..old(count)]);
+
+            while (i < newSize) 
+            invariant 0 <= i <= newSize;
+            invariant count == old(count);
+            invariant low == old(low);
+            invariant buf == old(buf);
+            invariant newBuf != null;
+            invariant 0 < shift;
+            invariant 0 < shift + i <= count <= buf.Length; 
+            invariant buf[count-newSize..count] == old(buf[old(count)-newSize..old(count)]);
+            invariant newBuf[..i] == buf[shift..shift+i]
+            invariant Sorted(buf, 0, count);
+            {
+                newBuf[i] := buf[shift + i];
+                i := i + 1; 
+            }
+
+            assert newBuf[..newSize] == old(buf[old(count)-newSize..old(count)]);
+            count := newSize; 
+            assert newBuf[..newSize] == newBuf[..count];
+            assert newBuf[..count] == old(buf[old(count)-newSize..old(count)]);
+            assert Sorted(newBuf, 0, count); 
+        } 
+        else 
+        {
+            assert newSize >= count;
+            assert newBuf.Length == newSize; 
+            assert buf[..count] == old(buf[..count]);
+
+            // Directly copy 
+            var i: int := 0; 
+            while (i < count) 
+            invariant 0 <= i <= count;
+            invariant count == old(count);
+            invariant low == old(low);
+            invariant buf == old(buf);
+            invariant newBuf[..i] == buf[..i];
+            invariant buf[..count] == old(buf[..count]);
+            invariant Sorted(buf, 0, count);
+            {
+                newBuf[i] := buf[i]; 
+                i := i + 1;
+            }
+        }
+        if (low > newSize)
+        {
+            low := newSize; 
+        }
+        buf := newBuf;
+    }
+}
+
+predicate Sorted(a: array<int>, low: int, high: int)
+reads a;
+requires a != null;
+requires 0 <= low <= high <= a.Length;  
+{
+    forall i, j :: low <= i < j < high ==> a[i] <= a[j]
+}
+
+function DualRange(a: array<int>, low: int, mid1: int, mid2: int, high: int): seq<int>
+reads a;
+requires a != null;
+requires 0 <= low <= mid1 <= mid2 <= high <= a.Length;
+{
+    a[low..mid1] + a[mid2..high]
+}
+
+predicate SortedIgnore(a: array<int>, low: int, high: int, index: int)
+reads a;
+requires a != null;
+requires 0 <= low <= high <= a.Length;  
+{
+    forall i, j :: low <= i < j < high && i != index && j != index ==> a[i] <= a[j]
+}
+
+predicate LTRange(a: array<int>, low: int, high: int, key: int) 
+reads a; 
+requires a != null;
+requires 0 <= low <= high <= a.Length;
+{
+    forall j :: low <= j < high ==> a[j] < key
+}
+
+predicate GERange(a: array<int>, low: int, high: int, key: int)
+reads a;
+requires a != null;
+requires 0 <= low <= high <= a.Length;
+{
+    forall j :: low <= j < high ==> a[j] >= key
+}
+
+predicate GERangeIgnore(a: array<int>, low: int, high: int, key: int, ignore: int)
+reads a;
+requires a != null;
+requires 0 <= low <= high <= a.Length;
+{
+    forall j :: low <= j < high && j != ignore ==> a[j] >= key
 }
