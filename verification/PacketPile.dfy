@@ -102,12 +102,14 @@ class PacketPile
         forall j :: low <= j < high && j != ignore ==> a[j] >= key
     }
 
+    // Times out verifying these 
     // ensures old(count) == buf.Length ==> multiset(buf[..count]) == multiset(old(buf[1..old(count)])) + multiset([el]);
     // ensures old(count) != buf.Length ==> multiset(buf[..count]) == multiset(old(buf[..old(count)])) + multiset([el]);
     method push(el: int) 
     modifies this.buf, this`count; 
     requires Valid(); ensures Valid();
     requires count > 0;
+    ensures el in buf[..count];
     {
         if (count == buf.Length)
         {
@@ -141,8 +143,12 @@ class PacketPile
             i := i - 1; 
         } 
         count := count + 1;
+        assert old(count) == buf.Length ==> DualRange(buf, 0, index, index+1, count) == old(buf[1..old(count)]);
+        assert old(count) != buf.Length ==> DualRange(buf, 0, index, index+1, count) == old(buf[..old(count)]);
         buf[index] := el;
-        // assert old(count) == buf.Length ==> DualRange(buf, 0, index, index+1, count) == old(buf[1..old(count)]);
-        // assert old(count) != buf.Length ==> DualRange(buf, 0, index, index+1, count) == old(buf[..old(count)]);
+        assert old(count) == buf.Length ==> DualRange(buf, 0, index, index+1, count) == old(buf[1..old(count)]);
+        assert old(count) != buf.Length ==> DualRange(buf, 0, index, index+1, count) == old(buf[..old(count)]);
+        assert buf[index] == el;
+        assert el in buf[..count];
     }
 }
