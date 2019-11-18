@@ -1,5 +1,3 @@
-datatype BloodPacket = Empty | Node(expiryDate: int, )
-
 class PacketPile
 {
     var buf: array<int>; // int represents expiry date of blood packet
@@ -46,7 +44,6 @@ class PacketPile
         invariant index <= i <= count - 1; 
         invariant count == old(count);
         invariant buf == old(buf);
-        invariant index == old(index); 
         invariant DualRange(buf, 0, i, i+1, count) == old(buf[..index]) + old(buf[index+1..old(count)]);
         invariant Sorted(buf, 0, count)
         {
@@ -55,8 +52,6 @@ class PacketPile
         }
         count := count - 1; 
     }
-
-    
 
     // Times out verifying these 
     // ensures old(count) == buf.Length ==> multiset(buf[..count]) == multiset(old(buf[1..old(count)])) + multiset([el]);
@@ -127,7 +122,6 @@ class PacketPile
     ensures count == if (forall j :: 0 <= j < old(count) ==> old(buf[j]) != el) then old(count) else old(count) - 1;
     ensures multiset(buf[..count]) == multiset(old(buf[..old(count)])) - multiset([el]);
     {
-    // ensures multiset(buf[..count]) == multiset(old(buf[..old(count)])) - multiset([el]);
         var i: int := 0; 
         while (i < count && buf[i] != el)
         invariant 0 <= i <= count; 
