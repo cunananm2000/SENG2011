@@ -37,7 +37,7 @@ class PacketPile
     }
 
     method popAtIndex(index: int) returns (el: int) 
-    modifies this`buf, this`count; 
+    modifies this.buf, this`count; 
     requires Valid(); ensures Valid(); 
     requires 0 <= index < count; 
     ensures el == old(buf[index]);
