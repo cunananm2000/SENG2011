@@ -13,6 +13,7 @@ class NotifFile {
     }
 
     predicate sortedNotifs(lo: int, hi: int, a: array<real>)
+    requires a != null;
     reads this;
     reads a;
     {
@@ -28,6 +29,7 @@ class NotifFile {
     reads this.buf;
     {
         // I can't just write 0 <= count <= buf.Length, because the buffer can't be 0 length
+        buf != null &&
         0 < buf.Length && 
         count <= buf.Length && 
         0 <= count &&
@@ -42,6 +44,7 @@ class NotifFile {
 	ensures Valid();
 	ensures count == 0;
 	ensures buf.Length == size;
+    ensures fresh(buf);
 	{
 		buf := new real[size];
 		count := 0;
@@ -85,13 +88,13 @@ class NotifFile {
     function method getDate(n: real): int
     requires n > 0.0;
     {
-        n.Floor
+        n.Trunc
     }
 
     function method getPriority(n: real): int
     requires n > 0.0;
     {
-        (10.0*n).Floor - 10*n.Floor
+        (10.0*n).Trunc - 10*n.Trunc
     }
 
     method push(el: real)
