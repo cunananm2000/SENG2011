@@ -49,8 +49,8 @@ class PacketPile
     modifies this.buf, this`count; 
     requires Valid(); ensures Valid(); 
     requires 0 <= index < count; 
-    ensures el == old(buf[index]);
     ensures count == old(count) - 1;
+    ensures el == old(buf[index]);
     ensures buf[..count] == old(buf[..index]) + old(buf[index+1..old(count)]); // Putting RHS into predicate fails(?)
     {
         el := buf[index]; 
@@ -105,50 +105,127 @@ class PacketPile
     // Times out verifying these 
     // ensures old(count) == buf.Length ==> multiset(buf[..count]) == multiset(old(buf[1..old(count)])) + multiset([el]);
     // ensures old(count) != buf.Length ==> multiset(buf[..count]) == multiset(old(buf[..old(count)])) + multiset([el]);
-    method push(el: int) 
-    modifies this.buf, this`count; 
-    requires Valid(); ensures Valid();
-    requires count > 0;
-    ensures el in buf[..count];
-    {
-        if (count == buf.Length)
-        {
-            assert count > 0;
-            var p: int := popAtIndex(0); // Remove oldest
-            assert count == buf.Length - 1;
-            // Mark blood packet as disposed of 
-        }
+    // method push(el: int) 
+    // modifies this.buf, this`count; 
+    // requires Valid(); ensures Valid();
+    // requires count > 0;
+    // ensures el in buf[..count];
+    // {
+    //     if (count == buf.Length)
+    //     {
+    //         assert count > 0;
+    //         var p: int := popAtIndex(0); // Remove oldest
+    //         assert count == buf.Length - 1;
+    //         // Mark blood packet as disposed of 
+    //     }
 
-        var index: int := 0; 
-        while (index < count && buf[index] < el) 
-        invariant 0 <= index <= count; 
-        invariant Sorted(buf, 0, count);
-        invariant LTRange(buf, 0, index, el);
-        {
-            index := index + 1;
-        }
+    //     var index: int := 0; 
+    //     while (index < count && buf[index] < el) 
+    //     invariant 0 <= index <= count; 
+    //     invariant Sorted(buf, 0, count);
+    //     invariant LTRange(buf, 0, index, el);
+    //     {
+    //         index := index + 1;
+    //     }
     
-        var i: int := count - 1; 
-        while (i >= index) 
-        invariant index - 1 <= i <= count - 1;
-        invariant buf == old(buf);
-        invariant if old(count) == buf.Length then count == buf.Length - 1 else count == old(count);
-        invariant SortedIgnore(buf, 0, count + 1, i + 1);
-        invariant LTRange(buf, 0, index, el);
-        invariant GERangeIgnore(buf, index + 1, count + 1, el, i + 1);
-        invariant old(count) == buf.Length ==> DualRange(buf, 0, i+1, i+2, count+1) == old(buf[1..old(count)]);
-        invariant old(count) != buf.Length ==> DualRange(buf, 0, i+1, i+2, count+1) == old(buf[..old(count)]);
-        {
-            buf[i+1] := buf[i];
-            i := i - 1; 
-        } 
-        count := count + 1;
-        assert old(count) == buf.Length ==> DualRange(buf, 0, index, index+1, count) == old(buf[1..old(count)]);
-        assert old(count) != buf.Length ==> DualRange(buf, 0, index, index+1, count) == old(buf[..old(count)]);
-        buf[index] := el;
-        assert old(count) == buf.Length ==> DualRange(buf, 0, index, index+1, count) == old(buf[1..old(count)]);
-        assert old(count) != buf.Length ==> DualRange(buf, 0, index, index+1, count) == old(buf[..old(count)]);
-        assert buf[index] == el;
-        assert el in buf[..count];
+    //     var i: int := count - 1; 
+    //     while (i >= index) 
+    //     invariant index - 1 <= i <= count - 1;
+    //     invariant buf == old(buf);
+    //     invariant if old(count) == buf.Length then count == buf.Length - 1 else count == old(count);
+    //     invariant SortedIgnore(buf, 0, count + 1, i + 1);
+    //     invariant LTRange(buf, 0, index, el);
+    //     invariant GERangeIgnore(buf, index + 1, count + 1, el, i + 1);
+    //     invariant old(count) == buf.Length ==> DualRange(buf, 0, i+1, i+2, count+1) == old(buf[1..old(count)]);
+    //     invariant old(count) != buf.Length ==> DualRange(buf, 0, i+1, i+2, count+1) == old(buf[..old(count)]);
+    //     {
+    //         buf[i+1] := buf[i];
+    //         i := i - 1; 
+    //     } 
+    //     count := count + 1;
+    //     assert old(count) == buf.Length ==> DualRange(buf, 0, index, index+1, count) == old(buf[1..old(count)]);
+    //     assert old(count) != buf.Length ==> DualRange(buf, 0, index, index+1, count) == old(buf[..old(count)]);
+    //     buf[index] := el;
+    //     assert old(count) == buf.Length ==> DualRange(buf, 0, index, index+1, count) == old(buf[1..old(count)]);
+    //     assert old(count) != buf.Length ==> DualRange(buf, 0, index, index+1, count) == old(buf[..old(count)]);
+    //     assert buf[index] == el;
+    //     assert el in buf[..count];
+    // }
+
+
+    predicate IsClean(a: array<int>, low: int, high: int, key: int) 
+    reads a; 
+    requires a != null;
+    requires 0 <= low <= high <= a.Length; 
+    {
+        forall j :: low <= j < high ==> a[j] != key
     }
+
+    // Normally, objects wont have identical copies, unlike int
+    // Ignore return since int can't be null, or otherwise is just el
+    // ensures if IsClean(old(buf), 0, old(count), el) then count == old(count) else count == old(count) - 1;
+    method removePacket(el: int)
+    modifies this.buf, this`count;
+    requires Valid(); ensures Valid(); 
+    ensures buf == old(buf); // Note for next predicate, the commented IsClean ensures above doesn't work (?)
+    ensures if (forall j :: 0 <= j < old(count) ==> old(buf[j]) != el) then count == old(count) else count == old(count) - 1;
+    ensures multiset(buf[..count]) == multiset(old(buf[..old(count)])) - multiset([el]);
+    {
+    // ensures multiset(buf[..count]) == multiset(old(buf[..old(count)])) - multiset([el]);
+        var i: int := 0; 
+        while (i < count && buf[i] != el)
+        invariant 0 <= i <= count; 
+        invariant buf == old(buf);
+        invariant count == old(count);
+        invariant IsClean(buf, 0, i, el); 
+        {
+            i := i + 1;
+        }
+        
+        if (i == count) 
+        {
+        } 
+        else 
+        {
+            var temp: int := popAtIndex(i);
+            assert old(buf[..i]) + [old(buf[i])] + old(buf[i+1..old(count)]) == old(buf[..old(count)]);
+        }
+    }
+
+    // method resize(newSize: int)
+    // modifies this.buf, this`count;
+    // requires Valid(); ensures Valid();
+    // requires newSize >= 0;
+    // ensures fresh(buf);
+    // ensures buf.Length == newSize;
+    // {
+    //     var newBuf := new int[newSize];
+    //     if (newSize < count) // Less inventory space
+    //     {
+    //         // Keep newest blood packets
+    //         var i: int := 0; 
+    //         var shift: int := count - newSize;
+    //         while (i < newSize) 
+    //         invariant 0 <= i <= newSize;
+    //         invariant newBuf[..i] == buf[shift..shift+i]
+    //         {
+    //             newBuf[i] := buf[shift + i];
+    //             i := i + 1; 
+    //         }
+    //         count := newSize; 
+    //     } 
+    //     else 
+    //     {
+    //         // Directly copy 
+    //         var i: int := 0; 
+    //         while (i < count) 
+    //         invariant 0 <= i <= count; 
+    //         invariant newBuf[..i] == buf[..i];
+    //         {
+    //             newBuf[i] := buf[i]; 
+    //             i := i + 1;
+    //         }
+    //     }
+    //     buf := newBuf;
+    // }
 }
