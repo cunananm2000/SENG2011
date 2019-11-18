@@ -1,3 +1,5 @@
+datatype BloodPacket = Empty | Node(expiryDate: int, )
+
 class PacketPile
 {
     var buf: array<int>; // int represents expiry date of blood packet
@@ -201,6 +203,37 @@ class PacketPile
         }
         buf := newBuf;
     }
+
+    method isLow() returns (b: bool)
+        requires Valid(); ensures Valid()
+        ensures b <==> (this.count <= this.low)
+    {
+        b := this.count <= this.low;
+    }
+
+    method setLow(l: int)
+        modifies this, this`low
+        requires Valid(); ensures Valid()
+        requires 0 <= l <= buf.Length
+        ensures this.low == l
+    {
+        this.low := l;
+    }
+
+    method getSize() returns (size: int)
+        requires Valid(); ensures Valid()
+        ensures size == buf.Length
+    {
+        size := buf.Length;
+    }
+
+    method getCount() returns (c: int)
+        requires Valid(); ensures Valid()
+        ensures c == this.count
+    {
+        c := this.count;
+    }
+
 }
 
 predicate Sorted(a: array<int>, low: int, high: int)
