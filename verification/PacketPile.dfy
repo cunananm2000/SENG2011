@@ -122,7 +122,7 @@ class PacketPile
     modifies this.buf, this`count;
     requires Valid(); ensures Valid(); 
     ensures buf == old(buf); // Note for next predicate, the commented IsClean ensures above doesn't work (?)
-    ensures if (forall j :: 0 <= j < old(count) ==> old(buf[j]) != el) then count == old(count) else count == old(count) - 1;
+    ensures count == if (forall j :: 0 <= j < old(count) ==> old(buf[j]) != el) then old(count) else old(count) - 1;
     ensures multiset(buf[..count]) == multiset(old(buf[..old(count)])) - multiset([el]);
     {
     // ensures multiset(buf[..count]) == multiset(old(buf[..old(count)])) - multiset([el]);
@@ -152,8 +152,8 @@ class PacketPile
     requires newSize >= 0;
     ensures fresh(buf);
     ensures buf.Length == newSize;
-    ensures low == if (old(low) > newSize) then newSize else old(low);
     ensures count == if (newSize < old(count)) then newSize else old(count);
+    ensures low == if (old(low) > newSize) then newSize else old(low);
     ensures buf[..count] == if (newSize < old(count)) then old(buf[old(count)-newSize..old(count)]) else old(buf[..old(count)]);
     {
         var newBuf := new int[newSize];
@@ -162,7 +162,6 @@ class PacketPile
             // Keep newest blood packets
             var i: int := 0; 
             var shift: int := count - newSize;
-            // assert buf[count-newSize..count] == old(buf[old(count)-newSize..old(count)]);
 
             while (i < newSize) 
             invariant 0 <= i <= newSize;
