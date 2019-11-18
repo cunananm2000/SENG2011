@@ -8,7 +8,7 @@ public class Donor extends User{
 		super(id,password);
 		this.firstName = firstName;
 		this.lastName = lastName;
-		System.out.println("New donor:"+this.getId()+this.getPassword());
+//		System.out.println("New donor:"+this.getId()+this.getPassword());
 	}
 	
 	/**

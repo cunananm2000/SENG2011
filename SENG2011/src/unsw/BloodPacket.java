@@ -2,17 +2,17 @@ package unsw;
 
 public class BloodPacket {
 	private int id;
-	private String bloodType;
+	private int bloodType;
 	private int donateDate;
 	private String donateLoc;
 	private int expiryDate;
 	private int donorID;
 	private String firstName;
 	private String lastName;
-	private String status;
+	private int status;
 	private String currLoc;
 	
-	public BloodPacket(int id, String bloodType, int donateDate, String donateLoc, int expiryDate, int donorID, String firstName, String lastName) {
+	public BloodPacket(int id, int bloodType, int donateDate, String donateLoc, int expiryDate, int donorID, String firstName, String lastName) {
 		this.id = id;
 		this.bloodType = bloodType;
 		this.donateDate = donateDate;
@@ -22,10 +22,10 @@ public class BloodPacket {
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.currLoc = "warehouse";
-		this.status = "CLEAN";
+		this.status = 0;
 	}
 
-	public void setStatus(String status) {
+	public void setStatus(int status) {
 		this.status = status;
 		
 	}
@@ -46,7 +46,7 @@ public class BloodPacket {
 	/**
 	 * @return the bloodType
 	 */
-	public String getBloodType() {
+	public int getBloodType() {
 		return bloodType;
 	}
 
@@ -95,7 +95,7 @@ public class BloodPacket {
 	/**
 	 * @return the status
 	 */
-	public String getStatus() {
+	public int getStatus() {
 		return status;
 	}
 
