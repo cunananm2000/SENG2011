@@ -12,17 +12,17 @@ public class MainSystem {
 	}
 	
 	public User login(String userType, int id, String password) {
-		if (userType.equals("VAMPIRE")) {
+		if (userType.equalsIgnoreCase("VAMPIRE")) {
 			if (vampire.login(id, password)) {
 				return vampire;
 			} else {
 				return null;
 			}
-		} else if (userType.equals("DONOR")) {
+		} else if (userType.equalsIgnoreCase("Donor")) {
 			return donorDatabase.login(id, password);
-		} else if (userType.equals("HOSPITAL")) {
+		} else if (userType.equalsIgnoreCase("HOSPITAL")) {
 			return hospitalDatabase.login(id, password);
-		} else if (userType.equals("PATH_CENTRE")) {
+		} else if (userType.equals("PATH_CENTRE") || userType.equals("Pathology Centre")) {
 			return pathCentreDatabase.login(id, password);
 		}
 		return null;

@@ -260,7 +260,9 @@ public class Emulator {
         User[] users = mainSystem.getDonors();
         int i = 0;
         while (i < users.length) {
-        	users[i].printOut();
+        	if (users[i] != null) {
+        		users[i].printOut();
+        	}
         	i += 1;
         }
     }
@@ -319,7 +321,11 @@ public class Emulator {
 			String cmd = input("$ ").toUpperCase().replace(' ', '_');
 			if (cmd.equals("QUIT")) {
 				break;
-			} else if (cmd.equals("LOGOUT")) {
+			}
+			else if (cmd.equals("TEST")) {
+				printDonors();
+			}
+			else if (cmd.equals("LOGOUT")) {
 				user = null;
 				userType = "";
 				println("Logging out...");
@@ -335,7 +341,7 @@ public class Emulator {
 	}
 	
 	public void loadDonors() throws IOException {
-		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("testData/donors.json")));
+		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("SENG2011/testData/donors.json")));
 		
 		jsonArray.forEach(e -> {
 			JSONObject temp = (JSONObject) e;
@@ -347,7 +353,7 @@ public class Emulator {
 	}
 	
 	public void loadHospitals() throws IOException {
-		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("testData/hospitals.json")));
+		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("SENG2011/testData/hospitals.json")));
 		
 		jsonArray.forEach(e -> {
 			JSONObject temp = (JSONObject) e;
@@ -358,7 +364,7 @@ public class Emulator {
 	}
 	
 	public void loadPathCentres() throws IOException {
-		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("testData/pathCentres.json")));
+		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("SENG2011/testData/pathCentres.json")));
 		
 		jsonArray.forEach(e -> {
 			JSONObject temp = (JSONObject) e;
@@ -369,7 +375,7 @@ public class Emulator {
 	}
 	
 	public void loadInventory() throws IOException {
-		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("testData/inventory.json")));
+		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("SENG2011/testData/inventory.json")));
 		
 		jsonArray.forEach(e -> {
 			JSONObject temp = (JSONObject) e;
@@ -382,5 +388,11 @@ public class Emulator {
 //			System.out.println("added blood packet"+e.toString());
 		});
 	}
-	
+
+	public MainSystem getMainSystem() {
+		return mainSystem;
+	}
+	public void setUser(User u) {
+		this.user = u;
+	}
 }
