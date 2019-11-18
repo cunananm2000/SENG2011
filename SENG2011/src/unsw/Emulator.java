@@ -69,7 +69,7 @@ public class Emulator {
 	
 	
 	public void login() throws IOException {
-		String type = input("User type: ").toUpperCase();
+		String type = input("User type: ").toUpperCase().replace(' ','_');
 		int loginID = Integer.parseInt(input("Login ID: "));
 		String password = input("Password: ");
 		
