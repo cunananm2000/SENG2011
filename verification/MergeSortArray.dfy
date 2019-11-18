@@ -33,7 +33,9 @@ requires low<mid<high<=a.Length
 requires InOrder(a[low..mid]) && InOrder(a[mid..high])
 // ensures array segments out of bounds aren't changed
 ensures old(a[..low]) == a[..low] && old(a[high..]) == a[high..];
+// All elements in bounds are preserver
 ensures multiset(a[low..high]) == multiset(old(a[low..high]))
+// All elements in bounds are in order
 ensures InOrder(a[low..high])
 {
 	assert a[..low] == old(a[..low]);
@@ -146,8 +148,6 @@ ensures InOrder(a[low..high])
 			assert [n]+r == old_r;
 			assert multiset(old_m+old_r) == multiset(m+r);
 			assert multiset(l+r+m) == old_a;
-			//assert multiset(l+r+m) == old_a;
-
 			a[k] := right[j];
 			j := j + 1;
 		}

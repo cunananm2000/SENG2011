@@ -11,6 +11,7 @@ method findWord(a: array<string>, key: string) returns (idx: int)
 {
     idx := 0;
     while idx < a.Length && !(|a[idx][..]| == |key| && a[idx][..] == key)
+    decreases a.Length - idx
     invariant 0 <= idx <= a.Length
     invariant forall i :: 0 <= i < idx ==> !(|a[i][..]| == |key| && a[i][..] == key)
     {  

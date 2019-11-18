@@ -1,4 +1,6 @@
 // CODE TAKEN FROM LECTURES!!!
+// ONLY FOR REFERENCE
+module Quack{
 class Quack<Data>  
 {    
     var buf: array<Data>;    
@@ -80,3 +82,4 @@ class Quack<Data>
         shadow:= shadow + [x];          // shadow never overflows, simply concat 'x'    
     }
 } 
+}

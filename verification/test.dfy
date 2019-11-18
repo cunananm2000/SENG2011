@@ -42,3 +42,38 @@ ensures old(a[..low]) == a[..low] && old(a[high..]) == a[high..]
 		assert multiset(old(a[low..high])) == multiset(a[low..high]);
 	}
 }
+
+method TestSets(s:seq<int>)
+{
+	assert multiset(s) <= multiset(s);
+	// assert forall i:: 0<=i<=|s| ==> multiset(s[..i])+multiset(s[i..]) == multiset(s[..]);
+	assert forall i:nat :: i<=|s| ==> s[..i] + s[i..] == s[..];
+	// assert forall i:nat :: i<=|s| ==> multiset(s[..i] + s[i..]) == multiset(s[..]);
+	// assert forall i:nat :: i<=|s| ==> multiset(s[..i]) + multiset(s[i..]) == multiset(s[..]);
+	// assert exists i:: 0<=i<=|s| && multiset(s[..i]) <= multiset(s[..]);
+	assert forall i:nat :: i<=|s| ==> multiset(s[..i]) <= multiset(s[..]);
+}
+
+function LexCmp(a:seq<char>, b:seq<char>) : int
+decreases a, b
+{
+	if (|a| == 0 && |b| == 0) then 0
+	else if (|a| == 0) then -1
+	else if (|b| == 0) then 1
+	else if (a[0] < b[0]) then -1
+	else if (a[0] > b[0]) then 1 
+	else LexCmp(a[1..],b[1..]) 
+}
+
+method testLex(a:seq<char>, b:seq<char>)
+{
+	assert LexCmp(a, b) == 0 ==> LexCmp(b, a) == 0;
+	assert LexCmp(a, b) == 1 ==> LexCmp(b, a) == -1;
+	assert LexCmp(a, b) ==-1 ==> LexCmp(b ,a) == 1;
+}
+
+method Main(){
+	assert LexCmp("a", "b") == -1;
+	assert LexCmp("apple", "banana")==-1;
+	assert LexCmp("aa", "aaa") == -1;
+}
