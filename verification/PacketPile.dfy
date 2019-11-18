@@ -19,7 +19,8 @@ class PacketPile
     {
         buf != null &&
         0 <= count <= buf.Length &&
-        0 <= low <= buf.Length
+        0 <= low <= buf.Length &&
+        Sorted(buf, 0, count)
     }
 
     method Init(size: int, low1: int)
@@ -49,16 +50,26 @@ class PacketPile
         var i: int := index; 
         while (i < count - 1)
         invariant index <= i <= count - 1; 
-        invariant count == old(count); 
-        invariant buf == old(buf); 
-        invariant index == old(index);
+        invariant count == old(count);
+        invariant buf == old(buf);
+        invariant index == old(index); 
         invariant buf[0..i] + buf[i+1..count] == old(buf[0..index]) + old(buf[index+1..old(count)]);
+        invariant Sorted(buf, 0, count)
         {
             buf[i] := buf[i + 1];
             i := i + 1; 
         }
-
         count := count - 1; 
     }
 
+    // method push(el: int) 
+    // modifies this.buf, this`count; 
+    // requires Valid(); ensures Valid();
+    // {
+    //     if (count == buf.Length)
+    //     {
+    //         var p: int := popAtIndex(0); // Take the oldest away
+    //         // Set blood packet to 
+    //     }
+    // }
 }

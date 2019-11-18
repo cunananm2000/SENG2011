@@ -1,14 +1,14 @@
 class BloodPacket
 {
     var id: int; 
-    var bloodType: string; 
+    var bloodType: int; // Blood type as ints
     var donateLoc: string;
     var donateDate: int; // Dates represented as int
     var expiryDate: int; // Dates represented as int
     var donorID: int; 
-    var firstName: string; // aren't these querable?
+    var firstName: string; 
     var lastName: string; 
-    var status: string;  
+    var status: int;  // 'Clean' etc. as ints
     var currLoc: string;
 
     predicate Valid() 
@@ -19,7 +19,7 @@ class BloodPacket
         donorID >= 0 
     }
 
-    method Init(id1: int, bloodType1: string, donateLoc1: string, 
+    method Init(id1: int, bloodType1: int, donateLoc1: string, 
                 donateDate1: int, expiryDate1: int, donorID1: int,
                 firstName1: string, lastName1: string)
     modifies this;
@@ -35,7 +35,7 @@ class BloodPacket
     ensures donorID == donorID1;
     ensures firstName == firstName1;
     ensures lastName == lastName1; 
-    ensures status == "CLEAN"; // Assuming blood packets we get are clean
+    ensures status == 0; // Assuming blood packets we get are clean
     ensures currLoc == "warehouse"; // Assumed blood packets are directly added to Vampire's warehouse
     {
         id := id1; 
@@ -46,7 +46,7 @@ class BloodPacket
         donorID := donorID1; 
         firstName := firstName1; 
         lastName := lastName1;
-        status := "CLEAN"; 
+        status := 0; 
         currLoc := "warehouse";
     }
 
@@ -57,7 +57,7 @@ class BloodPacket
         result := id; 
     }
 
-    method getBloodType() returns (result: string)
+    method getBloodType() returns (result: int)
     requires Valid(); ensures Valid();
     ensures result == bloodType; 
     {
@@ -106,7 +106,7 @@ class BloodPacket
         result := lastName; 
     }
 
-    method getStatus() returns (result: string)
+    method getStatus() returns (result: int)
     requires Valid(); ensures Valid();
     ensures result == status; 
     {
@@ -120,7 +120,7 @@ class BloodPacket
         result := currLoc; 
     }
 
-    method setStatus(status1: string) 
+    method setStatus(status1: int) 
     modifies this`status; 
     requires Valid(); ensures Valid(); 
     ensures status == status1;
