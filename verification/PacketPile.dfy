@@ -162,36 +162,26 @@ class PacketPile
             // Keep newest blood packets
             var i: int := 0; 
             var shift: int := count - newSize;
-            assert buf[count-newSize..count] == old(buf[old(count)-newSize..old(count)]);
+            // assert buf[count-newSize..count] == old(buf[old(count)-newSize..old(count)]);
 
             while (i < newSize) 
             invariant 0 <= i <= newSize;
             invariant count == old(count);
             invariant low == old(low);
             invariant buf == old(buf);
-            invariant newBuf != null;
-            invariant 0 < shift;
             invariant 0 < shift + i <= count <= buf.Length; 
-            invariant buf[count-newSize..count] == old(buf[old(count)-newSize..old(count)]);
             invariant newBuf[..i] == buf[shift..shift+i]
+            invariant buf[count-newSize..count] == old(buf[old(count)-newSize..old(count)]);
             invariant Sorted(buf, 0, count);
             {
                 newBuf[i] := buf[shift + i];
                 i := i + 1; 
             }
-
-            assert newBuf[..newSize] == old(buf[old(count)-newSize..old(count)]);
             count := newSize; 
-            assert newBuf[..newSize] == newBuf[..count];
-            assert newBuf[..count] == old(buf[old(count)-newSize..old(count)]);
             assert Sorted(newBuf, 0, count); 
         } 
         else 
         {
-            assert newSize >= count;
-            assert newBuf.Length == newSize; 
-            assert buf[..count] == old(buf[..count]);
-
             // Directly copy 
             var i: int := 0; 
             while (i < count) 
@@ -201,7 +191,6 @@ class PacketPile
             invariant buf == old(buf);
             invariant newBuf[..i] == buf[..i];
             invariant buf[..count] == old(buf[..count]);
-            invariant Sorted(buf, 0, count);
             {
                 newBuf[i] := buf[i]; 
                 i := i + 1;
