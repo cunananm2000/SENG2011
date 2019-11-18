@@ -92,13 +92,16 @@ public class MainSystem {
 		bloodDatabase.searchBloodString(field, value);
 	}
 	
-	public void makeDeposit(String bloodType, int donateDate, String donateLoc, int expiryDate, int donorID) {
+	public void makeDeposit(int bloodType, int donateDate, String donateLoc, int expiryDate, int donorID) {
 		Donor d = (Donor) donorDatabase.search(donorID);
 		if (d == null) return;
 		String firstName = d.getFirstName();
 		String lastName = d.getLastName();
+//		System.out.println("Got "+bloodType+donateLoc);
 		BloodPacket p = vampire.makeDeposit(bloodType, donateDate, donateLoc, expiryDate, donorID, firstName, lastName);
+//		System.out.println("Made"+p.toString());
 		bloodDatabase.addPacket(p);
+//		System.out.println("Added"+p.getID());
 	}
 	
 	public boolean makeRequest(String bloodType, int nPackets, int useBy, String dest) {

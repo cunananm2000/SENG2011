@@ -8,7 +8,6 @@ public class Vampire extends User {
 	private NotifPriorityTable notifPriority = new NotifPriorityTable();
 	private NotifMsgTable notifMsg = new NotifMsgTable();
 	private BloodTypeTable bloodTypes = new BloodTypeTable();
-	private BloodStatusTable bloodStatuses = new BloodStatusTable();
 	
 	private PacketSorter sorter = new PacketBubbleSort();
 	
@@ -26,16 +25,18 @@ public class Vampire extends User {
 		}
 	}
 	
-	public BloodPacket makeDeposit(String bloodType,int donateDate, String donateLoc,int expiryDate,int donorID,String firstName,String lastName) {
+	public BloodPacket makeDeposit(int bloodType,int donateDate, String donateLoc,int expiryDate,int donorID,String firstName,String lastName) {
 		int newID = packetCounter;
 		BloodPacket p = new BloodPacket(newID,bloodType,donateDate,donateLoc,expiryDate,donorID,firstName,lastName);
 		packetCounter += 1;
 		
-		int bloodIndex = bloodTypes.get(bloodType);
-		piles[bloodIndex].push(p);
+//		System.out.println("About to push "+p.toString());
+		piles[bloodType].push(p);
+//		System.out.println("Pushed "+p.toString());
 		
 		int[] things = {newID};
 		this.addNotif("DEPOSIT_MADE", donateLoc, things);
+//		System.out.println("Added notif for "+p.toString());
 		return p;
 	}
 	
@@ -63,6 +64,7 @@ public class Vampire extends User {
 		int i = 0;
 		while (i < piles.length) {
 			totalSize += piles[i].getCount();
+			i += 1;
 		}
 		
 		int[] expired = new int[totalSize];
@@ -74,6 +76,8 @@ public class Vampire extends User {
 			almostExpired[i] = -1;
 			i += 1;
 		}
+		
+//		System.out.println("A");
 		
 		i = 0;
 		int expiredCount = 0;
@@ -95,18 +99,27 @@ public class Vampire extends User {
 				j += 1;
 				almostExpiredCount += 1;
 			}
+			
+			i += 1;
 		}
+		
+//		System.out.println("B");
 		
 		
 		if (expiredCount > 0) {
 			addNotif("EXPIRED_PACKETS","",truncate(expired,expiredCount));
 		}
 		
+//		System.out.println("C");
+		
 		if (almostExpiredCount > 0) {
 			addNotif("ALMOST_EXPIRED","",truncate(almostExpired,almostExpiredCount));
 		}
 		
+//		System.out.println("D");
+		
 		this.findLows();
+		System.out.println("Found lows");
 		
 		this.currDay += 1;
 	}
@@ -120,6 +133,7 @@ public class Vampire extends User {
 				lows[count] = i;
 				count += 1;
 			}
+			i += 1;
 		}
 		lows = truncate(lows,count);
 		this.addNotif("LOW_BLOOD_LEVELS", "", lows);
@@ -141,6 +155,7 @@ public class Vampire extends User {
 		int i = 0;
 		while (i < newSize) {
 			newA[i] = a[i];
+			i += 1;
 		}
 		return newA;
 	}
@@ -158,6 +173,7 @@ public class Vampire extends User {
 		int i = 0;
 		while (i < piles.length) {
 			totalSize += piles[i].getCount();
+			i += 1;
 		}
 		BloodPacket[] everything = new BloodPacket[totalSize];
 		
@@ -176,7 +192,7 @@ public class Vampire extends User {
 		
 		
 		sorter.sort(everything, field);
-		
+	    
 		i = 0;
 		while (i < totalSize) {
 			everything[i].printOut();

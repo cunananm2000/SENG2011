@@ -18,6 +18,7 @@ public class NotifPile {
 		int i = 0;
 		while (i < count - 1) {
 			buf[i] = buf[i+1];
+			i += 1;
 		}
 		count -= 1;
 		return el;
@@ -28,7 +29,7 @@ public class NotifPile {
 			this.pop();
 		}
 		int index = 0;
-		while (index < buf.length && 
+		while (index < count && 
 				(buf[index].getDate() < el.getDate() || 
 						(buf[index].getDate() == el.getDate() && 
 						buf[index].getPriority() >= el.getPriority()))) {
@@ -37,6 +38,7 @@ public class NotifPile {
 		int i = count - 1;
 		while (i >= index) {
 			buf[i+1] = buf[i];
+			i -= 1;
 		}
 		count += 1;
 		buf[index] = el;

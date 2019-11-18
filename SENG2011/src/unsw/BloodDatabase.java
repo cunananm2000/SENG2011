@@ -99,27 +99,27 @@ public class BloodDatabase {
 	public boolean matchFieldInt(BloodPacket p, String field, int value) {
 		if (field == "ID") {
 			return p.getID() == value;
+		} else if (field == "BLOOD_TYPE") {
+				return p.getBloodType() == value;
 		} else if (field == "DONATE_DATE") {
 			return p.getDonateDate() == value;
 		} else if (field == "EXPIRY_DATE") {
 			return p.getExpiryDate() == value;
 		} else if (field == "DONOR_ID") {
 			return p.getDonorID() == value;
+		}  else if (field == "STATUS") {
+			return p.getStatus() == value;
 		}
 		return false;
 	}
 	
 	public boolean matchFieldString(BloodPacket p, String field, String value) {
-		if (field == "BLOOD_TYPE") {
-			return p.getBloodType().equals(value);
-		} else if (field == "DONATE_LOC") {
+		if (field == "DONATE_LOC") {
 			return p.getDonateLoc().equals(value);
 		} else if (field == "FIRST_NAME") {
 			return p.getFirstName().equals(value);
 		} else if (field == "LAST_NAME") {
 			return p.getLastName().equals(value);
-		} else if (field == "STATUS") {
-			return p.getStatus().equals(value);
 		} else if (field == "CURR_LOC") {
 			return p.getCurrLoc().equals(value);
 		}

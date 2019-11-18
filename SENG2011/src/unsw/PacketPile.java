@@ -4,7 +4,6 @@ public class PacketPile {
 	private BloodPacket[] buf;
 	private int count = 0;
 	private int low;
-	private BloodStatusTable bloodStatuses = new BloodStatusTable();
 	
 	public PacketPile(int size,int low) {
 		this.buf = new BloodPacket[size];
@@ -22,6 +21,7 @@ public class PacketPile {
 		int i = index;
 		while (i < count - 1) {
 			buf[i] = buf[i+1];
+			i += 1;
 		}
 		count -= 1;
 		return el;
@@ -30,7 +30,7 @@ public class PacketPile {
 	public void push(BloodPacket el) {
 		if (count == buf.length) {
 			BloodPacket p = this.popAtIndex(0);
-			p.setStatus("EXPIRED");
+			p.setStatus(2);
 			p.sendTo("dump");
 		}
 		int index = 0;
@@ -40,6 +40,7 @@ public class PacketPile {
 		int i = count - 1;
 		while (i >= index) {
 			buf[i+1] = buf[i];
+			i -= 1;
 		}
 		count += 1;
 		buf[index] = el;
@@ -99,10 +100,10 @@ public class PacketPile {
 			int timeDiff = p.getExpiryDate() - currDay;
 			if (timeDiff <= 0) {
 				trash[trashCount] = p;
-				p.setStatus("EXPIRED");
+				p.setStatus(2);
 				trashCount += 1;
 			} else if (timeDiff <= buffer) {
-				p.setStatus("ALMOST_EXPIRED");
+				p.setStatus(1);
 			}
 			i += 1;
 		}
@@ -148,7 +149,7 @@ public class PacketPile {
 		int i = 0;
 		int total = 0;
 		while (i < count) {
-			if (buf[i].getStatus().equals("ALMOST_EXPIRED")) {
+			if (buf[i].getStatus() == 1) {
 				total += 1;
 			}
 			i += 1;
@@ -161,7 +162,7 @@ public class PacketPile {
 		int i = 0;
 		int next = 0;
 		while (i < count) {
-			if (buf[i].getStatus().equals("ALMOST_EXPIRED")){
+			if (buf[i].getStatus() == 1){
 				almostTrashIDs[next] = buf[i].getID();
 				next += 1;
 			}

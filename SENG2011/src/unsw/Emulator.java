@@ -1,15 +1,19 @@
 package unsw;
 
-import org.json.simple.JSONArray; 
-import org.json.simple.JSONObject; 
-import org.json.simple.parser.*;
-
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException; 
 import java.io.InputStreamReader;
-import java.util.Iterator;
-import java.util.Map;
+
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.json.JSONTokener;
+//import java.util.Iterator;
+//import java.util.Map;
 
 
 public class Emulator {
@@ -165,11 +169,11 @@ public class Emulator {
 
 	public void addBlood() throws IOException {
 	    int donorID = Integer.parseInt(input("Donor ID: "));
-	    String bloodTypeStr = input("Blood type: ").toUpperCase().replace(" ","_");
+	    int bloodType = Integer.parseInt(input("Blood type: "));
 	    int donateDate = Integer.parseInt((input("Donation date: ")));
 	    int expiryDate = Integer.parseInt((input("Expiry date: ")));
 		PathCentre pc = (PathCentre) user;
-	    mainSystem.makeDeposit(bloodTypeStr,donateDate,pc.getName(),expiryDate,donorID);
+	    mainSystem.makeDeposit(bloodType,donateDate,pc.getName(),expiryDate,donorID);
 	}
 
 	public void requestBlood() throws IOException {
@@ -244,6 +248,14 @@ public class Emulator {
     }
 	
 	public void run() throws IOException {
+		loadDonors();
+		System.out.println("Added donors");
+		loadHospitals();
+		System.out.println("Added hospitals");
+		loadPathCentres();
+		System.out.println("Added path centres");
+		loadInventory();
+		System.out.println("Added inventory");
 		println("Print HELP for help, QUIT to quit");
 		while (true) {
 			String cmd = input("$ ").toUpperCase().replace(' ', '_');
@@ -263,5 +275,54 @@ public class Emulator {
 		}
 		print("Quitting....");
 	}
-    
+	
+	public void loadDonors() throws IOException {
+		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("testData/donors.json")));
+		
+		jsonArray.forEach(e -> {
+			JSONObject temp = (JSONObject) e;
+			String password = temp.getString("password");
+			String firstName = temp.getString("givenName");
+			String lastName = temp.getString("surname");
+			this.mainSystem.addDonor(password, firstName, lastName);
+		});
+	}
+	
+	public void loadHospitals() throws IOException {
+		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("testData/hospitals.json")));
+		
+		jsonArray.forEach(e -> {
+			JSONObject temp = (JSONObject) e;
+			String name = temp.getString("name");
+			String password = temp.getString("password");
+			this.mainSystem.addHospital(name, password);
+		});
+	}
+	
+	public void loadPathCentres() throws IOException {
+		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("testData/pathCentres.json")));
+		
+		jsonArray.forEach(e -> {
+			JSONObject temp = (JSONObject) e;
+			String name = temp.getString("name");
+			String password = temp.getString("password");
+			this.mainSystem.addHospital(name, password);
+		});
+	}
+	
+	public void loadInventory() throws IOException {
+		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("testData/inventory.json")));
+		
+		jsonArray.forEach(e -> {
+			JSONObject temp = (JSONObject) e;
+			int bloodType = temp.getInt("type");
+			int donateDate = temp.getInt("donateDate");
+			String donateLoc = temp.getString("donateLoc");
+			int expiryDate = temp.getInt("expiryDate");
+			int donorID = temp.getInt("donorID");
+			this.mainSystem.makeDeposit(bloodType, donateDate, donateLoc, expiryDate, donorID);
+//			System.out.println("added blood packet"+e.toString());
+		});
+	}
+	
 }
