@@ -42,7 +42,7 @@ class PacketPile
     requires 0 <= index < count; 
     ensures el == old(buf[index]);
     ensures count == old(count) - 1;
-    ensures buf[0..count] == old(buf)[0..index] + old(buf)[index+1..old(count)];
+    ensures buf[0..count] == old(buf[0..index]) + old(buf[index+1..old(count)]);
     {
         el := buf[index]; 
         
@@ -52,7 +52,7 @@ class PacketPile
         invariant count == old(count); 
         invariant buf == old(buf); 
         invariant index == old(index);
-        invariant buf[0..i] + buf[i+1..count] == old(buf)[0..index] + old(buf)[index+1..old(count)];
+        invariant buf[0..i] + buf[i+1..count] == old(buf[0..index]) + old(buf[index+1..old(count)]);
         {
             buf[i] := buf[i + 1];
             i := i + 1; 
