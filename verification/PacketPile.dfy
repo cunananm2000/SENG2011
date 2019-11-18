@@ -1,6 +1,6 @@
 class PacketPile
 {
-    var buf: array<int>; // int represents expiry date 
+    var buf: array<int>; // int represents expiry date of blood packet
     var count: int; 
     var low: int; 
     // bloodStatuses 
@@ -12,6 +12,14 @@ class PacketPile
     requires 0 <= low <= high <= a.Length;  
     {
         forall i, j :: low <= i < j < high ==> a[i] <= a[j]
+    }
+
+    function DualRange(a: array<int>, low: int, mid1: int, mid2: int, high: int): seq<int>
+    reads a;
+    requires a != null;
+    requires 0 <= low <= mid1 <= mid2 <= high <= a.Length;
+    {
+        a[low..mid1] + a[mid2..high]
     }
 
     predicate Valid()
@@ -43,7 +51,7 @@ class PacketPile
     requires 0 <= index < count; 
     ensures el == old(buf[index]);
     ensures count == old(count) - 1;
-    ensures buf[0..count] == old(buf[0..index]) + old(buf[index+1..old(count)]);
+    ensures buf[..count] == old(buf[..index]) + old(buf[index+1..old(count)]); // Putting RHS into predicate fails(?)
     {
         el := buf[index]; 
         
@@ -53,7 +61,7 @@ class PacketPile
         invariant count == old(count);
         invariant buf == old(buf);
         invariant index == old(index); 
-        invariant buf[0..i] + buf[i+1..count] == old(buf[0..index]) + old(buf[index+1..old(count)]);
+        invariant DualRange(buf, 0, i, i+1, count) == old(buf[..index]) + old(buf[index+1..old(count)]);
         invariant Sorted(buf, 0, count)
         {
             buf[i] := buf[i + 1];
@@ -62,14 +70,79 @@ class PacketPile
         count := count - 1; 
     }
 
-    // method push(el: int) 
-    // modifies this.buf, this`count; 
-    // requires Valid(); ensures Valid();
-    // {
-    //     if (count == buf.Length)
-    //     {
-    //         var p: int := popAtIndex(0); // Take the oldest away
-    //         // Set blood packet to 
-    //     }
-    // }
+    predicate SortedIgnore(a: array<int>, low: int, high: int, index: int)
+    reads a;
+    requires a != null;
+    requires 0 <= low <= high <= a.Length;  
+    {
+        forall i, j :: low <= i < j < high && i != index && j != index ==> a[i] <= a[j]
+    }
+
+    predicate LTRange(a: array<int>, low: int, high: int, key: int) 
+    reads a; 
+    requires a != null;
+    requires 0 <= low <= high <= a.Length;
+    {
+        forall j :: low <= j < high ==> a[j] < key
+    }
+
+    predicate GERange(a: array<int>, low: int, high: int, key: int)
+    reads a;
+    requires a != null;
+    requires 0 <= low <= high <= a.Length;
+    {
+        forall j :: low <= j < high ==> a[j] >= key
+    }
+
+    predicate GERangeIgnore(a: array<int>, low: int, high: int, key: int, ignore: int)
+    reads a;
+    requires a != null;
+    requires 0 <= low <= high <= a.Length;
+    {
+        forall j :: low <= j < high && j != ignore ==> a[j] >= key
+    }
+
+    // ensures old(count) == buf.Length ==> multiset(buf[..count]) == multiset(old(buf[1..old(count)])) + multiset([el]);
+    // ensures old(count) != buf.Length ==> multiset(buf[..count]) == multiset(old(buf[..old(count)])) + multiset([el]);
+    method push(el: int) 
+    modifies this.buf, this`count; 
+    requires Valid(); ensures Valid();
+    requires count > 0;
+    {
+        if (count == buf.Length)
+        {
+            assert count > 0;
+            var p: int := popAtIndex(0); // Remove oldest
+            assert count == buf.Length - 1;
+            // Mark blood packet as disposed of 
+        }
+
+        var index: int := 0; 
+        while (index < count && buf[index] < el) 
+        invariant 0 <= index <= count; 
+        invariant Sorted(buf, 0, count);
+        invariant LTRange(buf, 0, index, el);
+        {
+            index := index + 1;
+        }
+    
+        var i: int := count - 1; 
+        while (i >= index) 
+        invariant index - 1 <= i <= count - 1;
+        invariant buf == old(buf);
+        invariant if old(count) == buf.Length then count == buf.Length - 1 else count == old(count);
+        invariant SortedIgnore(buf, 0, count + 1, i + 1);
+        invariant LTRange(buf, 0, index, el);
+        invariant GERangeIgnore(buf, index + 1, count + 1, el, i + 1);
+        invariant old(count) == buf.Length ==> DualRange(buf, 0, i+1, i+2, count+1) == old(buf[1..old(count)]);
+        invariant old(count) != buf.Length ==> DualRange(buf, 0, i+1, i+2, count+1) == old(buf[..old(count)]);
+        {
+            buf[i+1] := buf[i];
+            i := i - 1; 
+        } 
+        count := count + 1;
+        buf[index] := el;
+        // assert old(count) == buf.Length ==> DualRange(buf, 0, index, index+1, count) == old(buf[1..old(count)]);
+        // assert old(count) != buf.Length ==> DualRange(buf, 0, index, index+1, count) == old(buf[..old(count)]);
+    }
 }
