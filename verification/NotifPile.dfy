@@ -212,4 +212,10 @@ class NotifFile {
 
         // assert sortedNotifs(0,count,buf);
     }
+
+    method getNotifs() returns (r : array<real>)
+    ensures r == buf;
+    {
+		r := buf;
+	}
 }
