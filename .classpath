@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="SENG2011/src"/>
+	<classpathentry kind="lib" path="SENG2011/lib/json-simple-1.1.jar"/>
+	<classpathentry kind="lib" path="SENG2011/lib/json.jar"/>
+	<classpathentry kind="output" path="SENG2011/bin"/>
+</classpath>

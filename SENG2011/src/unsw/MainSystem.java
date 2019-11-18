@@ -18,7 +18,7 @@ public class MainSystem {
 			} else {
 				return null;
 			}
-		} else if (userType.equals("DONOR")) {
+		} else if (userType.equalsIgnoreCase("DONOR")) {
 			return donorDatabase.login(id, password);
 		} else if (userType.equals("HOSPITAL")) {
 			return hospitalDatabase.login(id, password);
