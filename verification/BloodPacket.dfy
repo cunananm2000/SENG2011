@@ -1,9 +1,3 @@
-// class Vampire
-// {
-    
-// }
-
-
 class BloodPacket
 {
     var id: int; 
