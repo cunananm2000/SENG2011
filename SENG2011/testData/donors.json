@@ -1,0 +1,44 @@
+[
+ {
+   "id": "donor0",
+   "password": "password0",
+   "givenName": "Michael",
+   "surname": "Cunanan",
+   "email": "email0@gmail.com"
+ },
+ {
+   "id": "donor1",
+   "password": "password1",
+   "givenName": "Mark",
+   "surname": "Estoque",
+   "email": "email1@gmail.com"
+ },
+ {
+   "id": "donor2",
+   "password": "password2",
+   "givenName": "David",
+   "surname": "Leydon",
+   "email": "email2@gmail.com"
+ },
+ {
+   "id": "donor3",
+   "password": "password3",
+   "givenName": "Tushar",
+   "surname": "Virk",
+   "email": "email3@gmail.com"
+ },
+ {
+   "id": "donor4",
+   "password": "password4",
+   "givenName": "Kenvin",
+   "surname": "Yu",
+   "email": "email4@gmail.com"
+ },
+ {
+   "id": "donor5",
+   "password": "password",
+   "givenName": "Some",
+   "surname": "Guy",
+   "email": "toby@gmail.com"
+ }
+]
