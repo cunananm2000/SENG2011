@@ -38,12 +38,14 @@ class PacketPile
     method getNAlmostExpired() returns (total: int)
     requires Valid(); ensures Valid()
     ensures total == Count(buf[..count], 1)
+    ensures (1 in buf[..count]) <==> total > 0
     {
         total := 0;
         var i: int := 0;
         while (i < count) 
-        invariant 0 <= i <= count;
-        invariant total == Count(buf[..i], 1);
+        invariant 0 <= i <= count
+        invariant total == Count(buf[..i], 1)
+        invariant 1 in buf[..i] <==> total > 0
         {
             if (buf[i] == 1) 
             {
@@ -60,32 +62,52 @@ class PacketPile
         ensures trash != null
         ensures forall i :: 0 <= i < |trash[..]| ==> trash[i] == 1;
     {
-        var size := getNAlmostExpired();
-        var trashSeq: seq<int> := [];
+        //var size := getNAlmostExpired();
+        var nTrash := 0;
+        var tempTrash := new int[count];
         var i := 0;
         while i < count
         decreases count - i
+        invariant count == old(count)
+        invariant buf == old(buf)
         invariant 0 <= i <= count
-        invariant forall j :: 0 <= j < |trashSeq| ==> trashSeq[j] == 1
+        invariant 0 <= nTrash <= i
+        invariant forall j :: 0 <= j < nTrash ==> tempTrash[j] == 1
         {
             if buf[i] == 1 {
-                trashSeq := trashSeq + [buf[i]];
+                tempTrash[nTrash] := buf[i];
+                nTrash := nTrash + 1;
             }
             i := i + 1;
         }
-        trash := seqToArrInt(trashSeq);
+
+        //need to reduce trash array size for postcond
+        trash := new int[nTrash];
+        i := 0;
+        while i < nTrash
+        decreases nTrash - i
+        invariant count == old(count)
+        invariant trash == old(trash)
+        invariant 0 <= i <= nTrash
+        invariant forall j :: 0 <= j < nTrash ==> tempTrash[j] == 1
+        invariant forall j :: 0 <= j < i ==> trash[j] == tempTrash[j]
+        {
+            trash[i] := tempTrash[i];
+            i := i + 1;
+        }
     }
 }
 
 function method Count(a: seq<int>, key: int) : nat
-decreases |a|
+    decreases |a|
+    ensures Count(a, key) <= |a|
 {   
     if |a| == 0 then 0 else
     (if a[0] == key then 1 else 0) + Count(a[1..], key)
 }
 
 lemma DistributiveLemma(a: seq<int>, b: seq<int>, key: int)
-ensures Count(a + b, key) == Count(a, key) + Count(b, key)
+    ensures Count(a + b, key) == Count(a, key) + Count(b, key)
 {
     if a == [] {
         assert a + b == b;
@@ -93,23 +115,4 @@ ensures Count(a + b, key) == Count(a, key) + Count(b, key)
         DistributiveLemma(a[1..], b, key);
         assert a + b == [a[0]] + (a[1..] + b);
     }
-}
-
-method seqToArrInt(s: seq<int>) returns(a: array<int>)
-    ensures a != null
-    ensures a.Length == |s|
-    ensures forall i :: 0 <= i < |s| ==> a[i] == s[i]
-    ensures multiset(a[..]) == multiset(s)
-{
-    a := new int[|s|];
-    var i := 0;
-    while i < |s|
-    decreases |s| - i
-    invariant 0 <= i <= |s|
-    invariant forall j :: 0 <= j < i ==> a[j] == s[j]
-    {
-        a[i] := s[i];
-        i := i + 1;
-    }
-    assert a[..] == s;
 }
