@@ -45,6 +45,7 @@ requires a != null
 method LinearSearchMultiple(a:array<int>, key:int) returns (r:array<int>)
 requires a != null
 ensures r != null
+ensures fresh(r)
 ensures forall i:nat :: i<r.Length ==> r[i] == key
 // If returned array has no values, there are no matches
 ensures r.Length == 0 ==> Matches(a[..],key) == 0
