@@ -320,6 +320,125 @@ class PacketPile
         }
     }
 
+    method cleanUp(currDay: int, buffer: int) returns (trashIDs: array<int>) 
+    modifies this.buf, this`count;
+    requires Valid();
+    requires currDay >= 0 && buffer >= 0;
+    ensures Valid();
+    ensures Sorted(buf, 0, count); // Yes this is already in Valid, no I don't know why i need to repeat it
+    ensures trashIDs != null;
+    ensures forall i :: 0 <= i < trashIDs.Length ==> trashIDs[i] <= currDay;
+    ensures forall i :: 0 <= i < count ==> buf[i] > currDay;
+    ensures trashIDs.Length + count == old(count);
+    ensures old(buf[..old(count)]) == trashIDs[..] + buf[0..count];
+    {
+        var cutoff := 0;
+        while (cutoff < count && buf[cutoff] <= currDay)
+        decreases buf.Length - cutoff;
+        invariant Valid();
+        invariant count == old(count);
+        invariant buf.Length == old(buf).Length;
+        invariant buf.Length == old(buf.Length);
+        invariant 0 <= cutoff <= count <= buf.Length;
+        invariant forall j :: 0 <= j < cutoff ==> buf[j] <= currDay;
+        invariant old(buf[..count]) == buf[..count];
+        {
+            // p = buf[cutoff]
+            // p.setStatus(2)
+            // p.sendTo("dump")
+            cutoff := cutoff + 1;
+        }
+
+        assert old(buf[..cutoff]) == buf[..cutoff];
+        assert cutoff <= old(buf.Length);
+
+        var i := 0;
+        while (i < count && buf[i] <= currDay + buffer) 
+        decreases buf.Length - i;
+        invariant Valid();
+        invariant count == old(count);
+        invariant buf.Length == old(buf).Length;
+        invariant buf.Length == old(buf.Length);
+        invariant forall j :: 0 <= j < cutoff ==> buf[j] <= currDay;
+        invariant forall j :: cutoff <= j < count ==> buf[j] > currDay;
+        invariant old(buf[..count]) == buf[..count];
+        {
+            // buf[i].setStatus();
+            i := i + 1;
+        }
+
+        assert Sorted(buf,cutoff,count);
+
+        trashIDs := new int[cutoff];
+        i := 0;
+        while (i < cutoff)
+        decreases cutoff - i;
+        invariant 0 <= i <= cutoff;
+        invariant count == old(count);
+        invariant Valid();
+        invariant buf.Length == old(buf).Length;
+        invariant buf.Length == old(buf.Length);
+        invariant forall j :: 0 <= j < i ==> trashIDs[j] == buf[j];
+        invariant forall j :: 0 <= j < cutoff ==> buf[j] <= currDay;
+        invariant forall j :: cutoff <= j < count ==> buf[j] > currDay;
+        invariant old(buf[..count]) == buf[..count];
+        {
+            trashIDs[i] := buf[i];
+            i := i + 1;
+        }
+
+        assert Sorted(buf,cutoff,count);
+
+        assert trashIDs[..] == buf[..cutoff];
+        assert old(buf[..cutoff]) == buf[..cutoff];
+        assert trashIDs[..] == old(buf[..cutoff]);
+        assert buf[cutoff..count] == old(buf[cutoff..count]);
+        assert old(buf[..cutoff]) + buf[cutoff..count] == old(buf[..old(count)]);
+        assert trashIDs[..] + buf[cutoff..count] == old(buf[..old(count)]);
+
+        assert (old(count) <= buf.Length);
+        assert(count == old(count));
+        count := count - cutoff;
+        assert(count + cutoff == old(count));
+        assert(count + cutoff <= buf.Length);
+        assert forall j :: 0 <= j - cutoff < count ==> buf[j] > currDay;
+
+        assert trashIDs[..] == old(buf[..cutoff]);
+        assert trashIDs[..] + buf[cutoff..count+cutoff] == old(buf[..old(count)]);
+        assert old(buf[..old(count)]) == trashIDs[..] + buf[cutoff..cutoff+count];
+        // forall i :: 0 <= i < count ==> buf[i] > currDay;
+        assert Sorted(buf,cutoff,count+cutoff);
+        assert count + cutoff <= old(buf.Length);
+
+        i := 0;
+        while (i < count)
+        decreases count - i;
+        invariant 0 <= i <= count;
+        invariant cutoff <= i + cutoff <= count + cutoff <= buf.Length;
+        invariant count + cutoff == old(count);
+        invariant forall j :: 0 <= j < cutoff ==> trashIDs[j] <= currDay;
+        invariant forall j :: 0 <= j - cutoff < count ==> buf[j] > currDay;
+        invariant forall j :: 0 <= j < i ==> buf[j] > currDay;
+        invariant count + cutoff == old(count) <= buf.Length;
+        invariant forall j :: cutoff + i <= j < cutoff + count ==> buf[j] == old(buf)[j];
+        invariant Sorted(buf,cutoff+i,cutoff+count);
+        invariant old(buf[..cutoff]) == trashIDs[..];
+        invariant old(buf[..old(count)]) == trashIDs[..] + buf[0..i] + buf[cutoff+i..cutoff+count];
+        {
+            buf[i] := buf[cutoff+i];
+
+            i := i + 1;
+        }
+
+        assert forall j :: 0 <= j < count ==> buf[j] > currDay;
+
+        assert (cutoff == trashIDs.Length);
+        assert (count + cutoff == old(count));
+
+        assert old(buf[..old(count)]) == trashIDs[..] + buf[0..count];
+        
+        return trashIDs;
+    }
 }
 
 predicate Sorted(a: array<int>, low: int, high: int)
