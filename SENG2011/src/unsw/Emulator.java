@@ -6,6 +6,8 @@ import java.io.FileReader;
 import java.io.IOException; 
 import java.io.InputStreamReader;
 
+import javax.swing.JOptionPane;
+
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 
@@ -43,7 +45,7 @@ public class Emulator {
 	        println("SEARCH_BLOOD ---------- Search blood database");
 	        println("SET_LOW_LEVEL --------- Set low level of a specific blood type");
 	        println("SET_BUFFER ------------ Set a warning buffer");
-	    } else if (userType.equals("PATH_CENTRE")) {
+	    } else if (userType.equalsIgnoreCase("PATH_CENTRE")) {
 	        println("ADD_BLOOD ------------- Add a new blood packet");
 	    }
 	    return true;
@@ -69,7 +71,7 @@ public class Emulator {
 	
 	
 	public void login() throws IOException {
-		String type = input("User type: ").toUpperCase();
+		String type = input("User type: ").toUpperCase().replace('_', ' ');
 		int loginID = Integer.parseInt(input("Login ID: "));
 		String password = input("Password: ");
 		
@@ -93,8 +95,9 @@ public class Emulator {
 			return processVampireCmd(cmd);
 		} else if (userType.equals("HOSPITAL")) {
 			return processHospitalCmd(cmd);
-		} else if (userType.equals("PATH_CENTRE")) {
+		} else if (userType.equalsIgnoreCase("PATH_CENTRE")) {
 			return processPathCentreCmd(cmd);
+			
 		}
 		return false;
 	}
@@ -156,7 +159,7 @@ public class Emulator {
 	    return true;
 	}
 	
-	private boolean processHospitalCmd(String cmd) throws IOException {
+	public boolean processHospitalCmd(String cmd) throws IOException {
 		if (cmd.equals("REQUEST_BLOOD")) {
 			requestBlood();
 			return true;
@@ -200,6 +203,12 @@ public class Emulator {
 	    mainSystem.makeDeposit(bloodType,donateDate,pc.getName(),expiryDate,donorID);
 	}
 
+	public void addBlood(int donorID, int bloodType, int donateDate, int expiryDate) throws IOException {
+		PathCentre pc = (PathCentre) user;
+	    mainSystem.makeDeposit(bloodType,donateDate,pc.getName(),expiryDate,donorID);
+	    JOptionPane.showMessageDialog(null, "successfully added blood packet");
+	}
+	
 	public void requestBlood() throws IOException {
 		int bloodType = Integer.parseInt(input("Blood Type: "));
 	    int nPackets = Integer.parseInt(input("Number of packets: "));
@@ -212,8 +221,20 @@ public class Emulator {
 		}
 	}
 	
+	// for frontend
+	public void requestBlood(int bloodType, int nPackets, int useBy) throws IOException {
+	    Hospital h = (Hospital) user;
+	    if (mainSystem.makeRequest(bloodType,nPackets,useBy,h.getName())) {
+	    	JOptionPane.showMessageDialog(null, "successfully requested blood packet");
+	    	println("Success");
+		} else {
+			JOptionPane.showMessageDialog(null, "failed to add blood packet");
+	        println("Failed");
+		}
+	}
+	
 	public void searchBlood() throws IOException {
-	    String field = input("Search by: ").toUpperCase().replace(" ","_");
+	    String field = input("Search by: ").toUpperCase().replace(' ', '_');
 	    if (field.equals("BLOOD_TYPE") 
 	    		|| field.equals("DONATE_LOC") 
 				|| field.equals("FIRST_NAME")
@@ -322,7 +343,7 @@ public class Emulator {
 			if (cmd.equals("QUIT")) {
 				break;
 			}
-			else if (cmd.equals("TEST")) {
+			else if (cmd.equals("PRINT")) {
 				printDonors();
 			}
 			else if (cmd.equals("LOGOUT")) {
@@ -370,7 +391,7 @@ public class Emulator {
 			JSONObject temp = (JSONObject) e;
 			String name = temp.getString("name");
 			String password = temp.getString("password");
-			this.mainSystem.addHospital(name, password);
+			this.mainSystem.addPathCentre(name, password);
 		});
 	}
 	
@@ -394,5 +415,12 @@ public class Emulator {
 	}
 	public void setUser(User u) {
 		this.user = u;
+	}
+	public User getUser() {
+		return user;
+	}
+
+	public String setUserType(String type) {
+		return type;
 	}
 }

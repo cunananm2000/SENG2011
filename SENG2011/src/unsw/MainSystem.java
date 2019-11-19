@@ -22,7 +22,8 @@ public class MainSystem {
 			return donorDatabase.login(id, password);
 		} else if (userType.equalsIgnoreCase("HOSPITAL")) {
 			return hospitalDatabase.login(id, password);
-		} else if (userType.equals("PATH_CENTRE") || userType.equals("Pathology Centre")) {
+		} else if (userType.equalsIgnoreCase("PATH_CENTRE")) {
+				
 			return pathCentreDatabase.login(id, password);
 		}
 		return null;
@@ -109,4 +110,16 @@ public class MainSystem {
 		return vampire.makeRequest(bloodType, nPackets, useBy, dest);
 	}
 
+	public DonorDatabase getDonorDB() {
+		return donorDatabase;
+	}
+	
+	public PathCentreDatabase getPathDB() {
+		return pathCentreDatabase;
+	}
+	
+	public HospitalDatabase getHospitalDB () {
+		return hospitalDatabase;
+	}
+	
 }
