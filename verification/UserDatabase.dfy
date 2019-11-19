@@ -1,43 +1,18 @@
-class User {
-
-    var id: int;
-    var password: string;
-
-    // assuming ID has to be > 0 and password cannot be empty
-    predicate Valid()
-        reads this, this`id, this`password
-    {
-        id >= 0 && password != ""
-    }
-
-    method Init(ID: int, pass: string)
-        modifies this, this`id, this`password
-        ensures Valid()
-        requires ID >= 0
-        requires pass != ""
-    {
-        this.id := ID;
-        this.password := pass;
-    }
-
-    method getPassword() returns(pass: string)
-        //requires Valid(); ensures Valid()
-        ensures pass == password
-    {
-        pass := this.password;
-    }
-}
-
 class UserDatabase {
 
     var users: array<int>;
     var passwords: array<string>;
     var count: int;
 
-    // since null user is represented by -1, ignore for sort
+    /*// since null user is represented by -1, ignore for sort
     predicate Sorted(a: seq<int>)
     {
         forall i,j :: 0 <= i < j < |a| && (a[i] != -1 && a[j] != -1) ==> a[i] <= a[j]
+    }*/
+
+    predicate Sorted(lo: int, hi: int, a: seq<int>)
+    {
+        forall i, j :: 0 <= lo <= i < j < hi <= |a| ==> a[i] <= a[j]
     }
 
     // assuming list of users is stored in sorted order
@@ -46,9 +21,9 @@ class UserDatabase {
     {
         users != null && 
         passwords != null && 
-        0 <= count < users.Length && 
+        0 <= count <= users.Length && 
         users.Length == passwords.Length &&
-        Sorted(users[..])
+        Sorted(0, count, users[..])
     }
 
     method Init()
@@ -57,9 +32,9 @@ class UserDatabase {
         ensures fresh(users)
         ensures users.Length == 20
     {
-        var usrs: array<int> := new int[20];
-        var pwds: array<string> := new string[20];
-        var i := 0;
+        //var usrs: array<int> := new int[20];
+        //var pwds: array<string> := new string[20];
+        /*var i := 0;
         while i < usrs.Length
         decreases usrs.Length - i
         invariant 0 <= i <= usrs.Length
@@ -69,37 +44,37 @@ class UserDatabase {
             usrs[i] := -1;
             pwds[i] := "";
             i := i + 1;
-        }
-        this.users := usrs;
-        this.passwords := pwds;
+        }*/
+        this.users := new int[20];
+        this.passwords := new string[20];
         this.count := 0;
     }
 
     method search(ID: int) returns (idx: int)
         requires Valid(); ensures Valid()
-        ensures idx == -1 || 0 <= idx < users.Length
-        ensures idx == -1 <==> !(ID in users[..])
-        ensures (0 <= idx < users.Length) <==> (ID in users[..] && users[idx] == ID)
+        ensures idx == -1 || 0 <= idx < count
+        ensures idx == -1 <==> !(ID in users[..count])
+        ensures (0 <= idx < count) <==> (ID in users[..count] && users[idx] == ID)
     {
         idx := 0;
-        while idx < users.Length && users[idx] != ID
-        decreases users.Length - idx
-        invariant 0 <= idx <= users.Length
+        while idx < count && users[idx] != ID
+        decreases count - idx
+        invariant 0 <= idx <= count
         invariant forall i :: 0 <= i < idx ==> users[i] != ID
         {  
             idx := idx + 1;
         }
-        if idx == users.Length { idx := -1; }
+        if idx == count { idx := -1; }
     }
 
     method login(ID: int, pass: string) returns (loggedID: int, index: int)
         requires Valid(); ensures Valid()
         ensures loggedID == ID || loggedID == -1
-        ensures (0 <= index < users.Length && passwords[index] == pass) ==> (loggedID == ID && users[index] == ID)
-        ensures (index == -1 || (0 <= index < users.Length && passwords[index] != pass)) ==> loggedID == -1
+        ensures (0 <= index < count && passwords[index] == pass) ==> (loggedID == ID && users[index] == ID)
+        ensures (index == -1 || (0 <= index < count && passwords[index] != pass)) ==> loggedID == -1
     {
         index := search(ID);
-        assert index != -1 <==> ID in users[..];
+        assert index != -1 <==> ID in users[..count];
         if index != -1 && passwords[index] == pass { loggedID := ID; }
         else if index == -1 || passwords[index] != pass { loggedID := -1; }
     }
@@ -126,7 +101,7 @@ class UserDatabase {
         decreases users.Length - i
         invariant 0 <= i <= users.Length
         invariant |newUsers| == |newPwds| == i
-        invariant Sorted(newUsers)
+        invariant Sorted(0, count, newUsers)
         invariant forall j :: 0 <= j < i ==> (newUsers[j] == users[j] && newPwds[j] == passwords[j])
         {
             newUsers := newUsers + [users[i]];
@@ -142,7 +117,7 @@ class UserDatabase {
         invariant (i >= users.Length) ==> (|newUsers| == |newPwds| == users.Length + (i - users.Length))
         invariant users[..] <= newUsers
         invariant passwords[..] <= newPwds
-        invariant Sorted(newUsers);
+        invariant Sorted(0, count, newUsers);
         invariant (i < users.Length) ==> forall j :: 0 <= j < i ==> (newUsers[j] == users[j] && newPwds[j] == passwords[j])
         invariant (i >= users.Length) ==> forall j :: users.Length <= j < i ==> (newUsers[j] == -1 && newPwds[j] == "");
         {
@@ -161,51 +136,7 @@ class UserDatabase {
 
     }
 
-    /*method SortedInsert(ID: int, pass: string)
-        modifies this, this.users, this.passwords, this`count
-        requires Valid(); //ensures Valid()
-        ensures count == old(count) + 1
-        //ensures Sorted(users[..])
-    {
-        if count == users.Length {
-            doubleSize();
-        }
-
-        assert count == users.Length ==> users.Length == old(users.Length) * 2;
-        assert count == users.Length ==> passwords.Length == old(users.Length) * 2;
-
-        assert Sorted(users[..]);
-
-        var newUsers: seq<int> := [];
-        var newPwds: seq<string> := [];
-        
-        var j := 0;
-        while j < |users[..]|
-        decreases |users[..]| - j
-        invariant 0 <= j <= |users[..]|
-        invariant |newUsers| == |newPwds| == j
-        invariant forall k :: 0 <= k < j ==> (newUsers[k] == users[k] && newPwds[k] == passwords[k]);
-        invariant Sorted(newUsers);
-        {
-            newUsers := newUsers + [users[j]];
-            newPwds := newPwds + [passwords[j]];
-            j := j + 1;
-        }
-
-        var i := 0;
-        while i < |newUsers| && newUsers[i] < ID && newUsers[i] != -1
-        decreases |newUsers| - i;
-        invariant 0 <= i <= |newUsers|
-        invariant forall k :: 0 <= k < i ==> newUsers[k] < ID
-        invariant forall k :: 0 <= k < i ==> newUsers[k] != -1
-        invariant Sorted(newUsers)
-        {
-            i := i + 1;
-        }
-        assert Sorted(newUsers);
-
-        count := count + 1;
-    }*/
+    // TODO sortedInsert(ID: int, pass: string)
 
     method getUsers() returns (userList: array<int>, passList: array<string>)
         requires Valid(); ensures Valid()
