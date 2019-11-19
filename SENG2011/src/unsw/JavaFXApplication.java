@@ -508,7 +508,7 @@ public class JavaFXApplication extends Application {
             @Override
             public void handle(ActionEvent e) {
             	em.getMainSystem().cleanUp();
-            	JOptionPane.showMessageDialog(null, "successfully removed all bad blood packets");
+//            	JOptionPane.showMessageDialog(null, "successfully removed all bad blood packets");
             }
         });
         

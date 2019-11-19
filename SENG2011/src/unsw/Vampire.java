@@ -72,7 +72,6 @@ public class Vampire extends User {
 			i += 1;
 		}
 		
-		
 		i = 0;
 		int expiredCount = 0;
 		int almostExpiredCount = 0;
@@ -97,12 +96,9 @@ public class Vampire extends User {
 			i += 1;
 		}
 		
-		
-		
 		if (expiredCount > 0) {
 			addNotif("EXPIRED_PACKETS","",truncate(expired,expiredCount));
 		}
-		
 		
 		if (almostExpiredCount > 0) {
 			addNotif("ALMOST_EXPIRED","",truncate(almostExpired,almostExpiredCount));
@@ -110,7 +106,6 @@ public class Vampire extends User {
 		
 		
 		this.findLows();
-		
 		this.currDay += 1;
 	}
 	

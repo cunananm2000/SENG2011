@@ -368,7 +368,7 @@ public class Emulator {
 	}
 	
 	public void loadDonors() throws IOException {
-		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("SENG2011/testData/donors.json")));
+		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("testData/donors.json")));
 		
 		jsonArray.forEach(e -> {
 			JSONObject temp = (JSONObject) e;
@@ -380,7 +380,7 @@ public class Emulator {
 	}
 	
 	public void loadHospitals() throws IOException {
-		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("SENG2011/testData/hospitals.json")));
+		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("testData/hospitals.json")));
 		
 		jsonArray.forEach(e -> {
 			JSONObject temp = (JSONObject) e;
@@ -391,7 +391,7 @@ public class Emulator {
 	}
 	
 	public void loadPathCentres() throws IOException {
-		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("SENG2011/testData/pathCentres.json")));
+		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("testData/pathCentres.json")));
 		
 		jsonArray.forEach(e -> {
 			JSONObject temp = (JSONObject) e;
@@ -402,7 +402,7 @@ public class Emulator {
 	}
 	
 	public void loadInventory() throws IOException {
-		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("SENG2011/testData/inventory.json")));
+		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("testData/inventory.json")));
 		
 		jsonArray.forEach(e -> {
 			JSONObject temp = (JSONObject) e;
