@@ -130,7 +130,7 @@ class PacketPile
     method removePacket(el: int)
     modifies this.buf, this`count;
     requires Valid(); ensures Valid(); 
-    ensures buf == old(buf); // Note for next predicate, the commented IsClean ensures above doesn't work (?)
+    ensures buf == old(buf);
     ensures count == if (forall j :: 0 <= j < old(count) ==> old(buf[j]) != el) then old(count) else old(count) - 1; // Can't use IsClean because old(buf[j]) != old(buf)[j]
     ensures multiset(buf[..count]) == multiset(old(buf[..old(count)])) - multiset([el]);
     {
