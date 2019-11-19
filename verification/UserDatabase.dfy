@@ -78,62 +78,47 @@ class UserDatabase {
         if index != -1 && passwords[index] == pass { loggedID := ID; }
         else if index == -1 || passwords[index] != pass { loggedID := -1; }
     }
-
+    
     method doubleSize()
-        modifies this, this.users, this.passwords
+        modifies this, this`users, this`passwords
         requires Valid(); ensures Valid();
         ensures users.Length == passwords.Length
         ensures users.Length == old(users.Length) * 2
         ensures passwords.Length == old(passwords.Length) * 2
-        ensures old(users[..]) <= users[..]
-        ensures users[..|old(users[..])|] == old(users[..])
-        ensures old(passwords[..]) <= passwords[..]
-        ensures passwords[..|old(passwords[..])|] == old(passwords[..])
+        ensures old(users[..count]) <= users[..count]
+        ensures users[..count] == old(users[..count])
+        ensures old(passwords[..count]) <= passwords[..count]
+        ensures passwords[..count] == old(passwords[..count])
         ensures count == old(count)
         ensures fresh(users) && fresh(passwords)
     {
+        var currSize := users.Length;
         var newSize := users.Length * 2;
         
-        var newUsers: seq<int> := [];
-        var newPwds: seq<string> := [];
-        
+        var newUsers: array<int> := new int[newSize];
+        var newPwds: array<string> := new string[newSize];
+
+        assert newUsers != null;
+        assert newPwds != null;
+        assert users != null;
+
         var i := 0;
-        while i < users.Length
-        decreases users.Length - i
-        invariant 0 <= i <= users.Length
-        invariant |newUsers| == |newPwds| == i
-        invariant Sorted(0, count, newUsers)
-        invariant forall j :: 0 <= j < i ==> (newUsers[j] == users[j] && newPwds[j] == passwords[j])
+
+        while i < count
+            invariant 0 <= i <= count;
+            invariant count == old(count)
+            invariant users == old(users)
+            invariant passwords == old(passwords)
+            invariant newUsers[..i] == users[..i] && newPwds[..i] == passwords[..i]
+            invariant users[..count] == old(users[..count]) && passwords[..count] == old(passwords[..count])
         {
-            newUsers := newUsers + [users[i]];
-            newPwds := newPwds + [passwords[i]];
+            newUsers[i] := users[i]; 
+            newPwds[i] := passwords[i];
             i := i + 1;
         }
 
-        i := 0;
-        while i < newSize
-        decreases newSize - i
-        invariant 0 <= i <= newSize
-        invariant (i < users.Length) ==> (|newUsers| == |newPwds| == users.Length)
-        invariant (i >= users.Length) ==> (|newUsers| == |newPwds| == users.Length + (i - users.Length))
-        invariant users[..] <= newUsers
-        invariant passwords[..] <= newPwds
-        invariant Sorted(0, count, newUsers);
-        invariant (i < users.Length) ==> forall j :: 0 <= j < i ==> (newUsers[j] == users[j] && newPwds[j] == passwords[j])
-        invariant (i >= users.Length) ==> forall j :: users.Length <= j < i ==> (newUsers[j] == -1 && newPwds[j] == "");
-        {
-            if (i >= users.Length) {
-                newUsers := newUsers + [-1];
-                newPwds := newPwds + [""];
-            }
-            i := i + 1;
-        }
-        
-        var newUsersArr := seqToArrInt(newUsers); 
-        var newPwdsArr := seqToArrStr(newPwds);
-
-        users := newUsersArr;
-        passwords := newPwdsArr;
+        users := newUsers;
+        passwords := newPwds;
     }
 
     method sortedInsert(newUserID: int, newUserPass: string)
