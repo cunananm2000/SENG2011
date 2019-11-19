@@ -55,29 +55,25 @@ class PacketPile
         }
     }
 
-    method getAlmostExpired() returns (trash: seq<int>)
+    method getAlmostExpired() returns (trash: array<int>)
         requires Valid(); ensures Valid()
-        ensures forall i :: 0 <= i < |trash| ==> trash[i] == 1;
+        ensures trash != null
+        ensures forall i :: 0 <= i < |trash[..]| ==> trash[i] == 1;
     {
         var size := getNAlmostExpired();
-        //trash := new int[size];
-        trash := [];
+        var trashSeq: seq<int> := [];
         var i := 0;
-        var next := 0;
         while i < count
         decreases count - i
         invariant 0 <= i <= count
-        //invariant 1 in buf[..i] <==> next > 0
-        invariant 0 <= next <= i
-        invariant forall j :: 0 <= j < |trash| ==> trash[j] == 1
+        invariant forall j :: 0 <= j < |trashSeq| ==> trashSeq[j] == 1
         {
             if buf[i] == 1 {
-                //trash[next] := buf[i];
-                //next := next + 1;
-                trash := trash + [buf[i]];
+                trashSeq := trashSeq + [buf[i]];
             }
             i := i + 1;
         }
+        trash := seqToArrInt(trashSeq);
     }
 }
 
@@ -97,4 +93,23 @@ ensures Count(a + b, key) == Count(a, key) + Count(b, key)
         DistributiveLemma(a[1..], b, key);
         assert a + b == [a[0]] + (a[1..] + b);
     }
+}
+
+method seqToArrInt(s: seq<int>) returns(a: array<int>)
+    ensures a != null
+    ensures a.Length == |s|
+    ensures forall i :: 0 <= i < |s| ==> a[i] == s[i]
+    ensures multiset(a[..]) == multiset(s)
+{
+    a := new int[|s|];
+    var i := 0;
+    while i < |s|
+    decreases |s| - i
+    invariant 0 <= i <= |s|
+    invariant forall j :: 0 <= j < i ==> a[j] == s[j]
+    {
+        a[i] := s[i];
+        i := i + 1;
+    }
+    assert a[..] == s;
 }
