@@ -55,7 +55,7 @@ class PacketPile
         }
         count := count - 1; 
     }
-    
+
     // I know it's ugly, but it's faster to verify when it's ugly 
     // Too slow to verify with sequences + multisets 
     method push(el: int) 
@@ -102,8 +102,6 @@ class PacketPile
         }
 
         assert 0 <= index <= count < buf.Length; 
-        // assert forall j :: 0 <= j < index ==> buf[j] < el; 
-        // assert forall j :: index <= j < count ==> buf[j] >= el;
         assert LTRange(buf, 0, index, el);
         assert GERange(buf, index, count, el);
 
