@@ -55,25 +55,35 @@ class PacketPile
         }
     }
 
-    method getAlmostExpired() returns (trash: array<int>)
-        requires Valid(); ensures Valid()
-        ensures trash != null
-        ensures forall i :: 0 <= i < |trash[..]| ==> trash[i] == 1;
+    method getAlmostExpired() returns (almostTrashIDs: array<int>)
+    requires Valid(); ensures Valid(); 
+    ensures fresh(almostTrashIDs);
+    ensures almostTrashIDs.Length == Count(buf[..count], 1);
+    ensures multiset(almostTrashIDs[..]) <= multiset(buf[..count]);
     {
-        var size := getNAlmostExpired();
-        var trashSeq: seq<int> := [];
-        var i := 0;
-        while i < count
-        decreases count - i
-        invariant 0 <= i <= count
-        invariant forall j :: 0 <= j < |trashSeq| ==> trashSeq[j] == 1
+        var trashSize: int := getNAlmostExpired();
+        almostTrashIDs := new int[trashSize];
+
+        var next: int := 0;
+        var i: int := 0; 
+        while (i < count) 
+        invariant 0 <= i <= count; 
+        invariant next <= almostTrashIDs.Length  
+        invariant forall j :: 0 <= j < next ==> almostTrashIDs[j] == 1; 
+        invariant next == Count(buf[..i], 1)
+        invariant next + Count(buf[i..count], 1) == almostTrashIDs.Length;
+        invariant multiset(almostTrashIDs[..next]) <= multiset(buf[..i]);
         {
-            if buf[i] == 1 {
-                trashSeq := trashSeq + [buf[i]];
+            if (buf[i] == 1)
+            {
+                almostTrashIDs[next] := buf[i];
+                next := next + 1;
             }
-            i := i + 1;
+            DistributiveLemma(buf[..i], [buf[i]], 1);
+            assert buf[..i+1] == buf[..i] + [buf[i]];
+            i := i + 1; 
         }
-        trash := seqToArrInt(trashSeq);
+        assert almostTrashIDs[..next] == almostTrashIDs[..];
     }
 }
 
