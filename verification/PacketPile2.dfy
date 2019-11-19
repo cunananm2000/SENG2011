@@ -61,6 +61,7 @@ class PacketPile
     requires Valid(); ensures Valid(); 
     ensures fresh(almostTrashIDs);
     ensures almostTrashIDs.Length == Count(buf[..count], 1);
+    ensures forall j :: 0 <= j < almostTrashIDs.Length ==> almostTrashIDs[j] == 1;
     ensures multiset(almostTrashIDs[..]) <= multiset(buf[..count]);
     {
         var trashSize: int := getNAlmostExpired();
