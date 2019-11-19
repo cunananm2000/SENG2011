@@ -34,9 +34,10 @@ class UserDatabase {
     var passwords: array<string>;
     var count: int;
 
+    // since null user is represented by -1, ignore for sort
     predicate Sorted(a: seq<int>)
     {
-        forall i,j :: 0 <= i < j < |a| ==> a[i] <= a[j]
+        forall i,j :: 0 <= i < j < |a| && (a[i] != -1 && a[j] != -1) ==> a[i] <= a[j]
     }
 
     // assuming list of users is stored in sorted order
@@ -103,56 +104,97 @@ class UserDatabase {
 
     method doubleSize()
         modifies this, this.users, this.passwords
-        requires Valid(); //ensures Valid()
+        requires Valid(); ensures Valid()
         requires users.Length == passwords.Length
-        //ensures users.Length == passwords.Length
-        //ensures users.Length == old(users.Length) * 2
-        //ensures passwords.Length == old(passwords.Length) * 2
-        //ensures users[..|old(users[..])|] == old(users[..])
-        //ensures passwords[..|old(passwords[..])|] == old(passwords[..])
+        ensures users.Length == passwords.Length
+        ensures users.Length == old(users.Length) * 2
+        ensures passwords.Length == old(passwords.Length) * 2
+        ensures old(users[..]) <= users[..]
+        ensures users[..|old(users[..])|] == old(users[..])
+        ensures old(passwords[..]) <= passwords[..]
+        ensures passwords[..|old(passwords[..])|] == old(passwords[..])
     {
         var newSize := users.Length * 2;
-        //var newUsers: array<int> := new int[newSize];
-        //var newPwds: array<string> := new string[newSize];
         
         var newUsers: seq<int> := [];
         var newPwds: seq<string> := [];
         
         var i := 0;
+        while i < users.Length
+        decreases users.Length - i
+        invariant 0 <= i <= users.Length
+        invariant |newUsers| == |newPwds| == i
+        invariant Sorted(newUsers)
+        invariant forall j :: 0 <= j < i ==> (newUsers[j] == users[j] && newPwds[j] == passwords[j])
+        {
+            newUsers := newUsers + [users[i]];
+            newPwds := newPwds + [passwords[i]];
+            i := i + 1;
+        }
+
+        i := 0;
         while i < newSize
         decreases newSize - i
         invariant 0 <= i <= newSize
-        // Need to fix following loop invariants
-        //invariant (i < users.Length) ==> forall j :: 0 <= j < i ==> newUsers[j] == users[j]
-        //invariant forall j :: 0 <= j < i ==> newPwds[j] == ""
+        invariant (i < users.Length) ==> (|newUsers| == |newPwds| == users.Length)
+        invariant (i >= users.Length) ==> (|newUsers| == |newPwds| == users.Length + (i - users.Length))
+        invariant users[..] <= newUsers
+        invariant passwords[..] <= newPwds
+        invariant Sorted(newUsers);
+        invariant (i < users.Length) ==> forall j :: 0 <= j < i ==> (newUsers[j] == users[j] && newPwds[j] == passwords[j])
+        invariant (i >= users.Length) ==> forall j :: users.Length <= j < i ==> (newUsers[j] == -1 && newPwds[j] == "");
         {
-            //newUsers[i] := -1;
-            //newPwds[i] := "";
-            if i < users.Length {
-                newUsers := newUsers + [users[i]];
-                newPwds := newPwds + [passwords[i]];
-            } else {
+            if (i >= users.Length) {
                 newUsers := newUsers + [-1];
                 newPwds := newPwds + [""];
             }
             i := i + 1;
         }
-
-        /*i := 0;
-        while i < users.Length
-        decreases users.Length - i
-        invariant 0 <= i <= users.Length
-        invariant 0 <= i <= passwords.Length
-        invariant forall j :: 0 <= j < i ==> users[j] == newUsers[j]
-        invariant forall j :: 0 <= j < i ==> passwords[j] == newPwds[j]
-        {
-            newUsers[i] := users[i];
-            newPwds[i] := passwords[i];
-            i := i + 1;
-        }
         
-        users := newUsers;
-        passwords := newPwds;
-    }*/
+        var newUsersArr := seqToArrInt(newUsers);
+        var newPwdsArr := seqToArrStr(newPwds);
+
+        users := newUsersArr;
+        passwords := newPwdsArr;
+
     }
+
+}
+
+method seqToArrInt(s: seq<int>) returns(a: array<int>)
+    ensures a != null
+    ensures a.Length == |s|
+    ensures forall i :: 0 <= i < |s| ==> a[i] == s[i]
+    ensures multiset(a[..]) == multiset(s)
+{
+    a := new int[|s|];
+    var i := 0;
+    while i < |s|
+    decreases |s| - i
+    invariant 0 <= i <= |s|
+    invariant forall j :: 0 <= j < i ==> a[j] == s[j]
+    {
+        a[i] := s[i];
+        i := i + 1;
+    }
+    assert a[..] == s;
+}
+
+method seqToArrStr(s: seq<string>) returns(a: array<string>)
+    ensures a != null
+    ensures a.Length == |s|
+    ensures forall i :: 0 <= i < |s| ==> a[i] == s[i]
+    ensures multiset(a[..]) == multiset(s)
+{
+    a := new string[|s|];
+    var i := 0;
+    while i < |s|
+    decreases |s| - i
+    invariant 0 <= i <= |s|
+    invariant forall j :: 0 <= j < i ==> a[j] == s[j]
+    {
+        a[i] := s[i];
+        i := i + 1;
+    }
+    assert a[..] == s;
 }
