@@ -71,7 +71,7 @@ class PacketPile
         var i: int := 0; 
         while (i < count) 
         invariant 0 <= i <= count; 
-        invariant next <= almostTrashIDs.Length  
+        invariant next <= almostTrashIDs.Length;
         invariant forall j :: 0 <= j < next ==> almostTrashIDs[j] == 1; 
         invariant next == Count(buf[..i], 1)
         invariant next + Count(buf[i..count], 1) == almostTrashIDs.Length;
