@@ -638,12 +638,11 @@ public class JavaFXApplication extends Application {
     				option.equals("LAST_NAME")  || 
     				option.equals("CURR_LOC")) {
         			String value = (String) query.getText();	
-        			SearchResults(primaryStage, option, value);
-        		} else {
+        			SearchResultsStr(primaryStage, option, value);
+        		}	else {
         			int value = Integer.parseInt(query.getText());
-        			em.getMainSystem().searchBloodInt(option, value);
-        		}		
-				
+        			SearchResultsInt(primaryStage, option, value);
+        		}
             }
         });
  
@@ -671,7 +670,86 @@ public class JavaFXApplication extends Application {
         primaryStage.show();
 	}
 
-	protected void SearchResults(Stage primaryStage, String option, String value) {
+	protected void SearchResultsInt(Stage primaryStage, String option, int value) {
+		Scene scene = new Scene(new Group());
+        primaryStage.setWidth(700);
+        primaryStage.setHeight(500);
+        TableView table = new TableView();
+        final Label label = new Label("Blood Packet Database (" + option + ")");
+        label.setFont(new Font("Arial", 20));
+        table.setEditable(true);
+
+        TableColumn id = new TableColumn("ID");
+        id.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("id"));   
+        
+        TableColumn bloodType = new TableColumn("Blood Type");
+        bloodType.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("bloodType"));
+        
+        TableColumn donateDate = new TableColumn("Donation Date");
+        donateDate.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("donateDate"));
+        
+        TableColumn donateLoc = new TableColumn("Donation Location");
+        donateLoc.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("donateLoc"));
+        
+        TableColumn expiryDate = new TableColumn("Expiration Date");
+        expiryDate.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("expiryDate"));
+        
+        TableColumn donorID = new TableColumn("Donor ID");
+        donorID.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("donorID"));
+        
+        TableColumn firstName = new TableColumn("First Name");
+        firstName.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("firstName"));
+        
+        TableColumn lastName = new TableColumn("Surname");
+        lastName.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("lastName"));
+        
+        BloodPacket[] packets = em.getMainSystem().searchBloodInt(option,value);
+        ObservableList<BloodPacket> data = FXCollections.observableArrayList();
+        
+        System.out.println(packets);
+        
+        int i = 0;
+	    while (i < packets.length) {
+	    	BloodPacket bp = new BloodPacket(packets[i].getID(),packets[i].getBloodType(),packets[i].getDonateDate(),
+	    			packets[i].getDonateLoc(), packets[i].getExpiryDate(), packets[i].getDonorID(),
+	    			packets[i].getFirstName(), packets[i].getLastName());
+	    	data.add(bp);
+	    	System.out.println(packets[i].getFirstName());
+	    	i += 1;
+	    }
+        
+        
+        table.setItems(data);
+        table.getColumns().addAll(id,bloodType, donateDate, donateLoc, expiryDate, donorID,firstName,lastName);
+ 
+        final VBox vbox = new VBox();
+        vbox.setSpacing(5);
+        vbox.setPadding(new Insets(10, 0, 0, 10));
+        vbox.getChildren().addAll(label, table);
+ 
+        // Back button
+        Button btn = new Button("Back");
+        btn.setLayoutX(600);
+        btn.setLayoutY(30);
+        
+        btn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent e) {
+            	try {
+					VampirePage(primaryStage);
+				} catch (Exception e1) {
+					System.out.println("can't change stage to vampire screen");
+				}
+            }
+        });
+        
+        ((Group) scene.getRoot()).getChildren().addAll(vbox, btn);
+        primaryStage.setScene(scene);
+        primaryStage.show();
+		
+	}
+
+	protected void SearchResultsStr(Stage primaryStage, String option, String value) {
 		
 		Scene scene = new Scene(new Group());
         primaryStage.setWidth(700);
@@ -705,7 +783,7 @@ public class JavaFXApplication extends Application {
         TableColumn lastName = new TableColumn("Surname");
         lastName.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("lastName"));
         
-        BloodPacket[] packets = em.getMainSystem().getBloodDatabase().searchBloodString(option, value);
+        BloodPacket[] packets = em.getMainSystem().searchBloodString(option,value);
         ObservableList<BloodPacket> data = FXCollections.observableArrayList();
         
         System.out.println(packets);
@@ -721,7 +799,6 @@ public class JavaFXApplication extends Application {
 	    }
         
         
-	    System.out.println(data);
         table.setItems(data);
         table.getColumns().addAll(id,bloodType, donateDate, donateLoc, expiryDate, donorID,firstName,lastName);
  
