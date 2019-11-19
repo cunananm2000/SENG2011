@@ -61,10 +61,20 @@ public class PacketPile {
 	public void resize(int newSize) {
 		BloodPacket[] newBuf = new BloodPacket[newSize];
 		int i = 0;
-		while (i < newSize && i < buf.length) {
-			newBuf[i] = buf[i];
-			i += 1;
+		if (newSize < count) {
+			int shift = count - newSize; 
+			while (i < newSize) {
+				newBuf[i] = buf[shift + i]; 
+				i++; 
+			}
+			count = newSize; 
+		} else {
+			while (i < count) {
+				newBuf[i] = buf[i];
+				i++;
+			}
 		}
+		if (low > newSize) low = newSize; // Ensure low makes sense still
 		buf = newBuf;
 	}
 	

@@ -1,3 +1,6 @@
+// Verification for PacketPile class (abstracted to expiry date)
+// Useful predicates, functions below class
+
 class PacketPile
 {
     var buf: array<int>; // int represents expiry date of blood packet
@@ -12,7 +15,7 @@ class PacketPile
         buf != null &&
         0 <= count <= buf.Length &&
         0 <= low <= buf.Length &&
-        Sorted(buf, 0, count)
+        Sorted(buf, 0, count) // Sorted by expiry date
     }
 
     method Init(size: int, low1: int)
@@ -104,13 +107,7 @@ class PacketPile
     // }
 
 
-    predicate IsClean(a: array<int>, low: int, high: int, key: int) 
-    reads a; 
-    requires a != null;
-    requires 0 <= low <= high <= a.Length; 
-    {
-        forall j :: low <= j < high ==> a[j] != key
-    }
+    
 
     // Normally, objects wont have identical copies, unlike int
     // Ignore return since int can't be null, or otherwise is just el
@@ -143,7 +140,7 @@ class PacketPile
     }
 
     method resize(newSize: int)
-    modifies this, this.buf, this`count, this`low;
+    modifies this`buf, this`count, this`low;
     requires Valid(); ensures Valid();
     requires newSize >= 0;
     ensures fresh(buf);
@@ -153,10 +150,10 @@ class PacketPile
     ensures buf[..count] == if (newSize < old(count)) then old(buf[old(count)-newSize..old(count)]) else old(buf[..old(count)]);
     {
         var newBuf := new int[newSize];
+        var i: int := 0; 
         if newSize < count // Less inventory space
         {
             // Keep newest blood packets
-            var i: int := 0; 
             var shift: int := count - newSize;
 
             while (i < newSize) 
@@ -178,7 +175,6 @@ class PacketPile
         else 
         {
             // Directly copy 
-            var i: int := 0; 
             while (i < count) 
             invariant 0 <= i <= count;
             invariant count == old(count);
@@ -206,7 +202,7 @@ class PacketPile
     }
 
     method setLow(l: int)
-        modifies this, this`low
+        modifies this`low
         requires Valid(); ensures Valid()
         requires 0 <= l <= buf.Length
         ensures this.low == l
@@ -227,59 +223,6 @@ class PacketPile
     {
         c := this.count;
     }
-    
-    function method Count(a: seq<int>, key: int) : nat
-        decreases |a|
-    {   
-        if |a| == 0 then 0 else
-        (if a[0] == key then 1 else 0) + Count(a[1..], key)
-    }
-
-
-    // Section below should go into a different (parallel) file 
-    // lemma DistributiveLemma(a: seq<int>, b: seq<int>, key: int)
-    //     ensures Count(a + b, key) == Count(a, key) + Count(b, key)
-    // {
-    //     if a == [] {
-    //         assert a + b == b;
-    //     } else {
-    //         DistributiveLemma(a[1..], b, key);
-    //         assert a + b == [a[0]] + (a[1..] + b);
-    //     }
-    // }
-
-    // method getNAlmostExpired() returns (n: int)
-    //     requires Valid(); ensures Valid()
-    //     ensures n == Count(buf[..], 1)
-    // {
-    //     n := Count(buf[..], 1);
-    // }
-
-    // // Need to verify with arrays
-    // method getAlmostExpired() returns (trash: seq<int>)
-    //     requires Valid(); ensures Valid()
-    //     ensures forall i :: 0 <= i < |trash| ==> trash[i] == 1;
-    // {
-    //     var size := getNAlmostExpired();
-    //     //trash := new int[size];
-    //     trash := [];
-    //     var i := 0;
-    //     var next := 0;
-    //     while i < count
-    //     decreases count - i
-    //     invariant 0 <= i <= count
-    //     //invariant 1 in buf[..i] <==> next > 0
-    //     invariant 0 <= next <= i
-    //     invariant forall j :: 0 <= j < |trash| ==> trash[j] == 1
-    //     {
-    //         if buf[i] == 1 {
-    //             //trash[next] := buf[i];
-    //             //next := next + 1;
-    //             trash := trash + [buf[i]];
-    //         }
-    //         i := i + 1;
-    //     }
-    // }
 }
 
 predicate Sorted(a: array<int>, low: int, high: int)
@@ -328,4 +271,12 @@ requires a != null;
 requires 0 <= low <= high <= a.Length;
 {
     forall j :: low <= j < high && j != ignore ==> a[j] >= key
+}
+
+predicate IsClean(a: array<int>, low: int, high: int, key: int) 
+reads a; 
+requires a != null;
+requires 0 <= low <= high <= a.Length; 
+{
+    forall j :: low <= j < high ==> a[j] != key
 }
