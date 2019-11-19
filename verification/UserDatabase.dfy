@@ -44,7 +44,9 @@ class UserDatabase {
     predicate Valid()
         reads this, this.users
     {
-        users != null && passwords != null && 0 <= count <= users.Length && 
+        users != null && 
+        passwords != null && 
+        0 <= count < users.Length && 
         users.Length == passwords.Length &&
         Sorted(users[..])
     }
@@ -159,6 +161,73 @@ class UserDatabase {
 
     }
 
+    /*method SortedInsert(ID: int, pass: string)
+        modifies this, this.users, this.passwords, this`count
+        requires Valid(); //ensures Valid()
+        ensures count == old(count) + 1
+        //ensures Sorted(users[..])
+    {
+        if count == users.Length {
+            doubleSize();
+        }
+
+        assert count == users.Length ==> users.Length == old(users.Length) * 2;
+        assert count == users.Length ==> passwords.Length == old(users.Length) * 2;
+
+        assert Sorted(users[..]);
+
+        var newUsers: seq<int> := [];
+        var newPwds: seq<string> := [];
+        
+        var j := 0;
+        while j < |users[..]|
+        decreases |users[..]| - j
+        invariant 0 <= j <= |users[..]|
+        invariant |newUsers| == |newPwds| == j
+        invariant forall k :: 0 <= k < j ==> (newUsers[k] == users[k] && newPwds[k] == passwords[k]);
+        invariant Sorted(newUsers);
+        {
+            newUsers := newUsers + [users[j]];
+            newPwds := newPwds + [passwords[j]];
+            j := j + 1;
+        }
+
+        var i := 0;
+        while i < |newUsers| && newUsers[i] < ID && newUsers[i] != -1
+        decreases |newUsers| - i;
+        invariant 0 <= i <= |newUsers|
+        invariant forall k :: 0 <= k < i ==> newUsers[k] < ID
+        invariant forall k :: 0 <= k < i ==> newUsers[k] != -1
+        invariant Sorted(newUsers)
+        {
+            i := i + 1;
+        }
+        assert Sorted(newUsers);
+
+        count := count + 1;
+    }*/
+
+    method getUsers() returns (userList: array<int>, passList: array<string>)
+        requires Valid(); ensures Valid()
+        ensures userList != null
+        ensures passList != null
+        ensures userList.Length == passList.Length
+        ensures userList[..] == users[..] && passList[..] == passwords[..]
+    {
+        userList := new int[users.Length];
+        passList := new string[passwords.Length];
+        var i := 0;
+        while i < users.Length
+        decreases users.Length - i
+        invariant 0 <= i <= users.Length
+        invariant forall j :: 0 <= j < i ==> (userList[j] == users[j] && passList[j] == passwords[j])
+        {
+            userList[i] := users[i];
+            passList[i] := passwords[i];
+            i := i + 1;
+        }
+    }
+
 }
 
 method seqToArrInt(s: seq<int>) returns(a: array<int>)
@@ -197,4 +266,12 @@ method seqToArrStr(s: seq<string>) returns(a: array<string>)
         i := i + 1;
     }
     assert a[..] == s;
+}
+
+function DualRange(a: array<int>, low: int, mid1: int, mid2: int, high: int): seq<int>
+    reads a;
+    requires a != null;
+    requires 0 <= low <= mid1 <= mid2 <= high <= a.Length;
+{
+    a[low..mid1] + a[mid2..high]
 }
