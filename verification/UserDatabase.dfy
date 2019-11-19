@@ -136,18 +136,15 @@ class UserDatabase {
         passwords := newPwdsArr;
     }
 
-    // TODO sortedInsert(ID: int, pass: string)
     method sortedInsert(newUserID: int, newUserPass: string)
     modifies this, this.users, this.passwords, this`count; 
     requires Valid(); ensures Valid();
     requires users.Length > 0; 
     ensures count == old(count) + 1;
     ensures if old(count) == old(users.Length) 
-            then fresh(users) && users.Length == 2 * old(users.Length)
-            else users == old(users);
-    ensures if old(count) == old(users.Length) 
-            then fresh(passwords) && passwords.Length == 2 * old(passwords.Length) 
-            else passwords == old(passwords);
+            then fresh(users) && users.Length == 2 * old(users.Length) &&
+                 fresh(passwords) && passwords.Length == users.Length 
+            else users == old(users) && passwords == old(passwords);
     ensures exists index :: 0 <= index < count && (
             (forall j :: 0 <= j < index ==> users[j] == old(users[j]) && passwords[j] == old(passwords[j])) &&
             users[index] == newUserID && passwords[index] == newUserPass &&
@@ -158,12 +155,7 @@ class UserDatabase {
         {
             doubleSize();
         }
-        assert count == old(count);
-        assert count == old(users.Length) ==> fresh(users) && fresh(passwords);
-        assert users.Length == if count == old(users.Length) then old(users.Length) * 2 else old(users.Length);
-        assert passwords.Length == users.Length;
-        assert forall k :: 0 <= k < count ==> users[k] == old(users[k]) && passwords[k] == old(passwords[k]);
-    
+        
         var i: int := 0; 
         while (i < count && users[i] < newUserID) 
         invariant 0 <= i <= count; 
@@ -175,14 +167,7 @@ class UserDatabase {
         }
 
         assert 0 <= i <= count < users.Length; 
-        assert count == old(count);
-        assert count == old(users.Length) ==> fresh(users) && fresh(passwords);
-        assert users.Length == if count == old(users.Length) then old(users.Length) * 2 else old(users.Length);
-        assert passwords.Length == users.Length;
-        assert LTRange(users, 0, i, newUserID);
-        assert GERange(users, i, count, newUserID);
-        assert users != null;
-
+        assert GERange(users, i, count, newUserID); // Reduces verification time
 
         var j: int := count - 1; 
         while (j >= i) 
