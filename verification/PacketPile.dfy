@@ -238,6 +238,27 @@ class PacketPile
     {
         c := this.count;
     }
+
+    method getBuf() returns(newBuf: array<int>)
+        requires Valid(); ensures Valid()
+        ensures newBuf != null
+        ensures buf[..count] == newBuf[..]
+    {
+        newBuf := new int[count];
+        var i := 0;
+        while (i < count) 
+        invariant 0 <= i <= count;
+        invariant count == old(count);
+        invariant low == old(low);
+        invariant buf == old(buf);
+        invariant newBuf[..i] == buf[..i];
+        invariant buf[..count] == old(buf[..count]);
+        {
+            newBuf[i] := buf[i]; 
+            i := i + 1;
+        }
+    }
+
 }
 
 predicate Sorted(a: array<int>, low: int, high: int)
@@ -301,3 +322,30 @@ requires 0 <= low <= high <= a.Length;
 // {
 //     multiset(s1) == multiset(s2) + multiset(s3)
 // }
+
+method Main() {
+    var p: PacketPile;
+    var c: int;
+    var popped: int;
+
+    p := new PacketPile;
+    p.Init(10, 3);
+    c := p.getCount();
+    assert !(1 in p.buf[..p.count]);
+    assert c == 0;
+
+    p.push(1);
+    c := p.getCount();
+    assert 1 in p.buf[..p.count];
+    assert c == 1;
+
+    popped := p.popAtIndex(0);
+    c := p.getCount();
+    assert !(1 in p.buf[..p.count]);
+    assert c == 0;
+    assert popped == 1;
+
+    assert p.buf != null;
+    // Following should fail 
+    // p.resize(-1);
+}
