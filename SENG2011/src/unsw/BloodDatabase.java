@@ -50,19 +50,21 @@ public class BloodDatabase {
 		BloodPacket[] returnPackets = new BloodPacket[packets.length];
 		while (i < count) {
 			if (matchFieldInt(packets[i],field,value)) {
+				System.out.println(packets[i]);
 				returnPackets[total] = packets[i];
 				total += 1;
 			}
 			i += 1;
 		}
-		sorter.sort(returnPackets, field);
+		returnPackets = truncate(returnPackets,total);
+		returnPackets = sorter.sort(returnPackets, field);
 		return returnPackets;
 	}
 	
 	public BloodPacket[] searchBloodString(String field, String value) {
 		int i = 0;
 		int total = 0;
-		BloodPacket[] returnPackets = new BloodPacket[packets.length];
+		BloodPacket[] returnPackets = new BloodPacket[count];
 		while (i < count) {
 			if (matchFieldString(packets[i],field,value)) {
 				returnPackets[total] = packets[i];
@@ -71,7 +73,7 @@ public class BloodDatabase {
 			i += 1;
 		}
 		returnPackets = truncate(returnPackets,total);
-		sorter.sort(returnPackets, field);
+		returnPackets = sorter.sort(returnPackets, field);
 		return returnPackets;
 	}
 	
@@ -105,13 +107,13 @@ public class BloodDatabase {
 	
 	public boolean matchFieldString(BloodPacket p, String field, String value) {
 		if (field == "DONATE_LOC") {
-			return p.getDonateLoc().equals(value);
+			return p.getDonateLoc().equalsIgnoreCase(value);
 		} else if (field == "FIRST_NAME") {
-			return p.getFirstName().equals(value);
+			return p.getFirstName().equalsIgnoreCase(value);
 		} else if (field == "LAST_NAME") {
-			return p.getLastName().equals(value);
+			return p.getLastName().equalsIgnoreCase(value);
 		} else if (field == "CURR_LOC") {
-			return p.getCurrLoc().equals(value);
+			return p.getCurrLoc().equalsIgnoreCase(value);
 		}
 		return false;
 	}
@@ -122,6 +124,7 @@ public class BloodDatabase {
 		int i = 0;
 		while (i < newSize) {
 			newA[i] = a[i];
+			i += 1;
 		}
 		return newA;
 	}

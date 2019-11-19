@@ -85,12 +85,12 @@ public class MainSystem {
 		return vampire.getNotifs();
 	}
 	
-	public void searchBloodInt(String field,int value) {
-		bloodDatabase.searchBloodInt(field, value);
+	public BloodPacket[] searchBloodInt(String field,int value) {
+		return bloodDatabase.searchBloodInt(field, value);
 	}
 	
-	public void searchBloodString(String field, String value) {
-		bloodDatabase.searchBloodString(field, value);
+	public BloodPacket[] searchBloodString(String field, String value) {
+		return bloodDatabase.searchBloodString(field, value);
 	}
 	
 	public void makeDeposit(int bloodType, int donateDate, String donateLoc, int expiryDate, int donorID) {

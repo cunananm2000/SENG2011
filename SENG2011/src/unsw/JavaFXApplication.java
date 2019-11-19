@@ -633,9 +633,10 @@ public class JavaFXApplication extends Application {
             public void handle(ActionEvent e) {
             	
         		String option = (String) options.getValue();
-        		if (option.equals("BLOOD_TYPE") || option.equals("DONATE_LOC") ||
-    				option.equals("FIRST_NAME") || option.equals("LAST_NAME") ||
-    				option.equals("STATUS") || option.equals("CURR_LOC")) {
+        		if (option.equals("DONATE_LOC") ||
+    				option.equals("FIRST_NAME") || 
+    				option.equals("LAST_NAME")  || 
+    				option.equals("CURR_LOC")) {
         			String value = (String) query.getText();	
         			SearchResults(primaryStage, option, value);
         		} else {

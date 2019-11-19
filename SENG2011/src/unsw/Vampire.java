@@ -97,23 +97,19 @@ public class Vampire extends User {
 			i += 1;
 		}
 		
-//		System.out.println("B");
 		
 		
 		if (expiredCount > 0) {
 			addNotif("EXPIRED_PACKETS","",truncate(expired,expiredCount));
 		}
 		
-//		System.out.println("C");
 		
 		if (almostExpiredCount > 0) {
 			addNotif("ALMOST_EXPIRED","",truncate(almostExpired,almostExpiredCount));
 		}
 		
-//		System.out.println("D");
 		
 		this.findLows();
-//		System.out.println("Found lows");
 		
 		this.currDay += 1;
 	}
@@ -161,7 +157,6 @@ public class Vampire extends User {
 	}
 	
 	public BloodPacket[] getInventory(String field) {
-//		System.out.println("A");
 		int totalSize = 0;
 		int i = 0;
 		while (i < piles.length) {
@@ -169,7 +164,6 @@ public class Vampire extends User {
 			i += 1;
 		}
 		BloodPacket[] everything = new BloodPacket[totalSize];
-//		System.out.println("B");
 		i = 0;
 		int next = 0;
 		while (i < piles.length) {
@@ -183,9 +177,7 @@ public class Vampire extends User {
 			i += 1;
 		}
 		
-//		System.out.println("C");
 		BloodPacket[] sortedEverything = sorter.sort(everything, field);
-		System.out.println("D");
 	    return sortedEverything;
 	}
 	

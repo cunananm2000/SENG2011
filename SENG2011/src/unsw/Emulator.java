@@ -1,6 +1,7 @@
 package unsw;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException; 
@@ -235,19 +236,23 @@ public class Emulator {
 	
 	public void searchBlood() throws IOException {
 	    String field = input("Search by: ").toUpperCase().replace(' ', '_');
-	    if (field.equals("BLOOD_TYPE") 
-	    		|| field.equals("DONATE_LOC") 
+	    BloodPacket[] packets;
+	    if (field.equals("DONATE_LOC") 
 				|| field.equals("FIRST_NAME")
 				|| field.equals("LAST_NAME")
-				|| field.equals("STATUS")
 				|| field.equals("CURR_LOC"))
 	    {
 	    	String value = input("Value: ");
-	    	mainSystem.searchBloodString(field,value);
+	    	packets = mainSystem.searchBloodString(field,value);
 		} else {
 			int value = Integer.parseInt(input("Value: "));
-			mainSystem.searchBloodInt(field, value);
+			packets = mainSystem.searchBloodInt(field, value);
 		}
+	    int i = 0;
+	    while (i < packets.length) {
+	    	packets[i].printOut();
+	    	i += 1;
+	    }
 	}
 
 
