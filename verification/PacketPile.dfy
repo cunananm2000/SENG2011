@@ -209,6 +209,14 @@ class PacketPile
         buf := newBuf;
     }
 
+    // Excluding String dest since we aren't dealing with actual bloodpacket objects
+    method doRequest(nPackets: int, useBy: int) returns (result: array<int>)
+    requires Valid(); ensures Valid();
+    fresh
+    {
+        result := new int[nPackets];
+    }
+
     method isLow() returns (b: bool)
         requires Valid(); ensures Valid()
         ensures b <==> (this.count <= this.low)
