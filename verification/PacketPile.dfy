@@ -132,6 +132,9 @@ class PacketPile
     requires Valid(); ensures Valid(); 
     ensures buf == old(buf);
     ensures count == if (forall j :: 0 <= j < old(count) ==> old(buf[j]) != el) then old(count) else old(count) - 1; // Can't use IsClean because old(buf[j]) != old(buf)[j]
+    ensures el in old(buf[..old(count)]) ==> 
+            exists j :: 0 <= j < old(count) && buf[..count] == old(buf[..j]) + old(buf[j+1..old(count)]) 
+            && old(buf[j]) == el; 
     ensures multiset(buf[..count]) == multiset(old(buf[..old(count)])) - multiset([el]);
     {
         var i: int := 0; 
@@ -150,6 +153,7 @@ class PacketPile
         else 
         {
             var temp: int := popAtIndex(i);
+            assert el in old(buf[..old(count)]);
             assert old(buf[..i]) + [old(buf[i])] + old(buf[i+1..old(count)]) == old(buf[..old(count)]);
         }
     }
@@ -211,10 +215,59 @@ class PacketPile
 
     // Excluding String dest since we aren't dealing with actual bloodpacket objects
     method doRequest(nPackets: int, useBy: int) returns (result: array<int>)
+    modifies this.buf, this`count;
     requires Valid(); ensures Valid();
-    fresh
+    requires nPackets > 0; 
+    ensures if CountGE(old(buf[..old(count)]), useBy) < nPackets then result == null else fresh(result); 
     {
-        result := new int[nPackets];
+        var sendPackets := new int[count];
+
+        var nFound: int := 0; 
+        var i: int := 0; 
+        while (i < count) 
+        invariant 0 <= i <= count; 
+        invariant count == old(count);
+        invariant buf == old(buf);
+        invariant buf[..count] == old(buf[..old(count)]);
+        invariant nFound <= count == sendPackets.Length;
+        invariant nFound == CountGE(buf[..i], useBy);
+        invariant forall j :: 0 <= j < nFound ==> sendPackets[j] >= useBy;
+        {
+            if (useBy <= buf[i]) 
+            {
+                sendPackets[nFound] := buf[i];
+                nFound := nFound + 1;
+            }
+            DistributiveCountGE(buf[..i], [buf[i]], useBy);
+            assert buf[..i+1] == buf[..i] + [buf[i]];
+            i := i + 1; 
+        }
+        assert nFound == CountGE(buf[..count], useBy);
+        assert forall j :: 0 <= j < nFound ==> sendPackets[j] >= useBy;
+       
+        if (nFound < nPackets) 
+        {
+            result := null;
+        }
+        else 
+        {
+            result := new int[nPackets];
+            i := 0; 
+            while (i < nPackets) 
+            invariant 0 <= i <= nPackets <= nFound;
+            invariant buf == old(buf);
+            invariant count == old(count);
+            invariant buf[..old(count)] == old(buf[..old(count)]);
+            invariant forall j :: 0 <= j < i ==> result[j] == sendPackets[j];
+            // invariant result[..i] <= buf[..count];
+            {
+                result[i] := sendPackets[i];
+                // send to destination 
+                // delete from current pile 
+                // removePacket(sendPackets[i]);
+                i := i + 1; 
+            }
+        }
     }
 
     method isLow() returns (b: bool)
@@ -325,11 +378,28 @@ requires 0 <= low <= high <= a.Length;
     forall j :: low <= j < high ==> a[j] != key
 }
 
-// predicate temp(s1: seq<int>, s2: seq<int>, s3: seq<int>) 
-// requires s1 == s2 + s3; 
-// {
-//     multiset(s1) == multiset(s2) + multiset(s3)
-// }
+// Counts greater than or equal to key 
+function CountGE(a: seq<int>, key: int): nat 
+decreases |a|;
+ensures CountGE(a, key) <= |a|;
+{
+    if |a| == 0 then 0 else
+    (if a[0] >= key then 1 else 0) + CountGE(a[1..], key)
+}
+
+lemma DistributiveCountGE(a: seq<int>, b: seq<int>, key: int) 
+ensures CountGE(a + b, key) == CountGE(a, key) + CountGE(b, key);
+{
+    if (a == []) 
+    {
+        assert a + b == b; 
+    }
+    else 
+    { 
+        DistributiveCountGE(a[1..], b, key);
+        assert a + b == [a[0]] + (a[1..] + b);
+    }
+}
 
 method Main() {
     var p: PacketPile;

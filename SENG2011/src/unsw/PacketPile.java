@@ -131,10 +131,10 @@ public class PacketPile {
 	}
 	
 	public int[] doRequest(int nPackets, int useBy, String dest) {
-		BloodPacket[] sendPackets = new BloodPacket[nPackets];
+		BloodPacket[] sendPackets = new BloodPacket[count];
 		int nFound = 0;
 		int i = 0;
-		while (i < buf.length && nFound < nPackets) {
+		while (i < count) {
 			if (useBy <= buf[i].getExpiryDate()) {
 				sendPackets[nFound] = buf[i];
 				nFound += 1;
@@ -144,12 +144,13 @@ public class PacketPile {
 		
 		if (nFound < nPackets) return null;
 		
-		int[] sendIDs = new int[nFound];
+		int[] sendIDs = new int[nPackets];
 		i = 0;
-		while (i < nFound) {
+		while (i < nPackets) {
 			sendIDs[i] = sendPackets[i].getID();
 			sendPackets[i].sendTo(dest);
 			this.removePacket(sendPackets[i]);
+			i++;
 		}
 		
 		return sendIDs;
