@@ -249,7 +249,7 @@ public class Emulator {
 			mainSystem.searchBloodInt(field, value);
 		}
 	}
-	    
+
 
     public void printInventory() throws IOException {
 	    String field = input("Sort by: ").toUpperCase().replace(" ","_");
@@ -311,6 +311,7 @@ public class Emulator {
         int nPackets = Integer.parseInt((input("New low level: ")));
         if (nPackets > 0) {
         	mainSystem.setLowLevel(bloodType,nPackets);
+        	
             println("Success");
         } else {
             println("Failed");

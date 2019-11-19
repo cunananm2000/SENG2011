@@ -121,5 +121,11 @@ public class MainSystem {
 	public HospitalDatabase getHospitalDB () {
 		return hospitalDatabase;
 	}
+	public Vampire getVamp() {
+		return vampire;
+	}
+	public BloodDatabase getBloodDatabase() {
+		return bloodDatabase;
+	}
 	
 }

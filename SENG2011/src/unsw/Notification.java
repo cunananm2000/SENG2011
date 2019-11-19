@@ -16,6 +16,18 @@ public class Notification {
 		this.things = things;
 	}
 	
+	public String getType() {
+		return type;
+	}
+
+	public String getDesc() {
+		return desc;
+	}
+
+	public int[] getThings() {
+		return things;
+	}
+
 	public int getDate() {
 		return this.date;
 	}

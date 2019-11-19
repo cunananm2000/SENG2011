@@ -29,5 +29,4 @@ public class User {
 		System.out.println(id+" "+password);
 	}
 	
-	
 }
