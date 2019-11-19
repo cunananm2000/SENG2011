@@ -4,12 +4,6 @@ class UserDatabase {
     var passwords: array<string>;
     var count: int;
 
-    /*// since null user is represented by -1, ignore for sort
-    predicate Sorted(a: seq<int>)
-    {
-        forall i,j :: 0 <= i < j < |a| && (a[i] != -1 && a[j] != -1) ==> a[i] <= a[j]
-    }*/
-
     predicate Sorted(lo: int, hi: int, a: seq<int>)
     {
         forall i, j :: 0 <= lo <= i < j < hi <= |a| ==> a[i] <= a[j]
@@ -29,22 +23,9 @@ class UserDatabase {
     method Init()
         modifies this, this.users
         ensures Valid()
-        ensures fresh(users)
-        ensures users.Length == 20
+        ensures fresh(users) && fresh(passwords)
+        ensures users.Length == passwords.Length == 20
     {
-        //var usrs: array<int> := new int[20];
-        //var pwds: array<string> := new string[20];
-        /*var i := 0;
-        while i < usrs.Length
-        decreases usrs.Length - i
-        invariant 0 <= i <= usrs.Length
-        invariant forall j :: 0 <= j < i ==> usrs[j] == -1
-        invariant forall j :: 0 <= j < i ==> pwds[j] == ""
-        {
-            usrs[i] := -1;
-            pwds[i] := "";
-            i := i + 1;
-        }*/
         this.users := new int[20];
         this.passwords := new string[20];
         this.count := 0;
@@ -97,10 +78,6 @@ class UserDatabase {
         
         var newUsers: array<int> := new int[newSize];
         var newPwds: array<string> := new string[newSize];
-
-        assert newUsers != null;
-        assert newPwds != null;
-        assert users != null;
 
         var i := 0;
 
