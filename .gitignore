@@ -5,3 +5,4 @@ verification/*.exe*
 verification/*.dll*
 .pytest_cache/*
 model.bvd
+.DS_Store
