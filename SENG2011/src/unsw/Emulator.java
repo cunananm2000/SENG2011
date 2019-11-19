@@ -153,7 +153,8 @@ public class Emulator {
 	        setMaxLevel();
 		} else if (cmd.equals("SET_BUFFER")) {
 	        setBuffer();
-        } else {
+        } 
+			else {
 	        return false;
 	    }
 	    return true;

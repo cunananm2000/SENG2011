@@ -5,6 +5,10 @@ public class BloodDatabase {
 	PacketSorter sorter = new PacketBubbleSort();
 	int count = 0;
 	
+	public BloodPacket[] getPackets() {
+		return packets;
+	}
+	
 	public BloodDatabase() {
 		packets = new BloodPacket[50];
 	}
