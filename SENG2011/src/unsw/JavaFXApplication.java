@@ -986,8 +986,8 @@ public class JavaFXApplication extends Application {
         
         table.setEditable(true);
         
-        TableColumn id = new TableColumn("ID");
-        id.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("id"));   
+        TableColumn IxD = new TableColumn("id");
+        IxD.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("ID"));
         
         TableColumn bloodType = new TableColumn("Blood Type");
         bloodType.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("bloodType"));
@@ -1010,22 +1010,27 @@ public class JavaFXApplication extends Application {
         TableColumn lastName = new TableColumn("Surname");
         lastName.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("lastName"));
         
+        TableColumn currLoc = new TableColumn("Current Location");
+        currLoc.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("currLoc"));
+        
         BloodPacket[] packets = em.getMainSystem().getBloodDatabase(search);
         ObservableList<BloodPacket> data = FXCollections.observableArrayList();
         
         int i = 0;
 	    while (i < packets.length) {
+	    
 	    	BloodPacket bp = new BloodPacket(packets[i].getID(),packets[i].getBloodType(),packets[i].getDonateDate(),
 	    			packets[i].getDonateLoc(), packets[i].getExpiryDate(), packets[i].getDonorID(),
-	    			packets[i].getFirstName(), packets[i].getLastName());
+	    			packets[i].getFirstName(), packets[i].getLastName(), packets[i].getCurrLoc());
+	    	
 	    	data.add(bp);
 	    	i += 1;
+	    	
 	    }
         
         
-	    System.out.println(data);
         table.setItems(data);
-        table.getColumns().addAll(id,bloodType, donateDate, donateLoc, expiryDate, donorID,firstName,lastName);
+        table.getColumns().addAll(IxD,bloodType, donateDate, donateLoc, expiryDate, donorID,firstName,lastName,currLoc);
  
         final VBox vbox = new VBox();
         vbox.setSpacing(5);
@@ -1335,22 +1340,22 @@ public class JavaFXApplication extends Application {
         TableColumn date = new TableColumn("Date");
         date.setCellValueFactory(new PropertyValueFactory<Notification, String>("date"));
         
-        TableColumn things = new TableColumn("Things?");
-        things.setCellValueFactory(new PropertyValueFactory<Notification, String>("things"));
-      
+        TableColumn zzz = new TableColumn("Thing");
+        zzz.setCellValueFactory(new PropertyValueFactory<Notification, String>("zzz"));
         
         Notification[] notify = em.getMainSystem().getNotifs();
         ObservableList<Notification> data = FXCollections.observableArrayList();
         int i = 0;
 	    while (i < notify.length) {
+	    	
 	    	Notification n = new Notification(notify[i].getType(), notify[i].getPriority(),
-	    			notify[i].getDesc(), notify[i].getDate(), notify[i].getThings());
+	    			notify[i].getDesc(), notify[i].getDate(), notify[i].getThings()[0]);
 	    	data.add(n);
 	    	i += 1;
 	    }
 	    System.out.println(data);
         table.setItems(data);
-        table.getColumns().addAll(type, priority, desc, date, things);
+        table.getColumns().addAll(type, priority, desc, date,zzz);
  
         final VBox vbox = new VBox();
         vbox.setSpacing(5);

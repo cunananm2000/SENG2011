@@ -1,7 +1,7 @@
 package unsw;
 
 public class BloodPacket {
-	private int id;
+	private int ID;
 	private int bloodType;
 	private int donateDate;
 	private String donateLoc;
@@ -12,8 +12,8 @@ public class BloodPacket {
 	private int status;
 	private String currLoc;
 	
-	public BloodPacket(int id, int bloodType, int donateDate, String donateLoc, int expiryDate, int donorID, String firstName, String lastName) {
-		this.id = id;
+	public BloodPacket(int ID, int bloodType, int donateDate, String donateLoc, int expiryDate, int donorID, String firstName, String lastName) {
+		this.ID = ID;
 		this.bloodType = bloodType;
 		this.donateDate = donateDate;
 		this.donateLoc = donateLoc;
@@ -25,6 +25,19 @@ public class BloodPacket {
 		this.status = 0;
 	}
 
+	public BloodPacket(int ID, int bloodType, int donateDate, String donateLoc, int expiryDate, int donorID, String firstName, String lastName, String currLoc) {
+		this.ID = ID;
+		this.bloodType = bloodType;
+		this.donateDate = donateDate;
+		this.donateLoc = donateLoc;
+		this.expiryDate = expiryDate;
+		this.donorID = donorID;
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.currLoc = currLoc;
+		this.status = 0;
+	}
+	
 	public void setStatus(int status) {
 		this.status = status;
 		
@@ -37,10 +50,10 @@ public class BloodPacket {
 	
 	
 	/**
-	 * @return the id
+	 * @return the ID
 	 */
 	public int getID() {
-		return id;
+		return ID;
 	}
 
 	/**
@@ -107,6 +120,6 @@ public class BloodPacket {
 	}
 
 	public void printOut() {
-		System.out.println(id+" TYPE: "+bloodType+" DON DATE: "+donateDate+" DON LOC: "+donateLoc+" EXP DATE: "+expiryDate+" DONOR: "+donorID+" "+firstName+" "+lastName+" STATUS: "+status+" LOC: "+currLoc+" <---- "+status);
+		System.out.println(ID+" TYPE: "+bloodType+" DON DATE: "+donateDate+" DON LOC: "+donateLoc+" EXP DATE: "+expiryDate+" DONOR: "+donorID+" "+firstName+" "+lastName+" STATUS: "+status+" LOC: "+currLoc+" <---- "+status);
 	}
 }

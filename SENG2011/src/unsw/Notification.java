@@ -6,7 +6,7 @@ public class Notification {
 	private String desc;
 	private int date;
 	private int[] things;
-	
+	private int zzz;
 	
 	public Notification(String type,int priority,String desc,int date,int[] things) {
 		this.priority = priority;
@@ -15,7 +15,20 @@ public class Notification {
 		this.date = date;
 		this.things = things;
 	}
-	
+	public Notification(String type,int priority,String desc,int date,int zzz) {
+		this.priority = priority;
+		this.type = type;
+		this.desc = desc;
+		this.date = date;
+		this.zzz = zzz;
+	}
+
+	public int getZzz() {
+		return zzz;
+	}
+	public void setZzz(int zzz) {
+		this.zzz = zzz;
+	}
 	public String getType() {
 		return type;
 	}
@@ -27,7 +40,7 @@ public class Notification {
 	public int[] getThings() {
 		return things;
 	}
-
+	
 	public int getDate() {
 		return this.date;
 	}
@@ -44,7 +57,7 @@ public class Notification {
 		if (things.length > 0) {
 			int i = 0;
 			while (i < things.length) {
-				System.out.println("*     - "+things[i]);
+				System.out.println("*     - "+things[i] + " " + i);
 				i += 1;
 			}
 		} else {
