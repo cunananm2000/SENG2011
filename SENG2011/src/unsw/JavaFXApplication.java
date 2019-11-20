@@ -345,7 +345,7 @@ public class JavaFXApplication extends Application {
         grid.add(donation, 1, 17);
 
         // Expiry Date
-        Label expDate = new Label("Expirary Date:");
+        Label expDate = new Label("Expiry Date:");
         expDate.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
         expDate.setFont(Font.font("Tahoma", FontWeight.BOLD, 20));
         grid.add(expDate, 0, 18);

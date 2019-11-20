@@ -95,39 +95,39 @@ public class PacketPile {
 	}
 	
 	public int[] cleanUp(int currDay, int buffer) {
-		BloodPacket[] trash = new BloodPacket[count];
-		int trashCount = 0;
-		
-		int i = 0;
-		while (i < count) {
-			trash[i] = null;
-			i += 1;
-		}
-		
-		i = 0;
-		while (i < count) {
-			BloodPacket p = buf[i];
-			int timeDiff = p.getExpiryDate() - currDay;
-			if (timeDiff <= 0) {
-				trash[trashCount] = p;
-				p.setStatus(2);
-				trashCount += 1;
-			} else if (timeDiff <= buffer) {
-				p.setStatus(1);
-			}
-			i += 1;
-		}
-		
-		int[] trashIDs = new int[trashCount];
-		
-		i = 0;
-		while (i < trashCount) {
-			trashIDs[i] = trash[i].getID();
-			this.removePacket(trash[i]);
-			i += 1;
-		}
-		
-		return trashIDs;
+		int cutoff = 0;
+	    while (cutoff < count && buf[cutoff].getExpiryDate() <= currDay)
+	    {
+	         BloodPacket p = buf[cutoff];
+	         p.setStatus(2);
+	         p.sendTo("dump");
+	         cutoff = cutoff + 1;
+	    }
+	
+	    int i = 0;
+	    while (i < count && buf[i].getExpiryDate() <= currDay + buffer) 
+	    {
+	    	buf[i].setStatus(1);
+	        i = i + 1;
+	    }
+	
+	    int[] trashIDs = new int[cutoff];
+	    i = 0;
+	    while (i < cutoff)
+	    {
+	        trashIDs[i] = buf[i].getID();
+	        i = i + 1;
+	    }
+	    count = count - cutoff;
+	
+	    i = 0;
+	    while (i < count)
+	    {
+	        buf[i] = buf[cutoff+i];
+	        i = i + 1;
+	    }
+	    
+	    return trashIDs;
 	}
 	
 	public int[] doRequest(int nPackets, int useBy, String dest) {
