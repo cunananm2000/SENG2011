@@ -63,6 +63,13 @@ public class PacketPile {
 		int i = 0;
 		if (newSize < count) {
 			int shift = count - newSize; 
+			i = 0;
+			while (i < shift) {
+				buf[i].setStatus(2);
+				buf[i].sendTo("dump");
+				i += 1;
+			}
+			i = 0;
 			while (i < newSize) {
 				newBuf[i] = buf[shift + i]; 
 				i++; 
