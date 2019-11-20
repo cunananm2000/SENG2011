@@ -525,6 +525,15 @@ public class JavaFXApplication extends Application {
         printSLBtn.getChildren().add(printSL);
         grid.add(printSLBtn, 0, 6);
         
+        // set max level of blood
+        Button printML = new Button("Set Max-Level");
+        printML.setStyle("-fx-border-color: #8b0000; -fx-border-width: 2px;");
+        printML.setMinSize(150, 35);
+        HBox printMLBtn = new HBox(10);
+        printMLBtn.setAlignment(Pos.BOTTOM_RIGHT);
+        printMLBtn.getChildren().add(printML);
+        grid.add(printMLBtn, 1, 6);
+        
         // set warning buffer 
         Button printSB = new Button("Set Buffer");
         printSB.setStyle("-fx-border-color: #8b0000; -fx-border-width: 2px;");
@@ -532,7 +541,7 @@ public class JavaFXApplication extends Application {
         HBox printSBBtn = new HBox(10);
         printSBBtn.setAlignment(Pos.BOTTOM_RIGHT);
         printSBBtn.getChildren().add(printSB);
-        grid.add(printSBBtn, 1, 6);
+        grid.add(printSBBtn, 2, 6);
         
         signout.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -632,6 +641,13 @@ public class JavaFXApplication extends Application {
             }
         });
         
+        printML.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent e) {
+            	setMaxLevelPage(primaryStage);
+            }
+        });
+        
         Scene scene = new Scene(grid, 650, 405);
         scene.getStylesheets().addAll(this.getClass().getResource("text.css").toExternalForm());
         primaryStage.setScene(scene);
@@ -639,6 +655,88 @@ public class JavaFXApplication extends Application {
 	}
 	
 	
+	protected void setMaxLevelPage(Stage primaryStage) {
+		GridPane grid = new GridPane();
+		grid.setId("background");
+        grid.setAlignment(Pos.CENTER);
+        grid.setHgap(10);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(25, 25, 25, 25));
+        
+        Label scenetitle = new Label("Set Max Level");
+        scenetitle.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 32px;");
+        scenetitle.setFont(Font.font("Tahoma", FontWeight.BOLD, 50));
+ 
+        // Requested Blood Type
+        Label bloodType = new Label("Blood Type:");
+        bloodType.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
+        bloodType.setFont(Font.font("Tahoma", FontWeight.BOLD, 35));
+        grid.add(bloodType, 0, 3);
+        ChoiceBox<String> blood = new ChoiceBox<String>();
+        blood.getItems().add("A-");
+        blood.getItems().add("A+");
+        blood.getItems().add("B-");
+        blood.getItems().add("B+");
+        blood.getItems().add("O-");
+        blood.getItems().add("O+");
+        blood.getItems().add("AB+");
+        blood.getItems().add("AB-");
+        grid.add(blood, 1, 3);
+        
+        // Buffer Date
+        Label minP = new Label("Maximum Packets:");
+        minP.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
+        minP.setFont(Font.font("Tahoma", FontWeight.BOLD, 35));
+        grid.add(minP, 0, 4);
+        TextField minimum = new TextField();
+        grid.add(minimum, 1, 4);
+        
+        Button lvl = new Button("Set Level");
+        HBox lvlBtn = new HBox(10);
+        lvlBtn.setAlignment(Pos.BOTTOM_RIGHT);
+        lvlBtn.getChildren().add(lvl);
+        grid.add(lvlBtn, 0, 6);
+        
+        lvl.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent e) {
+            	try {
+            		int nPackets = Integer.parseInt(minimum.getText());
+            		String bloodType = (String) blood.getValue();
+            		int bt = convertBloodType(bloodType);
+            		em.getMainSystem().setMaxLevel(bt,nPackets);	
+            		JOptionPane.showMessageDialog(null, "successfully set max level");
+				} catch (Exception e1) {
+					System.out.println("can't change stage to aaa screen");
+				}
+            }
+        });
+        
+        // Back button
+        Button btn = new Button("Back");
+        HBox hbBtn = new HBox(10);
+        hbBtn.setAlignment(Pos.BOTTOM_RIGHT);
+        hbBtn.getChildren().add(btn);
+        grid.add(hbBtn, 1, 6);
+        
+        btn.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent e) {
+            	try {
+					VampirePage(primaryStage);
+				} catch (Exception e1) {
+					System.out.println("can't change stage to login screen");
+				}
+            }
+        });
+
+        Scene scene = new Scene(grid, 650, 405);   
+        scene.getStylesheets().addAll(this.getClass().getResource("text.css").toExternalForm());
+        primaryStage.setScene(scene);
+        primaryStage.show();
+		
+	}
+
 	// --------------------------------------------------------------
 	// ------------------- VAMPIRE COMMANDS -------------------------
 	// --------------------------------------------------------------
@@ -977,7 +1075,7 @@ public class JavaFXApplication extends Application {
 	protected void displayBlood(Stage primaryStage, String search) {
 
 		Scene scene = new Scene(new Group());
-        primaryStage.setWidth(700);
+        primaryStage.setWidth(900);
         primaryStage.setHeight(500);
         TableView table = new TableView();
         final Label label = new Label("Blood Packet Database");
@@ -1013,6 +1111,9 @@ public class JavaFXApplication extends Application {
         TableColumn currLoc = new TableColumn("Current Location");
         currLoc.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("currLoc"));
         
+        TableColumn status = new TableColumn("Status");
+        status.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("status"));
+        
         BloodPacket[] packets = em.getMainSystem().getBloodDatabase(search);
         ObservableList<BloodPacket> data = FXCollections.observableArrayList();
         
@@ -1021,7 +1122,7 @@ public class JavaFXApplication extends Application {
 	    
 	    	BloodPacket bp = new BloodPacket(packets[i].getID(),packets[i].getBloodType(),packets[i].getDonateDate(),
 	    			packets[i].getDonateLoc(), packets[i].getExpiryDate(), packets[i].getDonorID(),
-	    			packets[i].getFirstName(), packets[i].getLastName(), packets[i].getCurrLoc());
+	    			packets[i].getFirstName(), packets[i].getLastName(), packets[i].getCurrLoc(), packets[i].getStatus());
 	    	
 	    	data.add(bp);
 	    	i += 1;
@@ -1030,7 +1131,7 @@ public class JavaFXApplication extends Application {
         
         
         table.setItems(data);
-        table.getColumns().addAll(IxD,bloodType, donateDate, donateLoc, expiryDate, donorID,firstName,lastName,currLoc);
+        table.getColumns().addAll(IxD,bloodType, donateDate, donateLoc, expiryDate, donorID,firstName,lastName,currLoc,status);
  
         final VBox vbox = new VBox();
         vbox.setSpacing(5);
@@ -1319,7 +1420,7 @@ public class JavaFXApplication extends Application {
 	protected void NotificationsPage(Stage primaryStage) {
 		
 		Scene scene = new Scene(new Group());
-        primaryStage.setWidth(700);
+        primaryStage.setWidth(900);
         primaryStage.setHeight(500);
         TableView table = new TableView();
         final Label label = new Label("Notifications");
@@ -1343,19 +1444,25 @@ public class JavaFXApplication extends Application {
         TableColumn zzz = new TableColumn("Thing");
         zzz.setCellValueFactory(new PropertyValueFactory<Notification, String>("zzz"));
         
+        TableColumn xxx = new TableColumn("Num");
+        xxx.setCellValueFactory(new PropertyValueFactory<Notification, String>("xxx"));
+        
         Notification[] notify = em.getMainSystem().getNotifs();
         ObservableList<Notification> data = FXCollections.observableArrayList();
         int i = 0;
 	    while (i < notify.length) {
-	    	
-	    	Notification n = new Notification(notify[i].getType(), notify[i].getPriority(),
-	    			notify[i].getDesc(), notify[i].getDate(), notify[i].getThings()[0]);
-	    	data.add(n);
+	    	int j = 0;
+	    	while (j < notify[i].getThings().length) {
+	    		Notification n = new Notification(notify[i].getType(), notify[i].getPriority(),
+		    			notify[i].getDesc(), notify[i].getDate(), notify[i].getThings()[j], j);
+	    		data.add(n);
+	    		j++;
+	    	}
 	    	i += 1;
 	    }
 	    System.out.println(data);
         table.setItems(data);
-        table.getColumns().addAll(type, priority, desc, date,zzz);
+        table.getColumns().addAll(type, priority, desc, date,zzz,xxx);
  
         final VBox vbox = new VBox();
         vbox.setSpacing(5);
@@ -1615,7 +1722,7 @@ public class JavaFXApplication extends Application {
         
  
         TableColumn id = new TableColumn("ID");
-        id.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("id"));
+        id.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("ID"));
         
         TableColumn bloodType = new TableColumn("Blood Type");
         bloodType.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("bloodType"));
@@ -1635,23 +1742,27 @@ public class JavaFXApplication extends Application {
         TableColumn DonorFirst = new TableColumn("Donor Firstname");
         DonorFirst.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("firstName"));
         
-        TableColumn DonorLast = new TableColumn("Donot Surname");
+        TableColumn DonorLast = new TableColumn("Donor Surname");
         DonorLast.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("lastName"));
+        
+        TableColumn status = new TableColumn("Status");
+        status.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("status"));
         
         BloodPacket[] packets = em.getMainSystem().getInventory(sortBy);
         ObservableList<BloodPacket> data = FXCollections.observableArrayList();
         int i = 0;
 	    while (i < packets.length) {
-	    	BloodPacket bld = new BloodPacket(packets[i].getID(),packets[i].getBloodType(),packets[i].getDonateDate(),
+	    	BloodPacket bp = new BloodPacket(packets[i].getID(),packets[i].getBloodType(),packets[i].getDonateDate(),
 	    			packets[i].getDonateLoc(), packets[i].getExpiryDate(), packets[i].getDonorID(),
-	    			packets[i].getFirstName(), packets[i].getLastName());
-	    	data.add(bld);
+	    			packets[i].getFirstName(), packets[i].getLastName(), packets[i].getCurrLoc(), packets[i].getStatus());
+	    	
+	    	data.add(bp);
 	    	i += 1;
 	    }
 	    System.out.println(data);
 	    
         table.setItems(data);
-        table.getColumns().addAll(id, bloodType, donDate, donLoc, expDate, DonorID, DonorFirst, DonorLast);
+        table.getColumns().addAll(id, bloodType, donDate, donLoc, expDate, DonorID, DonorFirst, DonorLast,status);
  
         final VBox vbox = new VBox();
         vbox.setSpacing(5);

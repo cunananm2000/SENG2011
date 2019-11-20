@@ -25,7 +25,7 @@ public class BloodPacket {
 		this.status = 0;
 	}
 
-	public BloodPacket(int ID, int bloodType, int donateDate, String donateLoc, int expiryDate, int donorID, String firstName, String lastName, String currLoc) {
+	public BloodPacket(int ID, int bloodType, int donateDate, String donateLoc, int expiryDate, int donorID, String firstName, String lastName, String currLoc, int status) {
 		this.ID = ID;
 		this.bloodType = bloodType;
 		this.donateDate = donateDate;
@@ -35,7 +35,7 @@ public class BloodPacket {
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.currLoc = currLoc;
-		this.status = 0;
+		this.status = status;
 	}
 	
 	public void setStatus(int status) {

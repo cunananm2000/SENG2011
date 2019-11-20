@@ -7,6 +7,7 @@ public class Notification {
 	private int date;
 	private int[] things;
 	private int zzz;
+	private int xxx;
 	
 	public Notification(String type,int priority,String desc,int date,int[] things) {
 		this.priority = priority;
@@ -15,12 +16,19 @@ public class Notification {
 		this.date = date;
 		this.things = things;
 	}
-	public Notification(String type,int priority,String desc,int date,int zzz) {
+	public int getXxx() {
+		return xxx;
+	}
+	public void setXxx(int xxx) {
+		this.xxx = xxx;
+	}
+	public Notification(String type,int priority,String desc,int date,int zzz,int xxx) {
 		this.priority = priority;
 		this.type = type;
 		this.desc = desc;
 		this.date = date;
 		this.zzz = zzz;
+		this.xxx = xxx;
 	}
 
 	public int getZzz() {
