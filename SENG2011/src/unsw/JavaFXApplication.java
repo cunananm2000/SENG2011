@@ -1266,17 +1266,11 @@ public class JavaFXApplication extends Application {
         
         int i = 0;
 		while (i < level[0].length) {
-			if (level[0][i] <= 1) {
+			if (level[2][i] == 1) {
 				String cap = level[0][i]+"/"+level[1][i];
 				Level l = new Level(i, cap, "*WARNING: CRITICALLY LOW*");
 				data.add(l);
-			} 
-			else if (level[0][i] <= 3) {
-				String cap = level[0][i]+"/"+level[1][i];
-				Level l = new Level(i, cap, "*WARNING: GETTING LOW*");
-				data.add(l);
-			} 
-			else {
+			} else {
 				String cap = level[0][i]+"/"+level[1][i];
 				Level l = new Level(i, cap, " ");
 				data.add(l);
@@ -1402,14 +1396,14 @@ public class JavaFXApplication extends Application {
         bloodType.setFont(Font.font("Tahoma", FontWeight.BOLD, 35));
         grid.add(bloodType, 0, 3);
         ChoiceBox<String> blood = new ChoiceBox<String>();
+        blood.getItems().add("O-");
+        blood.getItems().add("O+");
         blood.getItems().add("A-");
         blood.getItems().add("A+");
         blood.getItems().add("B-");
         blood.getItems().add("B+");
-        blood.getItems().add("O-");
-        blood.getItems().add("O+");
-        blood.getItems().add("AB+");
         blood.getItems().add("AB-");
+        blood.getItems().add("AB+");
         grid.add(blood, 1, 3);
         
         // Buffer Date
@@ -1434,6 +1428,7 @@ public class JavaFXApplication extends Application {
             		String bloodType = (String) blood.getValue();
             		int bt = convertBloodType(bloodType);
             		em.getMainSystem().setLowLevel(bt,nPackets);	
+            		System.out.println("SET");
             		JOptionPane.showMessageDialog(null, "successfully set low level");
 				} catch (Exception e1) {
 					System.out.println("can't change stage to aaa screen");

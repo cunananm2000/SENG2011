@@ -79,6 +79,7 @@ public class PacketPile {
 	}
 	
 	public boolean isLow() {
+		System.out.println(count+"/"+low);
 		return count <= low;
 	}
 	
