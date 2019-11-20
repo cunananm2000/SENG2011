@@ -41,7 +41,8 @@ public class BloodDatabase {
 	}
 	
 	public BloodPacket[] getBlood(String field) {
-		return sorter.sort(packets, field);
+		BloodPacket[] returnPackets = truncate(packets,count);
+		return sorter.sort(returnPackets, field);
 	}
 	
 	public BloodPacket[] searchBloodInt(String field, int value) {

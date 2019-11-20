@@ -846,19 +846,23 @@ public class JavaFXApplication extends Application {
 
 	protected void SearchResultsInt(Stage primaryStage, String option, int value, boolean database) {
 		Scene scene = new Scene(new Group());
-        primaryStage.setWidth(700);
+        primaryStage.setWidth(900);
         primaryStage.setHeight(500);
         TableView table = new TableView();
-       
-        final Label label = new Label("Blood Packet Database (" + option + ")");
+        
+        final Label label;
+        if (database) {
+        	label = new Label("Search Database (" + option + ")");
+        } else {
+        	label = new Label("Search Inventory (" + option + ")");
+        }
         label.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 32px;");
         label.setFont(Font.font("Tahoma", FontWeight.BOLD, 50));
         
-        label.setFont(new Font("Arial", 20));
         table.setEditable(true);
-
-        TableColumn id = new TableColumn("ID");
-        id.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("id"));   
+        
+        TableColumn IxD = new TableColumn("id");
+        IxD.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("ID"));
         
         TableColumn bloodType = new TableColumn("Blood Type");
         bloodType.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("bloodType"));
@@ -881,6 +885,12 @@ public class JavaFXApplication extends Application {
         TableColumn lastName = new TableColumn("Surname");
         lastName.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("lastName"));
         
+        TableColumn currLoc = new TableColumn("Current Location");
+        currLoc.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("currLoc"));
+        
+        TableColumn status = new TableColumn("Status");
+        status.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("status"));
+        
         BloodPacket[] packets;
         if (database) {
         	packets = em.getMainSystem().searchBloodInt(option,value);
@@ -893,17 +903,18 @@ public class JavaFXApplication extends Application {
         
         int i = 0;
 	    while (i < packets.length) {
+	    
 	    	BloodPacket bp = new BloodPacket(packets[i].getID(),packets[i].getBloodType(),packets[i].getDonateDate(),
 	    			packets[i].getDonateLoc(), packets[i].getExpiryDate(), packets[i].getDonorID(),
-	    			packets[i].getFirstName(), packets[i].getLastName());
+	    			packets[i].getFirstName(), packets[i].getLastName(), packets[i].getCurrLoc(), packets[i].getStatus());
+	    	
 	    	data.add(bp);
-	    	System.out.println(packets[i].getFirstName());
 	    	i += 1;
+	    	
 	    }
         
-        
-        table.setItems(data);
-        table.getColumns().addAll(id,bloodType, donateDate, donateLoc, expiryDate, donorID,firstName,lastName);
+	    table.setItems(data);
+        table.getColumns().addAll(IxD,bloodType, donateDate, donateLoc, expiryDate, donorID,firstName,lastName,currLoc,status);
  
         final VBox vbox = new VBox();
         vbox.setSpacing(5);
@@ -938,17 +949,23 @@ public class JavaFXApplication extends Application {
 	protected void SearchResultsStr(Stage primaryStage, String option, String value, boolean database) {
 		
 		Scene scene = new Scene(new Group());
-        primaryStage.setWidth(700);
+        primaryStage.setWidth(900);
         primaryStage.setHeight(500);
         TableView table = new TableView();
-        final Label label = new Label("Blood Packet Database (" + option + ")");
+        
+        final Label label;
+        if (database) {
+        	label = new Label("Search Database (" + option + ")");
+        } else {
+        	label = new Label("Search Inventory (" + option + ")");
+        }
         label.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 32px;");
         label.setFont(Font.font("Tahoma", FontWeight.BOLD, 50));
-        label.setFont(new Font("Arial", 20));
+        
         table.setEditable(true);
-
-        TableColumn id = new TableColumn("ID");
-        id.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("id"));   
+        
+        TableColumn IxD = new TableColumn("id");
+        IxD.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("ID"));
         
         TableColumn bloodType = new TableColumn("Blood Type");
         bloodType.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("bloodType"));
@@ -971,6 +988,12 @@ public class JavaFXApplication extends Application {
         TableColumn lastName = new TableColumn("Surname");
         lastName.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("lastName"));
         
+        TableColumn currLoc = new TableColumn("Current Location");
+        currLoc.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("currLoc"));
+        
+        TableColumn status = new TableColumn("Status");
+        status.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("status"));
+        
         BloodPacket[] packets;
         if (database) {
         	packets = em.getMainSystem().searchBloodString(option,value);
@@ -983,22 +1006,25 @@ public class JavaFXApplication extends Application {
         
         int i = 0;
 	    while (i < packets.length) {
+	    
 	    	BloodPacket bp = new BloodPacket(packets[i].getID(),packets[i].getBloodType(),packets[i].getDonateDate(),
 	    			packets[i].getDonateLoc(), packets[i].getExpiryDate(), packets[i].getDonorID(),
-	    			packets[i].getFirstName(), packets[i].getLastName());
+	    			packets[i].getFirstName(), packets[i].getLastName(), packets[i].getCurrLoc(), packets[i].getStatus());
+	    	
 	    	data.add(bp);
-	    	System.out.println(packets[i].getFirstName());
 	    	i += 1;
+	    	
 	    }
         
         
         table.setItems(data);
-        table.getColumns().addAll(id,bloodType, donateDate, donateLoc, expiryDate, donorID,firstName,lastName);
+        table.getColumns().addAll(IxD,bloodType, donateDate, donateLoc, expiryDate, donorID,firstName,lastName,currLoc,status);
  
         final VBox vbox = new VBox();
         vbox.setSpacing(5);
         vbox.setPadding(new Insets(10, 0, 0, 10));
         vbox.getChildren().addAll(label, table);
+ 
  
         // Back button
         Button btn = new Button("Back");
@@ -1032,12 +1058,12 @@ public class JavaFXApplication extends Application {
         grid.setVgap(10);
         grid.setPadding(new Insets(25, 25, 25, 25));
                 
-        Label scenetitle = new Label("Select Blood Type:");
+        Label scenetitle = new Label("Select search criteria:");
         scenetitle.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 32px;");
         scenetitle.setFont(Font.font("Tahoma", FontWeight.BOLD, 50));
         grid.add(scenetitle, 0, 13);
         
-        Label bloodType = new Label("Blood Type:");
+        Label bloodType = new Label("			Search:");
         bloodType.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
         bloodType.setFont(Font.font("Tahoma", FontWeight.BOLD, 20));
         grid.add(bloodType, 0, 14);
@@ -1065,10 +1091,12 @@ public class JavaFXApplication extends Application {
             public void handle(ActionEvent e) {
             	try {
 					// add show the inventory
-            		String search = (String) blood.getValue();	
+            		String search = (String) blood.getValue();
             		displayBlood(primaryStage, search);
 				} catch (Exception e1) {
-					System.out.println("can't change stage");
+					System.out.println(e1.toString());
+					e1.printStackTrace();
+					System.out.println("can't change stage huh");
 				}
             }
         });
@@ -1144,6 +1172,9 @@ public class JavaFXApplication extends Application {
         ObservableList<BloodPacket> data = FXCollections.observableArrayList();
         
         int i = 0;
+
+
+		System.out.println("showed "+i);
 	    while (i < packets.length) {
 	    
 	    	BloodPacket bp = new BloodPacket(packets[i].getID(),packets[i].getBloodType(),packets[i].getDonateDate(),
@@ -1154,6 +1185,9 @@ public class JavaFXApplication extends Application {
 	    	i += 1;
 	    	
 	    }
+	    
+
+		System.out.println("showed "+i);
         
         
         table.setItems(data);
