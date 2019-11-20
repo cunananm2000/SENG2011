@@ -3,8 +3,13 @@ package unsw;
 public class PacketMergeSort extends PacketSorter {
 	
 	@Override
-	public void sort(BloodPacket[] packets, String field) {
-	    mergeSort(packets, 0, packets.length, field);
+	public BloodPacket[] sort(BloodPacket[] oldPackets, String field) {
+	    //mergeSort(packets, 0, packets.length, field);
+		BloodPacket[] packets = new BloodPacket[oldPackets.length];
+		for (int i = 0; i < packets.length; i++)
+			packets[i] = oldPackets[i];
+		mergeSort(packets, 0, packets.length, field);
+		return packets;
 	}
 	
 	private void mergeSort(BloodPacket[] a, int low, int high, String field) {
