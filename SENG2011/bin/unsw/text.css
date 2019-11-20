@@ -1,0 +1,8 @@
+#pane{
+    -fx-background-image: url("file:///tmp_amd/glass/export/glass/4/z5207859/SENG2011/project/SENG2011/SENG2011/src/unsw/vampireloginscreen.png");
+	-fx-background-size: 600px 400px;
+	-fx-background-size: cover;
+}
+#background{
+	-fx-background-color: #515A60;
+}

@@ -62,44 +62,46 @@ public class JavaFXApplication extends Application {
 	public void loginScreen(Stage primaryStage) throws Exception {
 		
 		GridPane grid = new GridPane();
+		grid.setId("pane");
         grid.setAlignment(Pos.CENTER);
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(25, 25, 25, 25));
-
-        // Standard Login Text
-        Text scenetitle = new Text("Login");
-        scenetitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
-        grid.add(scenetitle, 0, 0, 2, 2);
         
         // User's type
         Label userType = new Label("User Type:");
-        grid.add(userType, 0, 3);
+        userType.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
+        userType.setFont(Font.font("Tahoma", FontWeight.BOLD, 20));
+        grid.add(userType, 0, 15);
         ChoiceBox<String> choiceBox = new ChoiceBox<String>();
         choiceBox.getItems().add("Donor");
         choiceBox.getItems().add("Vampire");
         choiceBox.getItems().add("Hospital");
         choiceBox.getItems().add("Pathology Centre");
-        grid.add(choiceBox, 1, 3);
+        grid.add(choiceBox, 1, 15);
         
         // User's name
         Label userName = new Label("User ID:");
-        grid.add(userName, 0, 4);
+        userName.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
+        userName.setFont(Font.font("Tahoma", FontWeight.BOLD, 20));
+        grid.add(userName, 0, 16);
         TextField userTextField = new TextField();
-        grid.add(userTextField, 1, 4);
+        grid.add(userTextField, 1, 16);
 
         // User's password
         Label pw = new Label("Password:");
-        grid.add(pw, 0, 5);
+        pw.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
+        pw.setFont(Font.font("Tahoma", FontWeight.BOLD, 20));
+        grid.add(pw, 0, 17);
         PasswordField pwBox = new PasswordField();
-        grid.add(pwBox, 1, 5);
+        grid.add(pwBox, 1, 17);
         
         // Confirmation button
         Button btn = new Button("LOGIN");
         HBox hbBtn = new HBox(10);
         hbBtn.setAlignment(Pos.BOTTOM_RIGHT);
         hbBtn.getChildren().add(btn);
-        grid.add(hbBtn, 1, 6);
+        grid.add(hbBtn, 1, 18);
         
         btn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -137,7 +139,8 @@ public class JavaFXApplication extends Application {
         });
         
         Scene scene = new Scene(grid, 650, 405);
-        scene.getStylesheets().add("text.css"); // this doesn't work so far
+        
+        scene.getStylesheets().addAll(this.getClass().getResource("text.css").toExternalForm());
         
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -148,6 +151,7 @@ public class JavaFXApplication extends Application {
 	// --------------------------------------------------------------
 	public void DonorPage(Stage primaryStage) {
 		GridPane grid = new GridPane();
+		grid.setId("background");
         grid.setAlignment(Pos.CENTER);
         grid.setHgap(10);
         grid.setVgap(10);
@@ -157,17 +161,18 @@ public class JavaFXApplication extends Application {
         Donor d = (Donor) em.getMainSystem().getDonorDB().search(em.getUser().getId());
 		String firstName = d.getFirstName();
 		String lastName = d.getLastName();
-        
-        Text scenetitle = new Text(firstName + " " +lastName);
-        scenetitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
-        grid.add(scenetitle, 0, 0, 2, 2);
+                
+        Label pw = new Label(firstName + " " +lastName);
+        pw.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 45px;");
+        pw.setFont(Font.font("Tahoma", FontWeight.BOLD, 20));
+        grid.add(pw, 0, 10);
         
         // Back button
         Button btn = new Button("Signout");
         HBox hbBtn = new HBox(10);
         hbBtn.setAlignment(Pos.BOTTOM_RIGHT);
         hbBtn.getChildren().add(btn);
-        grid.add(hbBtn, 1, 6);
+        grid.add(hbBtn, 1, 18);
         
         btn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -183,7 +188,7 @@ public class JavaFXApplication extends Application {
         });
 
         Scene scene = new Scene(grid, 650, 405);
-        
+        scene.getStylesheets().addAll(this.getClass().getResource("text.css").toExternalForm());
         primaryStage.setScene(scene);
         primaryStage.show();
 	}
@@ -193,6 +198,7 @@ public class JavaFXApplication extends Application {
 	// --------------------------------------------------------------
 	public void HospitalPage(Stage primaryStage) {
 		GridPane grid = new GridPane();
+		grid.setId("pane");
         grid.setAlignment(Pos.CENTER);
         grid.setHgap(10);
         grid.setVgap(10);
@@ -201,14 +207,17 @@ public class JavaFXApplication extends Application {
         // get the user's full name
         Hospital h = (Hospital) em.getMainSystem().getHospitalDB().search(em.getUser().getId());
 		String hospitalName = h.getName();
-
-        Text scenetitle = new Text(hospitalName);
-        scenetitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
-        grid.add(scenetitle, 0, 0, 2, 2);
+        
+        Label scenetitle = new Label(hospitalName);
+        scenetitle.setStyle("-fx-text-fill: #bf0d0d; -fx-font-size: 32px;");
+        scenetitle.setFont(Font.font("Tahoma", FontWeight.BOLD, 20));
+        grid.add(scenetitle, 0, 12);
         
         // Requested Blood Type
         Label userType = new Label("Blood Type:");
-        grid.add(userType, 0, 3);
+        userType.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
+        userType.setFont(Font.font("Tahoma", FontWeight.BOLD, 20));
+        grid.add(userType, 0, 13);
         ChoiceBox<String> blood = new ChoiceBox<String>();
         blood.getItems().add("A-");
         blood.getItems().add("A+");
@@ -218,25 +227,28 @@ public class JavaFXApplication extends Application {
         blood.getItems().add("O+");
         blood.getItems().add("AB+");
         blood.getItems().add("AB-");
-        grid.add(blood, 1, 3);
+        grid.add(blood, 1, 13);
         
         // number of packets
         Label numPackets = new Label("# Packets Requested:");
-        grid.add(numPackets, 0, 4);
+        numPackets.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
+        numPackets.setFont(Font.font("Tahoma", FontWeight.BOLD, 20));
+        grid.add(numPackets, 0, 14);
         TextField numberOfPackets = new TextField();
-        grid.add(numberOfPackets, 1, 4);
+        grid.add(numberOfPackets, 1, 14);
 
-        // User's password
         Label exp = new Label("Expirary Date:");
-        grid.add(exp, 0, 5);
+        exp.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
+        exp.setFont(Font.font("Tahoma", FontWeight.BOLD, 20));
+        grid.add(exp, 0, 15);
         TextField expBox = new TextField();
-        grid.add(expBox, 1, 5);
+        grid.add(expBox, 1, 15);
         
         Button req = new Button("Request Blood");
         HBox reqBtn = new HBox(10);
         reqBtn.setAlignment(Pos.BOTTOM_RIGHT);
         reqBtn.getChildren().add(req);
-        grid.add(reqBtn, 0, 6);
+        grid.add(reqBtn, 0, 16);
         
         req.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -259,7 +271,7 @@ public class JavaFXApplication extends Application {
         HBox hbBtn = new HBox(10);
         hbBtn.setAlignment(Pos.BOTTOM_RIGHT);
         hbBtn.getChildren().add(btn);
-        grid.add(hbBtn, 1, 6);
+        grid.add(hbBtn, 1, 16);
         
         btn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -275,7 +287,7 @@ public class JavaFXApplication extends Application {
         });
 
         Scene scene = new Scene(grid, 650, 405);
-        
+        scene.getStylesheets().addAll(this.getClass().getResource("text.css").toExternalForm());
         primaryStage.setScene(scene);
         primaryStage.show();
 	}
@@ -285,6 +297,7 @@ public class JavaFXApplication extends Application {
 	// --------------------------------------------------------------
 	public void PathologyPage(Stage primaryStage) {
 		GridPane grid = new GridPane();
+		grid.setId("pane");
         grid.setAlignment(Pos.CENTER);
         grid.setHgap(10);
         grid.setVgap(10);
@@ -294,19 +307,24 @@ public class JavaFXApplication extends Application {
         PathCentre p = (PathCentre) em.getMainSystem().getPathDB().search(em.getUser().getId());
 		String pathName = p.getName();
         
-        Text scenetitle = new Text(pathName);
-        scenetitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
-        grid.add(scenetitle, 0, 0, 2, 2);
+        Label scenetitle = new Label(pathName);
+        scenetitle.setStyle("-fx-text-fill: #bf0d0d; -fx-font-size: 40px;");
+        scenetitle.setFont(Font.font("Tahoma", FontWeight.BOLD, 35));
+        grid.add(scenetitle, 0, 14);
         
         // Donate Date
         Label id = new Label("Donor ID:");
-        grid.add(id, 0, 3);
+        id.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
+        id.setFont(Font.font("Tahoma", FontWeight.BOLD, 20));
+        grid.add(id, 0, 15);
         TextField DonorID = new TextField();
-        grid.add(DonorID, 1, 3);
+        grid.add(DonorID, 1, 15);
         
         // Requested Blood Type
         Label bloodType = new Label("Blood Type:");
-        grid.add(bloodType, 0, 4);
+        bloodType.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
+        bloodType.setFont(Font.font("Tahoma", FontWeight.BOLD, 20));
+        grid.add(bloodType, 0, 16);
         ChoiceBox<String> blood = new ChoiceBox<String>();
         blood.getItems().add("A-");
         blood.getItems().add("A+");
@@ -316,25 +334,29 @@ public class JavaFXApplication extends Application {
         blood.getItems().add("O+");
         blood.getItems().add("AB+");
         blood.getItems().add("AB-");
-        grid.add(blood, 1, 4);
+        grid.add(blood, 1, 16);
         
         // Donate Date
         Label donateDate = new Label("Donation Date:");
-        grid.add(donateDate, 0, 5);
+        donateDate.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
+        donateDate.setFont(Font.font("Tahoma", FontWeight.BOLD, 20));
+        grid.add(donateDate, 0, 17);
         TextField donation = new TextField();
-        grid.add(donation, 1, 5);
+        grid.add(donation, 1, 17);
 
         // Expiry Date
         Label expDate = new Label("Expirary Date:");
-        grid.add(expDate, 0, 6);
+        expDate.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
+        expDate.setFont(Font.font("Tahoma", FontWeight.BOLD, 20));
+        grid.add(expDate, 0, 18);
         TextField expiratory = new TextField();
-        grid.add(expiratory, 1, 6);
+        grid.add(expiratory, 1, 18);
         
         Button add = new Button("Add Blood");
         HBox addBtn = new HBox(10);
         addBtn.setAlignment(Pos.BOTTOM_RIGHT);
         addBtn.getChildren().add(add);
-        grid.add(addBtn, 0, 7);
+        grid.add(addBtn, 0, 19);
         
         add.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -358,7 +380,7 @@ public class JavaFXApplication extends Application {
         HBox hbBtn = new HBox(10);
         hbBtn.setAlignment(Pos.BOTTOM_RIGHT);
         hbBtn.getChildren().add(btn);
-        grid.add(hbBtn, 1, 7);
+        grid.add(hbBtn, 1, 19);
         
         btn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -374,7 +396,7 @@ public class JavaFXApplication extends Application {
         });
 
         Scene scene = new Scene(grid, 650, 405);
-        
+        scene.getStylesheets().addAll(this.getClass().getResource("text.css").toExternalForm());
         primaryStage.setScene(scene);
         primaryStage.show();
 	}
@@ -384,24 +406,30 @@ public class JavaFXApplication extends Application {
 	// --------------------------------------------------------------
 	public void VampirePage(Stage primaryStage) {
 		GridPane grid = new GridPane();
+		grid.setId("background");
         grid.setAlignment(Pos.CENTER);
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(25, 25, 25, 25));
         
-        Text scenetitle = new Text("Vampire");
-        scenetitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
-        grid.add(scenetitle, 0, 0, 2, 2);
+        Label scenetitle = new Label("Vampire");
+        scenetitle.setStyle("-fx-text-fill: #9e0d0d; -fx-font-size: 50px;");
+        scenetitle.setFont(Font.font("Tahoma", FontWeight.BOLD, 35));
+        grid.add(scenetitle, 1, 1);
         
         // Back button
         Button signout = new Button("Signout");
+        signout.setStyle("-fx-border-color: #8b0000; -fx-border-width: 2px;");
+        signout.setMinSize(150, 35);
         HBox signoutBtn = new HBox(10);
         signoutBtn.setAlignment(Pos.BOTTOM_RIGHT);
         signoutBtn.getChildren().add(signout);
-        grid.add(signoutBtn, 2, 8);
+        grid.add(signoutBtn, 2, 7);
         
         // Add donor button
         Button addDonor = new Button("Add donor");
+        addDonor.setStyle("-fx-border-color: #8b0000; -fx-border-width: 2px;");
+        addDonor.setMinSize(150, 35);
         HBox addDonorBtn = new HBox(10);
         addDonorBtn.setAlignment(Pos.BOTTOM_RIGHT);
         addDonorBtn.getChildren().add(addDonor);
@@ -409,6 +437,8 @@ public class JavaFXApplication extends Application {
         
         // clean up button
         Button cleanUp = new Button("Clean Up");
+        cleanUp.setStyle("-fx-border-color: #8b0000; -fx-border-width: 2px;");
+        cleanUp.setMinSize(150, 35);
         HBox cleanUpBtn = new HBox(10);
         cleanUpBtn.setAlignment(Pos.BOTTOM_RIGHT);
         cleanUpBtn.getChildren().add(cleanUp);
@@ -416,6 +446,8 @@ public class JavaFXApplication extends Application {
         
         // print Inventory
         Button printI = new Button("Inventory");
+        printI.setStyle("-fx-border-color: #8b0000; -fx-border-width: 2px;");
+        printI.setMinSize(150, 35);
         HBox printIBtn = new HBox(10);
         printIBtn.setAlignment(Pos.BOTTOM_RIGHT);
         printIBtn.getChildren().add(printI);
@@ -423,6 +455,8 @@ public class JavaFXApplication extends Application {
         
         // print notifications
         Button printN = new Button("Notifications");
+        printN.setStyle("-fx-border-color: #8b0000; -fx-border-width: 2px;");
+        printN.setMinSize(150, 35);
         HBox printNBtn = new HBox(10);
         printNBtn.setAlignment(Pos.BOTTOM_RIGHT);
         printNBtn.getChildren().add(printN);
@@ -430,6 +464,8 @@ public class JavaFXApplication extends Application {
         
         // print levels
         Button printL = new Button("Levels");
+        printL.setStyle("-fx-border-color: #8b0000; -fx-border-width: 2px;");
+        printL.setMinSize(150, 35);
         HBox printLBtn = new HBox(10);
         printLBtn.setAlignment(Pos.BOTTOM_RIGHT);
         printLBtn.getChildren().add(printL);
@@ -437,6 +473,8 @@ public class JavaFXApplication extends Application {
         
         // print donors
         Button printD = new Button("Donors");
+        printD.setStyle("-fx-border-color: #8b0000; -fx-border-width: 2px;");
+        printD.setMinSize(150, 35);
         HBox printDBtn = new HBox(10);
         printDBtn.setAlignment(Pos.BOTTOM_RIGHT);
         printDBtn.getChildren().add(printD);
@@ -444,6 +482,8 @@ public class JavaFXApplication extends Application {
         
         // print hospitals
         Button printH = new Button("Hospitals");
+        printH.setStyle("-fx-border-color: #8b0000; -fx-border-width: 2px;");
+        printH.setMinSize(150, 35);
         HBox printHBtn = new HBox(10);
         printHBtn.setAlignment(Pos.BOTTOM_RIGHT);
         printHBtn.getChildren().add(printH);
@@ -451,6 +491,8 @@ public class JavaFXApplication extends Application {
         
         // print pathology centres
         Button printP = new Button("Pathology Centres");
+        printP.setStyle("-fx-border-color: #8b0000; -fx-border-width: 2px;");
+        printP.setMinSize(150, 35);
         HBox printPBtn = new HBox(10);
         printPBtn.setAlignment(Pos.BOTTOM_RIGHT);
         printPBtn.getChildren().add(printP);
@@ -458,6 +500,8 @@ public class JavaFXApplication extends Application {
         
      	// print blooddatabase
         Button printBD = new Button("Blood Database");
+        printBD.setStyle("-fx-border-color: #8b0000; -fx-border-width: 2px;");
+        printBD.setMinSize(150, 35);
         HBox printBDBtn = new HBox(10);
         printBDBtn.setAlignment(Pos.BOTTOM_RIGHT);
         printBDBtn.getChildren().add(printBD);
@@ -465,6 +509,8 @@ public class JavaFXApplication extends Application {
         
         // print levels
         Button printS = new Button("Search Database");
+        printS.setStyle("-fx-border-color: #8b0000; -fx-border-width: 2px;");
+        printS.setMinSize(150, 35);
         HBox printSBtn = new HBox(10);
         printSBtn.setAlignment(Pos.BOTTOM_RIGHT);
         printSBtn.getChildren().add(printS);
@@ -472,6 +518,8 @@ public class JavaFXApplication extends Application {
         
         // set low level of blood
         Button printSL = new Button("Set Low-Level");
+        printSL.setStyle("-fx-border-color: #8b0000; -fx-border-width: 2px;");
+        printSL.setMinSize(150, 35);
         HBox printSLBtn = new HBox(10);
         printSLBtn.setAlignment(Pos.BOTTOM_RIGHT);
         printSLBtn.getChildren().add(printSL);
@@ -479,6 +527,8 @@ public class JavaFXApplication extends Application {
         
         // set warning buffer 
         Button printSB = new Button("Set Buffer");
+        printSB.setStyle("-fx-border-color: #8b0000; -fx-border-width: 2px;");
+        printSB.setMinSize(150, 35);
         HBox printSBBtn = new HBox(10);
         printSBBtn.setAlignment(Pos.BOTTOM_RIGHT);
         printSBBtn.getChildren().add(printSB);
@@ -583,26 +633,33 @@ public class JavaFXApplication extends Application {
         });
         
         Scene scene = new Scene(grid, 650, 405);
+        scene.getStylesheets().addAll(this.getClass().getResource("text.css").toExternalForm());
         primaryStage.setScene(scene);
         primaryStage.show();
 	}
 	
 	
-	
+	// --------------------------------------------------------------
+	// ------------------- VAMPIRE COMMANDS -------------------------
+	// --------------------------------------------------------------
 	protected void searchPage(Stage primaryStage) {
 		GridPane grid = new GridPane();
+		grid.setId("background");
         grid.setAlignment(Pos.CENTER);
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(25, 25, 25, 25));
 
-        Text scenetitle = new Text("Select Search Criteria");
-        scenetitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
-        grid.add(scenetitle, 0, 0, 2, 2);
-        
+        Label scenetitle = new Label("Select Search Criteria");
+        scenetitle.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 32px;");
+        scenetitle.setFont(Font.font("Tahoma", FontWeight.BOLD, 50));
+        grid.add(scenetitle, 0, 1);
         // number of packets
-        Label search = new Label("Search:");
+        Label search = new Label("			Search:");
+        search.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
+        search.setFont(Font.font("Tahoma", FontWeight.BOLD, 35));
         grid.add(search, 0, 3);
+        
         ChoiceBox<String> options = new ChoiceBox<String>();
         options.getItems().add("ID");
         options.getItems().add("BLOOD_TYPE");
@@ -617,7 +674,10 @@ public class JavaFXApplication extends Application {
         grid.add(options, 1, 3);
         
      // User's password
-        Label q = new Label("Search Term:");
+        Label q = new Label("			Search Term:");
+        q.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
+        q.setFont(Font.font("Tahoma", FontWeight.BOLD, 35));
+       
         grid.add(q, 0, 4);
         TextField query = new TextField();
         grid.add(query, 1, 4);
@@ -665,7 +725,7 @@ public class JavaFXApplication extends Application {
         });
 
         Scene scene = new Scene(grid, 650, 405);
-        
+        scene.getStylesheets().addAll(this.getClass().getResource("text.css").toExternalForm());
         primaryStage.setScene(scene);
         primaryStage.show();
 	}
@@ -675,7 +735,11 @@ public class JavaFXApplication extends Application {
         primaryStage.setWidth(700);
         primaryStage.setHeight(500);
         TableView table = new TableView();
+       
         final Label label = new Label("Blood Packet Database (" + option + ")");
+        label.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 32px;");
+        label.setFont(Font.font("Tahoma", FontWeight.BOLD, 50));
+        
         label.setFont(new Font("Arial", 20));
         table.setEditable(true);
 
@@ -736,7 +800,10 @@ public class JavaFXApplication extends Application {
             @Override
             public void handle(ActionEvent e) {
             	try {
+            		primaryStage.setHeight(405);
+					primaryStage.setWidth(650);
 					VampirePage(primaryStage);
+					
 				} catch (Exception e1) {
 					System.out.println("can't change stage to vampire screen");
 				}
@@ -756,6 +823,8 @@ public class JavaFXApplication extends Application {
         primaryStage.setHeight(500);
         TableView table = new TableView();
         final Label label = new Label("Blood Packet Database (" + option + ")");
+        label.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 32px;");
+        label.setFont(Font.font("Tahoma", FontWeight.BOLD, 50));
         label.setFont(new Font("Arial", 20));
         table.setEditable(true);
 
@@ -816,6 +885,8 @@ public class JavaFXApplication extends Application {
             @Override
             public void handle(ActionEvent e) {
             	try {
+            		primaryStage.setHeight(405);
+					primaryStage.setWidth(650);
 					VampirePage(primaryStage);
 				} catch (Exception e1) {
 					System.out.println("can't change stage to vampire screen");
@@ -832,16 +903,20 @@ public class JavaFXApplication extends Application {
 		
 	    GridPane grid = new GridPane();
         grid.setAlignment(Pos.CENTER);
+        grid.setId("background");
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(25, 25, 25, 25));
                 
-        Text scenetitle = new Text("Blood Database: Select blood");
-        scenetitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
-        grid.add(scenetitle, 0, 0, 2, 2);
+        Label scenetitle = new Label("Select Blood Type:");
+        scenetitle.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 32px;");
+        scenetitle.setFont(Font.font("Tahoma", FontWeight.BOLD, 50));
+        grid.add(scenetitle, 0, 13);
         
         Label bloodType = new Label("Blood Type:");
-        grid.add(bloodType, 0, 4);
+        bloodType.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
+        bloodType.setFont(Font.font("Tahoma", FontWeight.BOLD, 20));
+        grid.add(bloodType, 0, 14);
         ChoiceBox<String> blood = new ChoiceBox<String>();
         blood.getItems().add("ID");
         blood.getItems().add("BLOOD_TYPE");
@@ -853,13 +928,13 @@ public class JavaFXApplication extends Application {
         blood.getItems().add("LAST_NAME");
         blood.getItems().add("CURR_LOC");
         blood.getItems().add("STATUS");
-        grid.add(blood, 1, 4);
+        grid.add(blood, 1, 14);
     
         Button sortB = new Button("Select");
         HBox sortBtn = new HBox(10);
         sortBtn.setAlignment(Pos.BOTTOM_RIGHT);
         sortBtn.getChildren().add(sortB);
-        grid.add(sortBtn, 0, 6);
+        grid.add(sortBtn, 0, 16);
         
         sortB.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -878,7 +953,7 @@ public class JavaFXApplication extends Application {
         HBox hbBtn = new HBox(10);
         hbBtn.setAlignment(Pos.BOTTOM_RIGHT);
         hbBtn.getChildren().add(btn);
-        grid.add(hbBtn, 1, 6);
+        grid.add(hbBtn, 1, 16);
         
         btn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -892,7 +967,7 @@ public class JavaFXApplication extends Application {
         });
 
         Scene scene = new Scene(grid, 650, 405);
-        
+        scene.getStylesheets().addAll(this.getClass().getResource("text.css").toExternalForm());
         primaryStage.setScene(scene);
         primaryStage.show();
 	    
@@ -900,14 +975,17 @@ public class JavaFXApplication extends Application {
 	}
 
 	protected void displayBlood(Stage primaryStage, String search) {
+
 		Scene scene = new Scene(new Group());
         primaryStage.setWidth(700);
         primaryStage.setHeight(500);
         TableView table = new TableView();
         final Label label = new Label("Blood Packet Database");
-        label.setFont(new Font("Arial", 20));
+        label.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 32px;");
+        label.setFont(Font.font("Tahoma", FontWeight.BOLD, 50));
+        
         table.setEditable(true);
-
+        
         TableColumn id = new TableColumn("ID");
         id.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("id"));   
         
@@ -975,15 +1053,17 @@ public class JavaFXApplication extends Application {
         primaryStage.show();
 		
 	}
+	
 	protected void printPathologyPage(Stage primaryStage) {
 		Scene scene = new Scene(new Group());
         primaryStage.setWidth(700);
         primaryStage.setHeight(500);
         TableView table = new TableView();
         final Label label = new Label("Pathology Centres");
-        label.setFont(new Font("Arial", 20));
+        label.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 32px;");
+        label.setFont(Font.font("Tahoma", FontWeight.BOLD, 50));
         table.setEditable(true);
-
+        
         TableColumn id = new TableColumn("ID");
         id.setCellValueFactory(new PropertyValueFactory<PathCentre, String>("id"));
         id.setMinWidth(100);
@@ -1040,7 +1120,8 @@ public class JavaFXApplication extends Application {
         primaryStage.setHeight(500);
         TableView table = new TableView();
         final Label label = new Label("Hospitals");
-        label.setFont(new Font("Arial", 20));
+        label.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 32px;");
+        label.setFont(Font.font("Tahoma", FontWeight.BOLD, 50));
         table.setEditable(true);
 
         TableColumn id = new TableColumn("ID");
@@ -1099,7 +1180,8 @@ public class JavaFXApplication extends Application {
         primaryStage.setHeight(500);
         TableView table = new TableView();
         final Label label = new Label("Donors");
-        label.setFont(new Font("Arial", 20));
+        label.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 32px;");
+        label.setFont(Font.font("Tahoma", FontWeight.BOLD, 50));
         table.setEditable(true);
 
         TableColumn id = new TableColumn("ID");
@@ -1161,7 +1243,8 @@ public class JavaFXApplication extends Application {
         primaryStage.setHeight(500);
         TableView table = new TableView();
         final Label label = new Label("Blood Level");
-        label.setFont(new Font("Arial", 20));
+        label.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 32px;");
+        label.setFont(Font.font("Tahoma", FontWeight.BOLD, 50));
         table.setEditable(true);
 
         TableColumn bloodType = new TableColumn("Type");
@@ -1235,7 +1318,8 @@ public class JavaFXApplication extends Application {
         primaryStage.setHeight(500);
         TableView table = new TableView();
         final Label label = new Label("Notifications");
-        label.setFont(new Font("Arial", 20));
+        label.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 32px;");
+        label.setFont(Font.font("Tahoma", FontWeight.BOLD, 50));
         table.setEditable(true);
 
         TableColumn type = new TableColumn("Type");
@@ -1297,17 +1381,20 @@ public class JavaFXApplication extends Application {
 
 	protected void setLowLevelPage(Stage primaryStage) {
 		GridPane grid = new GridPane();
+		grid.setId("background");
         grid.setAlignment(Pos.CENTER);
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(25, 25, 25, 25));
         
-        Text scenetitle = new Text("Set Low Level");
-        scenetitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
-        grid.add(scenetitle, 0, 0, 2, 2);
-        
+        Label scenetitle = new Label("Set Low Level");
+        scenetitle.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 32px;");
+        scenetitle.setFont(Font.font("Tahoma", FontWeight.BOLD, 50));
+ 
         // Requested Blood Type
         Label bloodType = new Label("Blood Type:");
+        bloodType.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
+        bloodType.setFont(Font.font("Tahoma", FontWeight.BOLD, 35));
         grid.add(bloodType, 0, 3);
         ChoiceBox<String> blood = new ChoiceBox<String>();
         blood.getItems().add("A-");
@@ -1322,6 +1409,8 @@ public class JavaFXApplication extends Application {
         
         // Buffer Date
         Label minP = new Label("Minimum Packets:");
+        minP.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
+        minP.setFont(Font.font("Tahoma", FontWeight.BOLD, 35));
         grid.add(minP, 0, 4);
         TextField minimum = new TextField();
         grid.add(minimum, 1, 4);
@@ -1365,7 +1454,8 @@ public class JavaFXApplication extends Application {
             }
         });
 
-        Scene scene = new Scene(grid, 650, 405);    
+        Scene scene = new Scene(grid, 650, 405);   
+        scene.getStylesheets().addAll(this.getClass().getResource("text.css").toExternalForm());
         primaryStage.setScene(scene);
         primaryStage.show();
 		
@@ -1373,17 +1463,21 @@ public class JavaFXApplication extends Application {
 
 	protected void setBufferPage(Stage primaryStage) {
 		GridPane grid = new GridPane();
+		grid.setId("background");
         grid.setAlignment(Pos.CENTER);
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(25, 25, 25, 25));
         
-        Text scenetitle = new Text("Set warning buffer (days)");
-        scenetitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
+        Label scenetitle = new Label("Set warning buffer (days)");
+        scenetitle.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 32px;");
+        scenetitle.setFont(Font.font("Tahoma", FontWeight.BOLD, 50));
         grid.add(scenetitle, 0, 0, 2, 2);
         
         // Buffer Date
         Label expDate = new Label("Amount of Days:");
+        expDate.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
+        expDate.setFont(Font.font("Tahoma", FontWeight.BOLD, 35));
         grid.add(expDate, 0, 3);
         TextField expiratory = new TextField();
         grid.add(expiratory, 1, 3);
@@ -1425,23 +1519,28 @@ public class JavaFXApplication extends Application {
             }
         });
 
-        Scene scene = new Scene(grid, 650, 405);    
+        Scene scene = new Scene(grid, 650, 405);  
+        scene.getStylesheets().addAll(this.getClass().getResource("text.css").toExternalForm());
         primaryStage.setScene(scene);
         primaryStage.show();
 	}
 
 	protected void InventoryPage(Stage primaryStage) {
 		GridPane grid = new GridPane();
+		grid.setId("background");
         grid.setAlignment(Pos.CENTER);
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(25, 25, 25, 25));
                 
-        Text scenetitle = new Text("Inventory Page");
-        scenetitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
+        Label scenetitle = new Label("Inventory Page");
+        scenetitle.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 32px;");
+        scenetitle.setFont(Font.font("Tahoma", FontWeight.BOLD, 50));
         grid.add(scenetitle, 0, 0, 2, 2);
         
         Label sort = new Label("Sort By:");
+        sort.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
+        sort.setFont(Font.font("Tahoma", FontWeight.BOLD, 35));
         grid.add(sort, 0, 4);
         ChoiceBox<String> sortBox = new ChoiceBox<String>();
         sortBox.getItems().add("ID");
@@ -1493,7 +1592,7 @@ public class JavaFXApplication extends Application {
         });
 
         Scene scene = new Scene(grid, 650, 405);
-        
+        scene.getStylesheets().addAll(this.getClass().getResource("text.css").toExternalForm());
         primaryStage.setScene(scene);
         primaryStage.show();
 		
@@ -1505,8 +1604,10 @@ public class JavaFXApplication extends Application {
         primaryStage.setHeight(500);
         TableView table = new TableView();
         final Label label = new Label("Inventory (" + sortBy + ")");
-        label.setFont(new Font("Arial", 20));
+        label.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 32px;");
+        label.setFont(Font.font("Tahoma", FontWeight.BOLD, 50));
         table.setEditable(true);
+        
  
         TableColumn id = new TableColumn("ID");
         id.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("id"));
@@ -1576,29 +1677,37 @@ public class JavaFXApplication extends Application {
 
 	protected void addDonorStage(Stage primaryStage) {
 		GridPane grid = new GridPane();
+		grid.setId("background");
         grid.setAlignment(Pos.CENTER);
         grid.setHgap(10);
         grid.setVgap(10);
         grid.setPadding(new Insets(25, 25, 25, 25));
         
-        Text scenetitle = new Text("Add Donor");
-        scenetitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
+        Label scenetitle = new Label("Add Donor");
+        scenetitle.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 32px;");
+        scenetitle.setFont(Font.font("Tahoma", FontWeight.BOLD, 50));
         grid.add(scenetitle, 0, 0, 2, 2);
         
         // firstname
         Label Username = new Label("First Name:");
+        Username.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
+        Username.setFont(Font.font("Tahoma", FontWeight.BOLD, 35));
         grid.add(Username, 0, 2);
         TextField Usernametext = new TextField();
         grid.add(Usernametext, 1, 2);
 
         // last name
         Label lastN = new Label("Last Name:");
+        lastN.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
+        lastN.setFont(Font.font("Tahoma", FontWeight.BOLD, 35));
         grid.add(lastN, 0, 3);
         TextField lastName = new TextField();
         grid.add(lastName, 1, 3);
         
         // password
         Label pss = new Label("Password:");
+        pss.setStyle("-fx-text-fill: #8b0000; -fx-font-size: 22px;");
+        pss.setFont(Font.font("Tahoma", FontWeight.BOLD, 35));
         grid.add(pss, 0, 4);
         TextField password = new TextField();
         grid.add(password, 1, 4);
@@ -1643,7 +1752,7 @@ public class JavaFXApplication extends Application {
         });
 
         Scene scene = new Scene(grid, 650, 405);
-        
+        scene.getStylesheets().addAll(this.getClass().getResource("text.css").toExternalForm());
         primaryStage.setScene(scene);
         primaryStage.show();
 		
