@@ -181,6 +181,55 @@ public class Vampire extends User {
 	    return sortedEverything;
 	}
 	
+	public BloodPacket[] searchInventoryInt(String field, int value) {
+		BloodPacket[] everything = this.getInventory(field);
+		int i = 0;
+		int count = 0;
+		while (i < everything.length) {
+			if (everything[i].matchFieldInt(field, value)) {
+				count += 1;
+			}
+			i += 1;
+		}
+		
+		BloodPacket[] returnPackets = new BloodPacket[count];
+		i = 0;
+		int next = 0;
+		while (i < everything.length) {
+			if (everything[i].matchFieldInt(field, value)) {
+				returnPackets[next] = everything[i];
+				next += 1;
+			}
+			i += 1;
+		}
+		return returnPackets;
+		
+	}
+	
+	public BloodPacket[] searchInventoryString(String field, String value) {
+		BloodPacket[] everything = this.getInventory(field);
+		int i = 0;
+		int count = 0;
+		while (i < everything.length) {
+			if (everything[i].matchFieldString(field, value)) {
+				count += 1;
+			}
+			i += 1;
+		}
+		
+		BloodPacket[] returnPackets = new BloodPacket[count];
+		i = 0;
+		int next = 0;
+		while (i < everything.length) {
+			if (everything[i].matchFieldString(field, value)) {
+				returnPackets[next] = everything[i];
+				next += 1;
+			}
+			i += 1;
+		}
+		return returnPackets;
+	}
+	
 	public int[][] getLevels() {
 		int[][] levels = new int[3][8];
 		

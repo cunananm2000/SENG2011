@@ -44,6 +44,7 @@ public class Emulator {
 	        println("PRINT_PATH_CENTRES ---- Print pathology centres");
 	        println("PRINT_BLOOD_DATABASE -- Print blood database");
 	        println("SEARCH_BLOOD ---------- Search blood database");
+	        println("SEARCH_INVENTORY ------ Search inventory");
 	        println("SET_LOW_LEVEL --------- Set low level of a specific blood type");
 	        println("SET_BUFFER ------------ Set a warning buffer");
 	    } else if (userType.equalsIgnoreCase("PATH_CENTRE")) {
@@ -148,6 +149,8 @@ public class Emulator {
 	        printBlood();
 		} else if (cmd.equals("SEARCH_BLOOD")) {
 	        searchBlood();
+		} else if (cmd.equals("SEARCH_INVENTORY")) {
+	        searchInventory();
 		} else if (cmd.equals("SET_LOW_LEVEL")) {
 	        setLowLevel();
 		} else if (cmd.equals("SET_MAX_LEVEL")) {
@@ -207,7 +210,7 @@ public class Emulator {
 	public void addBlood(int donorID, int bloodType, int donateDate, int expiryDate) throws IOException {
 		PathCentre pc = (PathCentre) user;
 	    mainSystem.makeDeposit(bloodType,donateDate,pc.getName(),expiryDate,donorID);
-	    JOptionPane.showMessageDialog(null, "successfully added blood packet");
+	    //JOptionPane.showMessageDialog(null, "successfully added blood packet");
 	}
 	
 	public void requestBlood() throws IOException {
@@ -226,10 +229,10 @@ public class Emulator {
 	public void requestBlood(int bloodType, int nPackets, int useBy) throws IOException {
 	    Hospital h = (Hospital) user;
 	    if (mainSystem.makeRequest(bloodType,nPackets,useBy,h.getName())) {
-	    	JOptionPane.showMessageDialog(null, "successfully requested blood packet");
+	    	//JOptionPane.showMessageDialog(null, "successfully requested blood packet");
 	    	println("Success");
 		} else {
-			JOptionPane.showMessageDialog(null, "failed to add blood packet");
+			//JOptionPane.showMessageDialog(null, "failed to add blood packet");
 	        println("Failed");
 		}
 	}
@@ -257,9 +260,30 @@ public class Emulator {
 
 
     public void printInventory() throws IOException {
-	    String field = input("Sort by: ").toUpperCase().replace(" ","_");
+    	String field = input("Sort by: ").toUpperCase().replace(" ","_");
 	    BloodPacket[] packets = mainSystem.getInventory(field);
 	    System.out.println(packets.length + " packets");
+	    int i = 0;
+	    while (i < packets.length) {
+	    	packets[i].printOut();
+	    	i += 1;
+	    }
+    }
+    
+    public void searchInventory() throws IOException {
+    	String field = input("Search by: ").toUpperCase().replace(' ', '_');
+	    BloodPacket[] packets;
+	    if (field.equals("DONATE_LOC") 
+				|| field.equals("FIRST_NAME")
+				|| field.equals("LAST_NAME")
+				|| field.equals("CURR_LOC"))
+	    {
+	    	String value = input("Value: ");
+	    	packets = mainSystem.searchInventoryString(field,value);
+		} else {
+			int value = Integer.parseInt(input("Value: "));
+			packets = mainSystem.searchInventoryInt(field, value);
+		}
 	    int i = 0;
 	    while (i < packets.length) {
 	    	packets[i].printOut();
@@ -368,7 +392,7 @@ public class Emulator {
 	}
 	
 	public void loadDonors() throws IOException {
-		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("SENG2011/testData/donors.json")));
+		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("testData/donors.json")));
 		
 		jsonArray.forEach(e -> {
 			JSONObject temp = (JSONObject) e;
@@ -380,7 +404,7 @@ public class Emulator {
 	}
 	
 	public void loadHospitals() throws IOException {
-		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("SENG2011/testData/hospitals.json")));
+		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("testData/hospitals.json")));
 		
 		jsonArray.forEach(e -> {
 			JSONObject temp = (JSONObject) e;
@@ -391,7 +415,7 @@ public class Emulator {
 	}
 	
 	public void loadPathCentres() throws IOException {
-		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("SENG2011/testData/pathCentres.json")));
+		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("testData/pathCentres.json")));
 		
 		jsonArray.forEach(e -> {
 			JSONObject temp = (JSONObject) e;
@@ -402,7 +426,7 @@ public class Emulator {
 	}
 	
 	public void loadInventory() throws IOException {
-		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("SENG2011/testData/inventory.json")));
+		JSONArray jsonArray = new JSONArray(new JSONTokener(new FileReader("testData/inventory.json")));
 		
 		jsonArray.forEach(e -> {
 			JSONObject temp = (JSONObject) e;

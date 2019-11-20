@@ -49,7 +49,7 @@ public class BloodDatabase {
 		int total = 0;
 		BloodPacket[] returnPackets = new BloodPacket[packets.length];
 		while (i < count) {
-			if (matchFieldInt(packets[i],field,value)) {
+			if (packets[i].matchFieldInt(field,value)) {
 				System.out.println(packets[i]);
 				returnPackets[total] = packets[i];
 				total += 1;
@@ -66,7 +66,7 @@ public class BloodDatabase {
 		int total = 0;
 		BloodPacket[] returnPackets = new BloodPacket[count];
 		while (i < count) {
-			if (matchFieldString(packets[i],field,value)) {
+			if (packets[i].matchFieldString(field,value)) {
 				returnPackets[total] = packets[i];
 				total += 1;
 			}
@@ -88,35 +88,7 @@ public class BloodDatabase {
 //	private String status;
 //	private String currLoc;
 	
-	public boolean matchFieldInt(BloodPacket p, String field, int value) {
-		if (field == "ID") {
-			return p.getID() == value;
-		} else if (field == "BLOOD_TYPE") {
-				return p.getBloodType() == value;
-		} else if (field == "DONATE_DATE") {
-			return p.getDonateDate() == value;
-		} else if (field == "EXPIRY_DATE") {
-			return p.getExpiryDate() == value;
-		} else if (field == "DONOR_ID") {
-			return p.getDonorID() == value;
-		}  else if (field == "STATUS") {
-			return p.getStatus() == value;
-		}
-		return false;
-	}
 	
-	public boolean matchFieldString(BloodPacket p, String field, String value) {
-		if (field == "DONATE_LOC") {
-			return p.getDonateLoc().equalsIgnoreCase(value);
-		} else if (field == "FIRST_NAME") {
-			return p.getFirstName().equalsIgnoreCase(value);
-		} else if (field == "LAST_NAME") {
-			return p.getLastName().equalsIgnoreCase(value);
-		} else if (field == "CURR_LOC") {
-			return p.getCurrLoc().equalsIgnoreCase(value);
-		}
-		return false;
-	}
 	
 	public BloodPacket[] truncate(BloodPacket[] a, int newSize) {
 		if (newSize >= a.length) return a;

@@ -122,4 +122,34 @@ public class BloodPacket {
 	public void printOut() {
 		System.out.println(ID+" TYPE: "+bloodType+" DON DATE: "+donateDate+" DON LOC: "+donateLoc+" EXP DATE: "+expiryDate+" DONOR: "+donorID+" "+firstName+" "+lastName+" STATUS: "+status+" LOC: "+currLoc+" <---- "+status);
 	}
+	
+	public boolean matchFieldInt(String field, int value) {
+		if (field.equals("ID")) {
+			return this.getID() == value;
+		} else if (field.equals("BLOOD_TYPE")) {
+				return this.getBloodType() == value;
+		} else if (field.equals("DONATE_DATE")) {
+			return this.getDonateDate() == value;
+		} else if (field.equals("EXPIRY_DATE")) {
+			return this.getExpiryDate() == value;
+		} else if (field.equals("DONOR_ID")) {
+			return this.getDonorID() == value;
+		}  else if (field.equals("STATUS")) {
+			return this.getStatus() == value;
+		}
+		return false;
+	}
+	
+	public boolean matchFieldString(String field, String value) {
+		if (field.equals("DONATE_LOC")) {
+			return this.getDonateLoc().equalsIgnoreCase(value);
+		} else if (field.equals("FIRST_NAME")) {
+			return this.getFirstName().equalsIgnoreCase(value);
+		} else if (field.equals("LAST_NAME")) {
+			return this.getLastName().equalsIgnoreCase(value);
+		} else if (field.equals("CURR_LOC")) {
+			return this.getCurrLoc().equalsIgnoreCase(value);
+		}
+		return false;
+	}
 }

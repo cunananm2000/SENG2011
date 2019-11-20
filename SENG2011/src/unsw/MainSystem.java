@@ -127,5 +127,13 @@ public class MainSystem {
 	public BloodDatabase getBloodDatabase() {
 		return bloodDatabase;
 	}
+
+	public BloodPacket[] searchInventoryString(String field, String value) {
+		return vampire.searchInventoryString(field, value);
+	}
+
+	public BloodPacket[] searchInventoryInt(String field, int value) {
+		return vampire.searchInventoryInt(field, value);
+	}
 	
 }

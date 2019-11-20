@@ -219,14 +219,14 @@ public class JavaFXApplication extends Application {
         userType.setFont(Font.font("Tahoma", FontWeight.BOLD, 20));
         grid.add(userType, 0, 13);
         ChoiceBox<String> blood = new ChoiceBox<String>();
+        blood.getItems().add("O-");
+        blood.getItems().add("O+");
         blood.getItems().add("A-");
         blood.getItems().add("A+");
         blood.getItems().add("B-");
         blood.getItems().add("B+");
-        blood.getItems().add("O-");
-        blood.getItems().add("O+");
-        blood.getItems().add("AB+");
         blood.getItems().add("AB-");
+        blood.getItems().add("AB+");
         grid.add(blood, 1, 13);
         
         // number of packets
@@ -426,6 +426,15 @@ public class JavaFXApplication extends Application {
         signoutBtn.getChildren().add(signout);
         grid.add(signoutBtn, 2, 7);
         
+        // Search inventory button
+        Button searchI = new Button("Search inventory");
+        searchI.setStyle("-fx-border-color: #8b0000; -fx-border-width: 2px;");
+        searchI.setMinSize(150, 35);
+        HBox searchInvBtn = new HBox(10);
+        searchInvBtn.setAlignment(Pos.BOTTOM_RIGHT);
+        searchInvBtn.getChildren().add(searchI);
+        grid.add(searchInvBtn, 2, 5);
+        
         // Add donor button
         Button addDonor = new Button("Add donor");
         addDonor.setStyle("-fx-border-color: #8b0000; -fx-border-width: 2px;");
@@ -567,7 +576,14 @@ public class JavaFXApplication extends Application {
             @Override
             public void handle(ActionEvent e) {
             	em.getMainSystem().cleanUp();
-            	JOptionPane.showMessageDialog(null, "successfully removed all bad blood packets");
+            	//JOptionPane.showMessageDialog(null, "successfully removed all bad blood packets");
+            }
+        });
+        
+        searchI.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent e) {
+            	searchPage(primaryStage,false);
             }
         });
         
@@ -623,7 +639,7 @@ public class JavaFXApplication extends Application {
         printS.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent e) {
-            	searchPage(primaryStage);
+            	searchPage(primaryStage,true);
             }
         });
         
@@ -705,7 +721,7 @@ public class JavaFXApplication extends Application {
             		String bloodType = (String) blood.getValue();
             		int bt = convertBloodType(bloodType);
             		em.getMainSystem().setMaxLevel(bt,nPackets);	
-            		JOptionPane.showMessageDialog(null, "successfully set max level");
+            		//JOptionPane.showMessageDialog(null, "successfully set max level");
 				} catch (Exception e1) {
 					System.out.println("can't change stage to aaa screen");
 				}
@@ -740,7 +756,7 @@ public class JavaFXApplication extends Application {
 	// --------------------------------------------------------------
 	// ------------------- VAMPIRE COMMANDS -------------------------
 	// --------------------------------------------------------------
-	protected void searchPage(Stage primaryStage) {
+	protected void searchPage(Stage primaryStage, boolean database) {
 		GridPane grid = new GridPane();
 		grid.setId("background");
         grid.setAlignment(Pos.CENTER);
@@ -796,10 +812,10 @@ public class JavaFXApplication extends Application {
     				option.equals("LAST_NAME")  || 
     				option.equals("CURR_LOC")) {
         			String value = (String) query.getText();	
-        			SearchResultsStr(primaryStage, option, value);
+        			SearchResultsStr(primaryStage, option, value, database);
         		}	else {
         			int value = Integer.parseInt(query.getText());
-        			SearchResultsInt(primaryStage, option, value);
+        			SearchResultsInt(primaryStage, option, value, database);
         		}
             }
         });
@@ -815,7 +831,7 @@ public class JavaFXApplication extends Application {
             @Override
             public void handle(ActionEvent e) {
             	try {
-					loginScreen(primaryStage);
+					VampirePage(primaryStage);
 				} catch (Exception e1) {
 					System.out.println("can't change stage to login screen");
 				}
@@ -828,7 +844,7 @@ public class JavaFXApplication extends Application {
         primaryStage.show();
 	}
 
-	protected void SearchResultsInt(Stage primaryStage, String option, int value) {
+	protected void SearchResultsInt(Stage primaryStage, String option, int value, boolean database) {
 		Scene scene = new Scene(new Group());
         primaryStage.setWidth(700);
         primaryStage.setHeight(500);
@@ -865,7 +881,12 @@ public class JavaFXApplication extends Application {
         TableColumn lastName = new TableColumn("Surname");
         lastName.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("lastName"));
         
-        BloodPacket[] packets = em.getMainSystem().searchBloodInt(option,value);
+        BloodPacket[] packets;
+        if (database) {
+        	packets = em.getMainSystem().searchBloodInt(option,value);
+        } else {
+        	packets = em.getMainSystem().searchInventoryInt(option,value);
+        }
         ObservableList<BloodPacket> data = FXCollections.observableArrayList();
         
         System.out.println(packets);
@@ -914,7 +935,7 @@ public class JavaFXApplication extends Application {
 		
 	}
 
-	protected void SearchResultsStr(Stage primaryStage, String option, String value) {
+	protected void SearchResultsStr(Stage primaryStage, String option, String value, boolean database) {
 		
 		Scene scene = new Scene(new Group());
         primaryStage.setWidth(700);
@@ -950,7 +971,12 @@ public class JavaFXApplication extends Application {
         TableColumn lastName = new TableColumn("Surname");
         lastName.setCellValueFactory(new PropertyValueFactory<BloodPacket, String>("lastName"));
         
-        BloodPacket[] packets = em.getMainSystem().searchBloodString(option,value);
+        BloodPacket[] packets;
+        if (database) {
+        	packets = em.getMainSystem().searchBloodString(option,value);
+        } else {
+        	packets = em.getMainSystem().searchInventoryString(option,value);
+        }
         ObservableList<BloodPacket> data = FXCollections.observableArrayList();
         
         System.out.println(packets);
@@ -1541,7 +1567,7 @@ public class JavaFXApplication extends Application {
             		String bloodType = (String) blood.getValue();
             		int bt = convertBloodType(bloodType);
             		em.getMainSystem().setLowLevel(bt,nPackets);	
-            		JOptionPane.showMessageDialog(null, "successfully set low level");
+            		//JOptionPane.showMessageDialog(null, "successfully set low level");
 				} catch (Exception e1) {
 					System.out.println("can't change stage to aaa screen");
 				}
@@ -1606,7 +1632,7 @@ public class JavaFXApplication extends Application {
             	try {
             		int expDays = Integer.parseInt(expiratory.getText());
             		em.getMainSystem().setWarning(expDays);
-            		JOptionPane.showMessageDialog(null, "successfully set buffer");
+            		//JOptionPane.showMessageDialog(null, "successfully set buffer");
 				} catch (Exception e1) {
 					System.out.println("can't change stage to login screen");
 				}
@@ -1842,7 +1868,7 @@ public class JavaFXApplication extends Application {
             		String last = (String) lastName.getText();
             		String pass = (String) password.getText();
                     em.getMainSystem().addDonor(pass, first, last);
-                    JOptionPane.showMessageDialog(null, "successfully added donor");
+                    //JOptionPane.showMessageDialog(null, "successfully added donor");
 				} catch (Exception e1) {
 					System.out.println("can't change stage to vampire screen");
 				}
