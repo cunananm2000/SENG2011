@@ -1,3 +1,12 @@
+// Time to verify:
+// Corresponds to the UserDatabase class in UserDatabase.java
+// Abstractions:
+//      In implementation, the userDatabase would hold a buffer of User
+//      objects. However for the purposes of verification, we simply
+//      keep a list of user ID's and password strings. From this, we simply
+//      replace every instance of buf[i].getID and buf[i].getPassword()
+//      with users[id] and passwords[i]. Otherwise, the code proven below
+//      is identical to the implemented code. Thus this proof is sufficient.
 class UserDatabase {
 
     var users: array<int>;

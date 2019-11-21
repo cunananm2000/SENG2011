@@ -1,7 +1,10 @@
-// Parallel to PacketPile in PacketPile.dfy
-// Since having objects from another class is a framing nightmare,
-// this file focuses on the 'status' of a BloodPacket 
-
+//  Time to verify:
+//  Corresponds to the packet pile in PacketPile.java
+//  Abstractions:
+//      In practice, packet pile would store a buffer of blood packets
+//      This version of the proof will abstract each blood packet to
+//      just the status integer, since the functions we prove in this file
+//      will only see blood packets as expiry date integers.
 class PacketPile 
 {
     var buf: array<int>;  // represents status 

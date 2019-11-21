@@ -1,3 +1,8 @@
+// Time to verify:
+// Corresponds to the user class in User.java
+// Abstractions:
+//      Because the class comprises only of getters and setters,
+//      we do not need to abstract the Dafny proof in any way.
 class User
 {
     var id: int; 

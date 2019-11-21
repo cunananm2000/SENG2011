@@ -1,5 +1,10 @@
-// Verification for PacketPile class (abstracted to expiry date)
-// Useful predicates, functions below class
+//  Time to verify:
+//  Corresponds to the packet pile in PacketPile.java
+//  Abstractions:
+//      In practice, packet pile would store a buffer of blood packets
+//      This version of the proof will abstract each blood packet to
+//      just the expiry date, since the functions we prove in this file
+//      will only see blood packets as expiry date integers.
 
 class PacketPile
 {
