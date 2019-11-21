@@ -1,6 +1,4 @@
-// Time to verify:
-//      On CSE Vlab: 21.012s
-//      Via SSH: 5min 35.788s
+// Time to verify: 2m17.696s
 // Corresponds to the merge sort algorithm in PacketMergeSort.java
 // Abstractions:
 //      In practice, this algorithm would sort blood packet objects 

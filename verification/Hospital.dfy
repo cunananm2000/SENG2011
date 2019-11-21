@@ -1,4 +1,4 @@
-// Time to verify:
+// Time to verify: 0m1.576s
 // Corresponds to the hospital class in Hospital.java
 // Abstractions:
 //      In practice this would extend a User class. For the

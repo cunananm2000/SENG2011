@@ -1,4 +1,4 @@
-// Time to verify:
+// Time to verify: 0m2.800s
 // Corresponds to:
 //		searchInventoryInt/searchInventoryString in Vampire.java
 //		searchBloodInt/searchBloodString in BloodDatabase.java

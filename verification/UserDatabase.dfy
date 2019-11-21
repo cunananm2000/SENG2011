@@ -1,4 +1,4 @@
-// Time to verify:
+// Time to verify: 5.432s
 // Corresponds to the UserDatabase class in UserDatabase.java
 // Abstractions:
 //      In implementation, the userDatabase would hold a buffer of User

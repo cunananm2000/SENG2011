@@ -1,4 +1,4 @@
-// Time to verify:
+// Time to verify: 0m1.644s
 // Corresponds to the donor class in Donor.java
 // Abstractions:
 //      In practice this would extend a User class. For the

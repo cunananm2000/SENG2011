@@ -1,4 +1,4 @@
-// Time to verify:
+// Time to verify: 1.572s
 // Corresponds to the pathCentre class in PathCentre.java
 // Abstractions:
 //      In practice this would extend a User class. For the

@@ -1,4 +1,4 @@
-// Time to verify:
+// Time to verify: 0m2.828s
 // Corresponds to the blood packet class in BloodPacket.java
 // Abstractions:
 //      Because the class comprises only of getters and setters,

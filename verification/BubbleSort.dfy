@@ -1,6 +1,4 @@
-// Time to verify:
-//      On CSE Vlab:
-//      Via SSH:
+// Time to verify: 0m2.172s
 // Corresponds to the bubble sort algorithm in PacketBubbleSort.java
 // Abstractions:
 //      In practice, this algorithm would sort blood packet objects 

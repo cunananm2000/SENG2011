@@ -1,6 +1,4 @@
-//  Time to verify:
-//      On CSE Vlab: 21.012s
-//      Via SSH: 5min 35.788s
+//  Time to verify: 0m19.612s (note that this is almost 5 minutes via SSH)
 //  Corresponds to the notification pile in NotifPile.java
 //  Abstractions:
 //      In practice, notifications would be a class with an String, int

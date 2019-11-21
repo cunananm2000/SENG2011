@@ -1,4 +1,4 @@
-// Time to verify:
+// Time to verify: 1.384s
 // Corresponds to the user class in User.java
 // Abstractions:
 //      Because the class comprises only of getters and setters,
