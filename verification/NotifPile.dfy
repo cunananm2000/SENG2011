@@ -137,10 +137,7 @@ class NotifFile {
             assert buf.Length != 0;
             assert forall i :: 0 <= i < count - 1 ==> buf[i] == old(buf[i+1]);
         }
-        // assert (count < buf.Length);
-        // assert (old(count) < buf.Length ==> count == old(count));
-        // assert (old(count) == buf.Length ==> count == old(count) - 1);
-        // assert buf.Length == old(buf.Length);
+
         assert forall i :: 0 <= i < buf.Length ==> buf[i] == old(buf)[i];
         assert old(count) == buf.Length ==> (forall i :: 0 <= i < count  ==> buf[i] == old(buf[i+1]));
         assert old(count) < buf.Length ==> (forall i :: 0 <= i < count  ==> buf[i] == old(buf[i]));
@@ -171,8 +168,6 @@ class NotifFile {
         assert 0 <= index <= count < buf.Length;
         assert index < count ==> validNotif(buf[index]);
         assert forall j :: index <= j < count ==> !notifCmp(buf[j],el);
-        // assert old(count) == buf.Length ==> (forall i :: 0 <= i < count  ==> buf[i] == old(buf[i+1]));
-        // assert old(count) < buf.Length ==> (forall i :: 0 <= i < count  ==> buf[i] == old(buf[i]));
 
         var i := count;
         while (i > index)
@@ -192,38 +187,8 @@ class NotifFile {
             i := i - 1;
         }
 
-        // assert old(count) < buf.Length ==> (forall j :: index < j <= count ==> buf[j] == old(buf[j-1]));
-        // assert old(count) == buf.Length ==> (forall j :: index < j <= count ==> buf[j] == old(buf[j]));
-
         count := count + 1;
         buf[index] := el;
-
-        // assert old(count) < buf.Length ==> (forall j :: 0 <= j < index ==> buf[j] == old(buf[j]));
-        // assert old(count) == buf.Length ==> (forall j :: 0 <= j < index ==> buf[j] == old(buf[j+1]));
-
-        // assert old(count) < buf.Length ==> (forall j :: index < j < count ==> buf[j] == old(buf[j-1]));
-        // assert old(count) == buf.Length ==> (forall j :: index < j < count ==> buf[j] == old(buf[j]));
-
-        // assert old(count) < buf.Length ==> (
-        //     (forall j :: 0 <= j < index ==> buf[j] == old(buf[j])) &&
-        //     buf[index] == el &&
-        //     (forall j :: index < j < count ==> buf[j] == old(buf[j-1]))
-        // );
-
-        // assert old(count) == buf.Length ==> (
-        //     (forall j :: 0 <= j < index ==> buf[j] == old(buf[j+1])) &&
-        //     buf[index] == el &&
-        //     (forall j :: index < j < count ==> buf[j] == old(buf[j]))
-        // );
-
-        // assert 0 < buf.Length && count <= buf.Length && 0 <= count;
-        // assert forall j :: 0 <= j < count ==> validNotif(buf[j]);
-        // assert forall j :: 0 <= j < index ==> notifCmp(buf[j],el);
-        // assert sortedNotifs(0,index,buf);
-        // assert buf[index] == el;
-        // assert sortedNotifs(index+1,count,buf);
-
-        // assert sortedNotifs(0,count,buf);
     }
 
     method getNotifs() returns (r : array<real>)
