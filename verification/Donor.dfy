@@ -1,4 +1,12 @@
-class PathCentre
+// Time to verify:
+// Corresponds to the donor class in Donor.java
+// Abstractions:
+//      In practice this would extend a User class. For the
+//      purposes of verification however, we simply include the
+//      fields and methods of User in this class.
+//      Because the class comprises only of getters and setters,
+//      we do not need to abstract the Dafny proof in any way.
+class Donor
 {
     var id: int; 
     var password: string; 

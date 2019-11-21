@@ -1,3 +1,16 @@
+// Time to verify:
+//      On CSE Vlab: 21.012s
+//      Via SSH: 5min 35.788s
+// Corresponds to the merge sort algorithm in PacketMergeSort.java
+// Abstractions:
+//      In practice, this algorithm would sort blood packet objects 
+//		in the database by integer (e.g ID) or string (e.g. First name) 
+//		fields. For the purposes of verification however, it is valid 
+//		to abstract these objects to integers, as this what will actually 
+//		be sorted by the implemented algorithm. In the case of comparing 
+//		String fields, we trust that the Java implementation of String.compareTo()
+//      follows its given specification, and the proof still holds.
+
 // Checks that sequence is ordered
 predicate InOrder(a:seq<int>)
 {

@@ -1,3 +1,16 @@
+// Time to verify:
+// Corresponds to:
+//		searchInventoryInt/searchInventoryString in Vampire.java
+//		searchBloodInt/searchBloodString in BloodDatabase.java
+// Abstractions:
+//      In practice, this algorithm would search blood packet objects 
+//		in a list by integer (e.g ID) or string (e.g. First name) 
+//		fields. For the purposes of verification however, it is valid 
+//		to abstract these objects to integers, as this what will actually 
+//		be found by the implemented algorithm. In the case of comparing 
+//		String fields, we trust that the Java implementation of String.equals()
+//      follows its given specification, and the proof still holds.
+
 // Checks if key is in array
 predicate InsideArray(a:array<int>, key:int)
 requires a != null

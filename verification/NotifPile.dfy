@@ -1,3 +1,18 @@
+//  Time to verify:
+//      On CSE Vlab: 21.012s
+//      Via SSH: 5min 35.788s
+//  Corresponds to the notification pile in NotifPile.java
+//  Abstractions:
+//      In practice, notifications would be a class with an String, int
+//      and array of ints. For the purposes of verification, we only care
+//      about two of these fields, Date (int >= 0) and Priority (0 <= int < 5)
+//      because we use these fields to assert the sorted-ness of the pile's
+//      packets. Because we can't model tuples easily in Dafny, we get around
+//      this by using real numbers. For example, a notification on Day 5 with
+//      priority 2 would be 5.2, and one with Day 4 and priority 3 is 4.3.
+//      This is sufficient as the pile only cares about these two fields, so
+//      this abstraction does not affect the validity of the proof.
+
 class NotifFile {
     var buf : array<real>;
     var count : int;

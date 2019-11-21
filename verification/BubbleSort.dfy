@@ -1,3 +1,16 @@
+// Time to verify:
+//      On CSE Vlab:
+//      Via SSH:
+// Corresponds to the bubble sort algorithm in PacketBubbleSort.java
+// Abstractions:
+//      In practice, this algorithm would sort blood packet objects 
+//		in the database by integer (e.g ID) or string (e.g. First name) 
+//		fields. For the purposes of verification however, it is valid 
+//		to abstract these objects to integers, as this what will actually 
+//		be sorted by the implemented algorithm. In the case of comparing 
+//		String fields, we trust that the Java implementation of String.compareTo()
+//    follows its given specification, and the proof still holds.
+
 // Check is a[x..] is sorted
 predicate Sorted(a: seq<int>, x: int)
 {
