@@ -17,7 +17,7 @@ public class PacketBubbleSort extends PacketSorter {
 	    while (i > 0) {
 	        int j = 0;
 	        while (j < i) {
-	            if (compare(packets[j],packets[j+1],field)) {
+	            if (!compare(packets[j],packets[j+1],field)) {
 	            	BloodPacket temp = packets[j];
 	            	packets[j] = packets[j+1];
 	            	packets[j+1] = temp;
