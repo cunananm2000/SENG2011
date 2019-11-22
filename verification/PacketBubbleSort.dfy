@@ -49,7 +49,7 @@ ensures multiset(a[..]) == multiset(old(a[..]))
 
 
 // Check is a[x..] is sorted
-predicate Sorted(a: seq<char>, x: char)
+predicate Sorted(a: seq<char>, x: int)
 {
     forall i, j :: 0 <= x <= i <= j < |a| ==> a[i] <= a[j]
 }
@@ -58,7 +58,7 @@ predicate Sorted(a: seq<char>, x: char)
     Checks if the right portion of a partition split at index i
     is greater than the left portion
 */
-predicate Less(a: seq<char>, i: char)
+predicate Less(a: seq<char>, i: int)
 {
     forall j, k :: 0 <= j <= i < k < |a| ==> a[j] <= a[k]
 }
