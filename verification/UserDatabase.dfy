@@ -48,6 +48,36 @@ class UserDatabase {
         if idx == count { idx := -1; }
     }
 
+    method binarySearch(key: int) returns (r: int)
+        requires Valid(); ensures Valid()
+        ensures r == -1 || 0 <= r < count
+        ensures r == -1 <==> !(key in users[..count])
+        ensures (0 <= r < count) <==> (key in users[..count] && users[r] == key)
+    {
+        var low, high := 0, count;	// Setting range
+        // Keep on looking while there are items within bounds
+        while (low < high)
+        decreases high-low
+        invariant 0<=low<=high<=count
+        invariant key !in users[..low] && key !in users[high..count]
+        {
+            // Finding midpoint 
+            var mid := (low+high)/2;
+            if (key == users[mid]){							
+                r := mid;
+                return;
+            } 
+            else if (key < users[mid]){		// Key must be in lower half
+                high := mid;
+            } else if (key > users[mid]){	// Key must be in upper half
+                low := mid + 1;
+            } 
+        }
+        r := -1;	// Couldn't find key
+    }
+
+
+
     method login(ID: int, pass: string) returns (loggedID: int, index: int)
         requires Valid(); ensures Valid()
         ensures loggedID == ID || loggedID == -1
