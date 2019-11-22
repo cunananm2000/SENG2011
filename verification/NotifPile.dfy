@@ -1,3 +1,16 @@
+//  Time to verify: 0m19.612s (note that this is almost 5 minutes via SSH)
+//  Corresponds to the notification pile in NotifPile.java
+//  Abstractions:
+//      In practice, notifications would be a class with an String, int
+//      and array of ints. For the purposes of verification, we only care
+//      about two of these fields, Date (int >= 0) and Priority (0 <= int < 5)
+//      because we use these fields to assert the sorted-ness of the pile's
+//      packets. Because we can't model tuples easily in Dafny, we get around
+//      this by using real numbers. For example, a notification on Day 5 with
+//      priority 2 would be 5.2, and one with Day 4 and priority 3 is 4.3.
+//      This is sufficient as the pile only cares about these two fields, so
+//      this abstraction does not affect the validity of the proof.
+
 class NotifFile {
     var buf : array<real>;
     var count : int;
@@ -124,10 +137,7 @@ class NotifFile {
             assert buf.Length != 0;
             assert forall i :: 0 <= i < count - 1 ==> buf[i] == old(buf[i+1]);
         }
-        // assert (count < buf.Length);
-        // assert (old(count) < buf.Length ==> count == old(count));
-        // assert (old(count) == buf.Length ==> count == old(count) - 1);
-        // assert buf.Length == old(buf.Length);
+
         assert forall i :: 0 <= i < buf.Length ==> buf[i] == old(buf)[i];
         assert old(count) == buf.Length ==> (forall i :: 0 <= i < count  ==> buf[i] == old(buf[i+1]));
         assert old(count) < buf.Length ==> (forall i :: 0 <= i < count  ==> buf[i] == old(buf[i]));
@@ -158,8 +168,6 @@ class NotifFile {
         assert 0 <= index <= count < buf.Length;
         assert index < count ==> validNotif(buf[index]);
         assert forall j :: index <= j < count ==> !notifCmp(buf[j],el);
-        // assert old(count) == buf.Length ==> (forall i :: 0 <= i < count  ==> buf[i] == old(buf[i+1]));
-        // assert old(count) < buf.Length ==> (forall i :: 0 <= i < count  ==> buf[i] == old(buf[i]));
 
         var i := count;
         while (i > index)
@@ -179,38 +187,8 @@ class NotifFile {
             i := i - 1;
         }
 
-        // assert old(count) < buf.Length ==> (forall j :: index < j <= count ==> buf[j] == old(buf[j-1]));
-        // assert old(count) == buf.Length ==> (forall j :: index < j <= count ==> buf[j] == old(buf[j]));
-
         count := count + 1;
         buf[index] := el;
-
-        // assert old(count) < buf.Length ==> (forall j :: 0 <= j < index ==> buf[j] == old(buf[j]));
-        // assert old(count) == buf.Length ==> (forall j :: 0 <= j < index ==> buf[j] == old(buf[j+1]));
-
-        // assert old(count) < buf.Length ==> (forall j :: index < j < count ==> buf[j] == old(buf[j-1]));
-        // assert old(count) == buf.Length ==> (forall j :: index < j < count ==> buf[j] == old(buf[j]));
-
-        // assert old(count) < buf.Length ==> (
-        //     (forall j :: 0 <= j < index ==> buf[j] == old(buf[j])) &&
-        //     buf[index] == el &&
-        //     (forall j :: index < j < count ==> buf[j] == old(buf[j-1]))
-        // );
-
-        // assert old(count) == buf.Length ==> (
-        //     (forall j :: 0 <= j < index ==> buf[j] == old(buf[j+1])) &&
-        //     buf[index] == el &&
-        //     (forall j :: index < j < count ==> buf[j] == old(buf[j]))
-        // );
-
-        // assert 0 < buf.Length && count <= buf.Length && 0 <= count;
-        // assert forall j :: 0 <= j < count ==> validNotif(buf[j]);
-        // assert forall j :: 0 <= j < index ==> notifCmp(buf[j],el);
-        // assert sortedNotifs(0,index,buf);
-        // assert buf[index] == el;
-        // assert sortedNotifs(index+1,count,buf);
-
-        // assert sortedNotifs(0,count,buf);
     }
 
     method getNotifs() returns (r : array<real>)

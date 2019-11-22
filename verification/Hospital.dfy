@@ -1,3 +1,11 @@
+// Time to verify: 0m1.576s
+// Corresponds to the hospital class in Hospital.java
+// Abstractions:
+//      In practice this would extend a User class. For the
+//      purposes of verification however, we simply include the
+//      fields and methods of User in this class.
+//      Because the class comprises only of getters and setters,
+//      we do not need to abstract the Dafny proof in any way.
 class Hospital
 {
     var id: int; 

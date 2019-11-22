@@ -2,7 +2,7 @@ package unsw;
 
 public class BloodDatabase {
 	BloodPacket[] packets;
-	PacketSorter sorter = new PacketBubbleSort();
+	PacketSorter sorter = new PacketMergeSort();
 	int count = 0;
 	
 	public BloodDatabase() {

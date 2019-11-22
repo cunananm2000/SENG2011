@@ -20,7 +20,7 @@ public class PacketBubbleSort extends PacketSorter {
 	        	if (packets[j] == null) {
 	        		return packets;
 	        	}
-	            if (compare(packets[j],packets[j+1],field)) {
+	            if (!compare(packets[j],packets[j+1],field)) {
 	            	BloodPacket temp = packets[j];
 	            	packets[j] = packets[j+1];
 	            	packets[j+1] = temp;

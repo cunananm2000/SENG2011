@@ -14,6 +14,9 @@ public class NotifPile {
 	}
 	
 	public Notification pop() {
+		if (count == 0){
+			return null;
+		}
 		Notification el = buf[0];
 		int i = 0;
 		while (i < count - 1) {
