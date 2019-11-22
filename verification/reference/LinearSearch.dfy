@@ -1,4 +1,5 @@
 method find(a: array<int>, key: int) returns (i: int)
+requires a != null
 ensures i == -1 || 0 <= i < a.Length
 ensures 0 <= i < a.Length ==> a[i] == key && forall j:: 0 <= j < i ==> a[j] != key
 ensures i == -1 ==> forall j:: 0 <= j < a.Length ==> a[j] != key
@@ -18,13 +19,14 @@ ensures i == -1 ==> forall j:: 0 <= j < a.Length ==> a[j] != key
 
 // Checks if key is in array
 predicate InsideArray(a:array<int>, key:int)
+requires a != null
 reads a 
 {
   exists i:nat :: i<a.Length && a[i] == key
 }
 
 predicate InsideUpTo(a:array<int>, key:int, high:nat)
-requires high <= a.Length
+requires a != null && high <= a.Length
 reads a
 {
   exists i:nat :: i<high && a[i] == key
