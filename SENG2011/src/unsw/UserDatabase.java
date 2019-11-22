@@ -25,6 +25,24 @@ public class UserDatabase {
 		}
 	}
 	
+	// Binary search for users
+	public User binarySearch(int key) {
+		int low =  0;		// Setting range
+		int high = count;
+		while (low < high){
+			int mid = (low+high/2);	// Finding midpoint
+			int id = users[mid].getId();
+			if (key == id){			// Found key
+				return users[mid];
+			} else if (key < id){	// Key must be in lower half
+				high = mid;
+			} else {				// Key must be in upper half
+				low = mid + 1;
+			}
+		}
+		return null;				// Didn't find key
+	}
+
 	public User login(int id, String password) {
 		User user = this.search(id);
 //		System.out.println(user);

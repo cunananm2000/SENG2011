@@ -4,12 +4,6 @@ class UserDatabase {
     var passwords: array<string>;
     var count: int;
 
-    /*// since null user is represented by -1, ignore for sort
-    predicate Sorted(a: seq<int>)
-    {
-        forall i,j :: 0 <= i < j < |a| && (a[i] != -1 && a[j] != -1) ==> a[i] <= a[j]
-    }*/
-
     predicate Sorted(lo: int, hi: int, a: seq<int>)
     {
         forall i, j :: 0 <= lo <= i < j < hi <= |a| ==> a[i] <= a[j]
@@ -29,22 +23,9 @@ class UserDatabase {
     method Init()
         modifies this, this.users
         ensures Valid()
-        ensures fresh(users)
-        ensures users.Length == 20
+        ensures fresh(users) && fresh(passwords)
+        ensures users.Length == passwords.Length == 20
     {
-        //var usrs: array<int> := new int[20];
-        //var pwds: array<string> := new string[20];
-        /*var i := 0;
-        while i < usrs.Length
-        decreases usrs.Length - i
-        invariant 0 <= i <= usrs.Length
-        invariant forall j :: 0 <= j < i ==> usrs[j] == -1
-        invariant forall j :: 0 <= j < i ==> pwds[j] == ""
-        {
-            usrs[i] := -1;
-            pwds[i] := "";
-            i := i + 1;
-        }*/
         this.users := new int[20];
         this.passwords := new string[20];
         this.count := 0;
@@ -66,6 +47,36 @@ class UserDatabase {
         }
         if idx == count { idx := -1; }
     }
+
+    method binarySearch(key: int) returns (r: int)
+        requires Valid(); ensures Valid()
+        ensures r == -1 || 0 <= r < count
+        ensures r == -1 <==> !(key in users[..count])
+        ensures (0 <= r < count) <==> (key in users[..count] && users[r] == key)
+    {
+        var low, high := 0, count;	// Setting range
+        // Keep on looking while there are items within bounds
+        while (low < high)
+        decreases high-low
+        invariant 0<=low<=high<=count
+        invariant key !in users[..low] && key !in users[high..count]
+        {
+            // Finding midpoint 
+            var mid := (low+high)/2;
+            if (key == users[mid]){							
+                r := mid;
+                return;
+            } 
+            else if (key < users[mid]){		// Key must be in lower half
+                high := mid;
+            } else if (key > users[mid]){	// Key must be in upper half
+                low := mid + 1;
+            } 
+        }
+        r := -1;	// Couldn't find key
+    }
+
+
 
     method login(ID: int, pass: string) returns (loggedID: int, index: int)
         requires Valid(); ensures Valid()
@@ -97,10 +108,6 @@ class UserDatabase {
         
         var newUsers: array<int> := new int[newSize];
         var newPwds: array<string> := new string[newSize];
-
-        assert newUsers != null;
-        assert newPwds != null;
-        assert users != null;
 
         var i := 0;
 

@@ -1,17 +1,3 @@
-// Super simple print array
-method printArray(a:array)
-requires a != null
-{
-	var i := 0;
-	while (i < a.Length)
-	decreases a.Length - i
-	{
-		print a[i], " ";
-		i := i + 1;
-	}
-	print '\n';
-}
-
 // Checks that sequence is ordered
 predicate InOrder(a:seq<int>)
 {
@@ -33,20 +19,21 @@ requires low<mid<high<=a.Length
 requires InOrder(a[low..mid]) && InOrder(a[mid..high])
 // ensures array segments out of bounds aren't changed
 ensures old(a[..low]) == a[..low] && old(a[high..]) == a[high..];
-// All elements in bounds are preserver
+// All elements in bounds are preserved
 ensures multiset(a[low..high]) == multiset(old(a[low..high]))
 // All elements in bounds are in order
 ensures InOrder(a[low..high])
 {
-	assert a[..low] == old(a[..low]);
 	// Creating temp arrays for left and right
 	var i, j := 0,0;
 	// ghost seqs for left, right arrays and final merged part
 	ghost var l, r, m:seq<int> := a[low..mid], a[mid..high], [];
-	// ghost var old_l, old_r := a[low..mid], a[mid..high];
-	assert l+r+m == old(a[low..high]);
+	ghost var old_a := a[low..high];
+	assert l+r+m == old_a;
+	assert multiset(l+r+m) == multiset(old_a);
+	
 	var left, right := new int[mid-low], new int[high-mid];
-
+	// Copying temp array for left
 	while (i < mid-low)
 	decreases mid-low -i
 	invariant a[..] == old(a[..])
@@ -56,8 +43,7 @@ ensures InOrder(a[low..high])
 		left[i] := a[low+i];
 		i := i + 1;
 	}
-	assert left[..] == l;
-
+	// Copying temp array for right
 	while (j < high-mid) 
 	decreases high-mid -j
 	invariant a[..] == old(a[..])
@@ -68,9 +54,8 @@ ensures InOrder(a[low..high])
 		right[j] := a[mid+j];
 		j := j + 1;
 	}
-	assert right[..] == r;
 
-	assert a[..low] == old(a[..low]);
+	assert multiset(l+r+m) == multiset(old_a);
 
 	// assert InOrder(left[..]) && InOrder(right[..]);
 	// Merge temp arrays back into a[low..high]
@@ -79,86 +64,119 @@ ensures InOrder(a[low..high])
 	
 	i,j := 0,0;
 	var k := low;
-	assert multiset(l+r+m) == multiset(old(a[low..high]));
-
-	ghost var old_a := multiset(l+r+m);
 
 	while (i < left.Length || j < right.Length)
 	decreases left.Length + right.Length - i - j
-	invariant k <= high && k >= low
+	invariant low <= k <= high
 	invariant i <= left.Length && j <= right.Length
 	invariant k-low == i + j
-	// invariant InOrder(a[low..k]) && InOrder(left[i..]) && InOrder(right[j..])
 	invariant a[..low] == old(a[..low]) && a[high..] == old(a[high..])
-	// invariant multiset(a[low..k]) == multiset(left[..i] + right[..j])
 	invariant InOrder(l) && InOrder(r) && InOrder(m)
 	invariant lessThanEqualSeq(m,l) && lessThanEqualSeq(m,r)
-	invariant multiset(l+r+m) == old_a
-	//invariant |m+r+l| == |old_a|
+	invariant multiset(l+r+m) == multiset(old_a)
 	invariant left[i..] == l && right[j..] == r && a[low..k] == m
 	{
-		//ghost var n : int; // Holds value to 'append' to m
 		// When neither 'queue' is empty, find lowest value and add to array
 		if (i < left.Length && j < right.Length){
 			if (left[i] <= right[j]){
-				ghost var old_l, old_m, n := l, m, l[0];
-			
-				m := m + [l[0]];
+				// Ghost part
+				ghost var old_l := l;
+				ghost var n := [l[0]];
+				m := m + n;
 				l := l[1..];
-				
-				assert old_m+[n] == m;
-				assert [n]+l == old_l;
-				assert multiset(old_m+old_l) == multiset(m+l);
-				assert multiset(l+r+m) == old_a;
-
+				assert old_l == n + l;
+				// Actual implementation part
 				a[k] := left[i];
 				i := i + 1;
 			} else {
-				ghost var old_r, old_m, n := r, m, r[0];
-				
-				m := m + [r[0]];
+				// Ghosts
+				ghost var old_r := r;
+				ghost var n := [r[0]];
+				m := m + n;
 				r := r[1..];
-				
-				assert old_m+[n] == m;
-				assert [n]+r == old_r;
-				assert multiset(old_m+old_r) == multiset(m+r);
-				assert multiset(l+r+m) == old_a;
-
+				assert old_r == n + r;
+				//Implementation
 				a[k] := right[j];
 				j := j + 1;
 			}
 		// If right is empty, add from left
 		} else if (i < left.Length){
-			ghost var old_l, old_m, n := l, m, l[0];
-			m := m + [l[0]];
+			// Ghost
+			ghost var old_l := l;
+			ghost var n := [l[0]];
+			m := m + n;
 			l := l[1..];
-			assert old_m+[n] == m;
-			assert [n]+l == old_l;
-			assert multiset(old_m+old_l) == multiset(m+l);
-			assert multiset(l+r+m) == old_a;
-
+			assert old_l == n + l;
+			//Implementation
 			a[k] := left[i];
 			i := i + 1;
 		// Else if left is emtpy, add from right
 		} else {
-			ghost var old_r, old_m, n := r, m, r[0];
-			m := m + [r[0]];
+			// Ghost
+			ghost var old_r := r;
+			ghost var n := [r[0]];
+			m := m + n;
 			r := r[1..];
-			assert old_m+[n] == m;
-			assert [n]+r == old_r;
-			assert multiset(old_m+old_r) == multiset(m+r);
-			assert multiset(l+r+m) == old_a;
+			assert old_r == n + r;
+			// Implementation
 			a[k] := right[j];
 			j := j + 1;
 		}
 		k := k + 1;
 	}
+	assert k == high;
 }
 
-// Only used for ghost sequences, removes first element is seq
-function PopSeq(s:seq<int>) : seq<int>
-requires |s| > 0
+//Sorts given array within indices low to high
+//Open at low, closed at high
+// Takes 12 min rip in dafny 1.9.7
+method MergeSortArray(a:array<int>, low:nat, high:nat)
+decreases a, high - low
+modifies a
+requires a != null
+requires a.Length >= 0
+requires low<=high<=a.Length
+ensures multiset(old(a[low..high])) == multiset(a[low..high])
+ensures a[..low] == old(a[..low]) && a[high..] == old(a[high..])
+ensures multiset(a[..]) == multiset(old(a[..]))
+ensures InOrder(a[low..high])
 {
-	if (|s| > 1) then s[1..]
-	else []
+	var mid:nat := low + (high-low)/2;	// finding midpoint in subsection of array
+	// If array is more than one value, sort
+	if (a.Length > 1 && low < mid)
+	{
+		MergeSortArray(a, low, mid);	// Recursively sort left array
+		assert old(a[mid..high]) == a[mid..high];
+		assert multiset(a[low..mid]) == multiset(old(a[low..mid]));
+		assert multiset(old(a[..])) == multiset(a[..]);
+
+		MergeSortArray(a, mid, high);	// Recursively sort right array
+		assert old(a[low..mid]+a[mid..high] == a[low..high]);
+		assert a[low..mid]+a[mid..high] == a[low..high];	// Remind dafny something super obvious
+		assert multiset(old(a[..])) == multiset(a[..]);
+
+		MergeSubarrays(a, low, mid, high);	// Merging left and right
+
+		assert a[..low]+a[low..high]+a[high..] == a[..];
+		assert old(a[..low]+a[low..high]+a[high..]) == old(a[..]);
+		// assert multiset(a[..]) == multiset(old(a[..]));
+	} // Else no need to sort array
+}
+
+// Commented out so that verification will take less than 2 min
+method Main(){
+	var d := new int[5];
+	d[0], d[1], d[2], d[3], d[4] := 9, 4, 6, 3, 8;
+	assert d[0]==9 && d[1]==4 && d[2]==6 && d[3]==3 && d[4]==8;
+	MergeSortArray(d, 0, 5);
+	assert InOrder(d[0..5]);
+
+	var e := new int[0];
+	MergeSortArray(e, 0, 0);
+	assert InOrder(e[..]);
+
+	var f := new int[5];
+	f[0], f[1], f[2], f[3], f[4] := 1, 2, 3, 4, 5;
+	MergeSortArray(f, 0, f.Length);
+	assert InOrder(f[..]);
 }
