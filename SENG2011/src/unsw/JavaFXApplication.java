@@ -577,6 +577,7 @@ public class JavaFXApplication extends Application {
             public void handle(ActionEvent e) {
             	em.getMainSystem().cleanUp();
             	//JOptionPane.showMessageDialog(null, "successfully removed all bad blood packets");
+            	System.out.println("successfully removed all bad blood packets");
             }
         });
         
