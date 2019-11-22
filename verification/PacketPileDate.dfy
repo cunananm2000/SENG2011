@@ -130,7 +130,195 @@ class PacketPile
         buf[index] := el;
     }
 
-    
+// Excluding String dest since we aren't dealing with actual bloodpacket objects
+    method doRequest(nPackets: int, useBy: int) returns (result: array<int>)
+    modifies this.buf, this`count;
+    requires Valid();
+    requires nPackets > 0;
+    ensures Valid();
+    ensures result != null;
+    ensures forall i :: 0 <= i < result.Length ==> result[i] >= useBy;
+    ensures 0 <= result.Length <= old(count);
+    ensures CountGEend(old(buf)[..old(count)],useBy) < nPackets ==> result.Length == 0; // If not enough, return nothinf
+    ensures CountGEend(old(buf)[..old(count)],useBy) >= nPackets ==> count == old(count) - nPackets;
+    ensures CountGEend(old(buf)[..old(count)],useBy) >= nPackets ==> result.Length == nPackets; // If enough, then returns some amount
+    // ensures CountGEend(buf[..],useBy) >= nPackets ==> result[0]// If enough, return the oldest possible
+    // Oldest <==> Just before result it too early // what if result[0]
+        // Everything before is too early
+        // THere exists an index such hat everything befor eis tpoo early
+    // ensures CountGEend(old(buf)[..old(count)]),useBy) >= nPackets ==> 
+    //     exists lo :: 0 <= lo <= i+nPackets <= old(count) && (
+    //         (forall j :: 0 <= j < lo ==> buf[j] == old(buf[j]) < useBy) &&
+    //         (forall j :: 0 <= j < nPackets ==> result[j] == old(buf[j+lo]))
+    //     );
+    {
+        result := new int[nPackets];
+        var lo := 0;
+        while (lo < count && buf[lo] < useBy)
+        decreases count - lo;
+        invariant old(buf) == buf;
+        invariant forall i :: 0 <= i < count ==> buf[i] == old(buf[i]);
+        invariant old(count) == count;
+        invariant 0 <= lo <= count;
+        invariant forall j :: 0 <= j < lo ==> buf[j] == old(buf[j]);
+        invariant forall j :: 0 <= j < lo ==> buf[j] < useBy;
+        invariant Valid();
+        invariant Sorted(buf,0,count);
+        invariant CountGEend(buf[..lo],useBy) == 0;
+        invariant count <= buf.Length;
+        {
+            // assert CountGEend(buf[..i],useBy) == 0;
+            // assert buf[i] < useBy;
+            // assert count > 0;
+            // assert CountGEend(buf[..i+1],useBy) == if |buf[..i+1]| == 0 then 0 else
+            //                                 (if buf[..i+1][|buf[..i+1]|-1] >= useBy then 1 else 0) + CountGEend(buf[..i+1][..|buf[..i+1]|-1], useBy);
+
+            // assert |buf[..i+1]| == i+1 != 0;
+            // assert CountGEend(buf[..i+1],useBy) == (if buf[..i+1][|buf[..i+1]|-1] >= useBy then 1 else 0) + CountGEend(buf[..i+1][..|buf[..i+1]|-1], useBy);
+            // assert |buf[..i+1]|-1 == i;
+            // assert buf[..i+1][|buf[..i+1]|-1] == buf[i] < useBy;
+            // assert (if buf[..i+1][|buf[..i+1]|-1] >= useBy then 1 else 0) == 0;
+
+            // assert CountGEend(buf[..i+1],useBy) == 0 + CountGEend(buf[..i+1][..i], useBy);
+            assert buf[..lo+1][..lo] == buf[..lo];
+            // assert CountGEend(buf[..i+1],useBy) == 0 + CountGEend(buf[..i], useBy);
+            // assert CountGEend(buf[..i+1],useBy) == CountGEend(buf[..i],useBy);
+            lo := lo + 1;
+        }
+        assert CountGEend(buf[..lo],useBy) == 0;
+        assert forall j :: 0 <= j < lo ==> buf[j] == old(buf[j]);
+        assert forall j :: 0 <= j < lo ==> buf[j] < useBy;
+
+        // if (count - i < nPackets)
+        if (lo == count) {
+            assert CountGEend(buf[..count],useBy) == 0 < nPackets;
+            result := new int [0];
+        } else {
+            assert (lo < count);
+            assert (buf[lo] >= useBy);
+            assert (useBy <= buf[lo]);
+            assert Sorted(buf,0,count);
+            assert forall j :: lo <= j < count ==> buf[j] >= useBy;
+            assert CountGEend(buf[..lo],useBy) == 0;
+            var found := 0;
+
+            while (lo + found < count && found < nPackets)
+            decreases count - (lo + found);
+            invariant Valid();
+            invariant useBy <= buf[lo];
+            invariant old(buf) == buf;
+            invariant forall i :: 0 <= i < count ==> buf[i] == old(buf[i]);
+            invariant old(count) == count;
+            invariant 0 <= lo <= count;
+            invariant lo <= lo + found <= count <= buf.Length;
+            invariant 0 <= found <= nPackets;
+
+            invariant forall j :: 0 <= j < lo ==> buf[j] == old(buf[j]);
+            invariant forall j :: 0 <= j < lo ==> buf[j] < useBy;
+            
+            invariant Sorted(buf,0,count);
+            invariant allGEend(buf,lo,lo+found,useBy);
+
+
+            // Now you've found how many that are possible
+            if (found >= nPackets) {
+                
+                // Good
+                // We formalise this as 'good', that there are enough packets
+                assert 0 <= count <= buf.Length;
+
+                assert allGEend(buf,lo,lo+found,useBy);
+
+                assert buf[..lo+found] == buf[..lo] + buf[lo..lo+found]; 
+                assert CountGEend(buf[lo..lo+found],useBy) == nPackets;
+                assert CountGEend(buf[..lo],useBy) == 0;
+                distCountGEend(buf[..lo],buf[lo..lo+found],useBy);
+                assert CountGEend(buf[..lo+found],useBy) == nPackets;
+
+                assert buf[..count] == buf[..lo+found] + buf[lo+found..count];
+                assert CountGEend(buf[lo+found..count],useBy) >= 0;
+                distCountGEend(buf[..lo+found],buf[lo+found..count],useBy);
+                assert CountGEend(buf[..count],useBy) >= nPackets;
+
+                result := new int[nPackets];
+                assert old(buf) == buf;
+                assert allGEend(buf,lo,lo+found,useBy);
+                assert CountGEend(buf[..count],useBy) >= nPackets;
+
+                assert !(CountGEend(old(buf)[..old(count)],useBy) < nPackets);
+
+                var i := 0;
+                while (i < nPackets)
+                decreases nPackets - i;
+                invariant Valid();
+                invariant buf == old(buf);
+                invariant forall i :: 0 <= i < count ==> buf[i] == old(buf[i]);
+                invariant useBy <= buf[lo];
+                invariant allGEend(buf,lo,lo+found,useBy);
+                invariant 0 <= count <= buf.Length && CountGEend(buf[..count],useBy) >= nPackets;
+                invariant 0 <= i <= nPackets;
+                invariant lo <= lo + i <= lo + nPackets <= count;
+                invariant Sorted(buf,0,count);
+                invariant forall j :: 0 <= j < lo ==> buf[j] == old(buf[j]);
+                invariant forall j :: 0 <= j < lo ==> buf[j] < useBy;
+                invariant forall j :: 0 <= j < i ==> result[j] >= useBy;
+                invariant forall j :: 0 <= j < i ==> result[j] == buf[lo+j];
+                invariant count == old(count);
+                {
+                    assert useBy <= buf[lo] <= buf[lo+i];
+                    assert forall j :: 0 <= j < i ==> result[j] == buf[lo+j];
+                    result[i] := buf[lo+i];
+                    assert forall j :: 0 <= j <= i ==> result[j] == buf[lo+j];
+                    i := i + 1;
+                }
+                assert CountGEend(buf[..count],useBy) >= nPackets ==> result.Length == nPackets;
+                assert count <= buf.Length;
+
+                assert 0 <= lo <= old(count);
+                assert forall j :: 0 <= j < lo ==> buf[j] < useBy;
+                assert forall j :: 0 <= j < lo ==> buf[j] == old(buf[j]);
+                assert forall j :: 0 <= j < nPackets ==> result[j] == old(buf[lo+j]);
+
+                assert lo + nPackets <= old(count);
+
+                // Now that you have the correct ones we assert that this came from a continuous subset:
+                
+
+                assert lo + nPackets <= old(count);
+                assert 0 <= lo <= old(count);
+                assert forall j :: 0 <= j < nPackets ==> result[j] == old(buf[lo+j]);
+                assert forall j :: 0 <= j < lo ==> buf[j] == old(buf[j]);
+                assert forall j :: 0 <= j < lo ==> buf[j] < useBy;
+
+                i := 0;
+                while (i < nPackets)
+                invariant Valid();
+                invariant count == old(count) - i;
+                invariant 0 <= lo <= old(count) - nPackets <= count;
+                invariant buf.Length != 0;
+                invariant forall j :: 0 <= j < nPackets ==> result[j] == old(buf[lo+j]);
+                invariant forall j :: 0 <= j < lo ==> buf[j] == old(buf[j]);
+                invariant forall j :: 0 <= j < lo ==> buf[j] < useBy;
+                {
+                    var p := popAtIndex(lo);
+                    i := i + 1;
+                }
+                assert CountGEend(buf[..old(count)],useBy) >= nPackets ==> count == old(count) - nPackets;
+                assert CountGEend(buf[..old(count)],useBy) >= nPackets ==> (forall j :: 0 <= j < nPackets ==> result[j] == old(buf[lo+j]));
+                assert CountGEend(buf[..old(count)],useBy) >= nPackets ==> (forall j :: 0 <= j < lo ==> buf[j] == old(buf[j]));
+                assert CountGEend(buf[..old(count)],useBy) >= nPackets ==> (forall j :: 0 <= j < lo ==> buf[j] < useBy);
+            } else {
+                assert found < nPackets;
+                assert lo + found == count;
+                assert buf[..count] == buf[..lo] + buf[lo..count];
+                assert CountGEend(buf[lo..count],useBy) == found;
+                assert CountGEend(buf[..lo],useBy) == 0;
+                distCountGEend(buf[..lo],buf[lo..count],useBy);
+                assert CountGEend(buf[..count],useBy) == found < nPackets;
+                result := new int[0];
+            }
+        }
+    }
 
         // Normally, objects wont have identical copies, unlike int
         // Ignore return since int can't be null, or otherwise is just el
@@ -220,196 +408,7 @@ class PacketPile
             buf := newBuf;
         }
 
-
-        // Excluding String dest since we aren't dealing with actual bloodpacket objects
-        method doRequest(nPackets: int, useBy: int) returns (result: array<int>)
-        modifies this.buf, this`count;
-        requires Valid();
-        requires nPackets > 0;
-        ensures Valid();
-        ensures result != null;
-        ensures forall i :: 0 <= i < result.Length ==> result[i] >= useBy;
-        ensures 0 <= result.Length <= old(count);
-        ensures countGEend(old(buf)[..old(count)],useBy) < nPackets ==> result.Length == 0; // If not enough, return nothinf
-        ensures countGEend(old(buf)[..old(count)],useBy) >= nPackets ==> count == old(count) - nPackets;
-        ensures countGEend(old(buf)[..old(count)],useBy) >= nPackets ==> result.Length == nPackets; // If enough, then returns some amount
-        // ensures countGEend(buf[..],useBy) >= nPackets ==> result[0]// If enough, return the oldest possible
-        // Oldest <==> Just before result it too early // what if result[0]
-            // Everything before is too early
-            // THere exists an index such hat everything befor eis tpoo early
-        // ensures countGEend(old(buf)[..old(count)]),useBy) >= nPackets ==> 
-        //     exists lo :: 0 <= lo <= i+nPackets <= old(count) && (
-        //         (forall j :: 0 <= j < lo ==> buf[j] == old(buf[j]) < useBy) &&
-        //         (forall j :: 0 <= j < nPackets ==> result[j] == old(buf[j+lo]))
-        //     );
-        {
-        result := new int[nPackets];
-        var lo := 0;
-        while (lo < count && buf[lo] < useBy)
-        decreases count - lo;
-        invariant old(buf) == buf;
-        invariant forall i :: 0 <= i < count ==> buf[i] == old(buf[i]);
-        invariant old(count) == count;
-        invariant 0 <= lo <= count;
-        invariant forall j :: 0 <= j < lo ==> buf[j] == old(buf[j]);
-        invariant forall j :: 0 <= j < lo ==> buf[j] < useBy;
-        invariant Valid();
-        invariant Sorted(buf,0,count);
-        invariant countGEend(buf[..lo],useBy) == 0;
-        invariant count <= buf.Length;
-        {
-            assert countGEend(buf[..lo],useBy) == 0;
-            assert buf[lo] < useBy;
-            assert count > 0;
-            assert countGEend(buf[..lo+1],useBy) == if |buf[..lo+1]| == 0 then 0 else
-                                            (if buf[..lo+1][|buf[..lo+1]|-1] >= useBy then 1 else 0) + countGEend(buf[..lo+1][..|buf[..lo+1]|-1], useBy);
-
-            assert |buf[..lo+1]| == lo+1 != 0;
-            assert countGEend(buf[..lo+1],useBy) == (if buf[..lo+1][|buf[..lo+1]|-1] >= useBy then 1                               else 0) + countGEend(buf[..lo+1][..|buf[..lo+1]|-1], useBy);
-            assert |buf[..lo+1]|-1 == lo;
-            assert buf[..lo+1][|buf[..lo+1]|-1] == buf[lo] < useBy;
-            assert (if buf[..lo+1][|buf[..lo+1]|-1] >= useBy then 1 else 0) == 0;
-
-            assert countGEend(buf[..lo+1],useBy) == 0 + countGEend(buf[..lo+1][..lo], useBy);
-            assert buf[..lo+1][..lo] == buf[..lo];
-            assert countGEend(buf[..lo+1],useBy) == 0 + countGEend(buf[..lo], useBy);
-            assert countGEend(buf[..lo+1],useBy) == countGEend(buf[..lo],useBy);
-            lo := lo + 1;
-        }
-        assert countGEend(buf[..lo],useBy) == 0;
-        assert forall j :: 0 <= j < lo ==> buf[j] == old(buf[j]);
-        assert forall j :: 0 <= j < lo ==> buf[j] < useBy;
-
-        // if (count - i < nPackets)
-        if (lo == count) {
-            assert countGEend(buf[..count],useBy) == 0 < nPackets;
-            result := new int [0];
-        } else {
-            assert (lo < count);
-            assert (buf[lo] >= useBy);
-            assert (useBy <= buf[lo]);
-            assert Sorted(buf,0,count);
-            assert forall j :: lo <= j < count ==> buf[j] >= useBy;
-            assert countGEend(buf[..lo],useBy) == 0;
-            var found := 0;
-
-            while (lo + found < count && found < nPackets)
-            decreases count - (lo + found);
-            invariant Valid();
-            invariant useBy <= buf[lo];
-            invariant old(buf) == buf;
-            invariant forall i :: 0 <= i < count ==> buf[i] == old(buf[i]);
-            invariant old(count) == count;
-            invariant 0 <= lo <= count;
-            invariant lo <= lo + found <= count <= buf.Length;
-            invariant 0 <= found <= nPackets;
-
-            invariant forall j :: 0 <= j < lo ==> buf[j] == old(buf[j]);
-            invariant forall j :: 0 <= j < lo ==> buf[j] < useBy;
-            
-            invariant Sorted(buf,0,count);
-            invariant allGE(buf,lo,lo+found,useBy);
-
-
-            // Now you've found how many that are possible
-            if (found >= nPackets) {
-                
-                // Good
-                // We formalise this as 'good', that there are enough packets
-                assert 0 <= count <= buf.Length;
-
-                assert allGE(buf,lo,lo+found,useBy);
-
-                assert buf[..lo+found] == buf[..lo] + buf[lo..lo+found]; 
-                assert countGEend(buf[lo..lo+found],useBy) == nPackets;
-                assert countGEend(buf[..lo],useBy) == 0;
-                distcountGEend(buf[..lo],buf[lo..lo+found],useBy);
-                assert countGEend(buf[..lo+found],useBy) == nPackets;
-
-                assert buf[..count] == buf[..lo+found] + buf[lo+found..count];
-                assert countGEend(buf[lo+found..count],useBy) >= 0;
-                distcountGEend(buf[..lo+found],buf[lo+found..count],useBy);
-                assert countGEend(buf[..count],useBy) >= nPackets;
-
-                result := new int[nPackets];
-                assert old(buf) == buf;
-                assert allGE(buf,lo,lo+found,useBy);
-                assert countGEend(buf[..count],useBy) >= nPackets;
-
-                assert !(countGEend(old(buf)[..old(count)],useBy) < nPackets);
-
-                var i := 0;
-                while (i < nPackets)
-                decreases nPackets - i;
-                invariant Valid();
-                invariant buf == old(buf);
-                invariant forall i :: 0 <= i < count ==> buf[i] == old(buf[i]);
-                invariant useBy <= buf[lo];
-                invariant allGE(buf,lo,lo+found,useBy);
-                invariant 0 <= count <= buf.Length && countGEend(buf[..count],useBy) >= nPackets;
-                invariant 0 <= i <= nPackets;
-                invariant lo <= lo + i <= lo + nPackets <= count;
-                invariant Sorted(buf,0,count);
-                invariant forall j :: 0 <= j < lo ==> buf[j] == old(buf[j]);
-                invariant forall j :: 0 <= j < lo ==> buf[j] < useBy;
-                invariant forall j :: 0 <= j < i ==> result[j] >= useBy;
-                invariant forall j :: 0 <= j < i ==> result[j] == buf[lo+j];
-                invariant count == old(count);
-                {
-                    assert useBy <= buf[lo] <= buf[lo+i];
-                    assert forall j :: 0 <= j < i ==> result[j] == buf[lo+j];
-                    result[i] := buf[lo+i];
-                    assert forall j :: 0 <= j <= i ==> result[j] == buf[lo+j];
-                    i := i + 1;
-                }
-                assert countGEend(buf[..count],useBy) >= nPackets ==> result.Length == nPackets;
-                assert count <= buf.Length;
-
-                assert 0 <= lo <= old(count);
-                assert forall j :: 0 <= j < lo ==> buf[j] < useBy;
-                assert forall j :: 0 <= j < lo ==> buf[j] == old(buf[j]);
-                assert forall j :: 0 <= j < nPackets ==> result[j] == old(buf[lo+j]);
-
-                assert lo + nPackets <= old(count);
-
-                // Now that you have the correct ones we assert that this came from a continuous subset:
-                    
-
-                assert lo + nPackets <= old(count);
-                assert 0 <= lo <= old(count);
-                assert forall j :: 0 <= j < nPackets ==> result[j] == old(buf[lo+j]);
-                assert forall j :: 0 <= j < lo ==> buf[j] == old(buf[j]);
-                assert forall j :: 0 <= j < lo ==> buf[j] < useBy;
-
-                i := 0;
-                while (i < nPackets)
-                invariant Valid();
-                invariant count == old(count) - i;
-                invariant 0 <= lo <= old(count) - nPackets <= count;
-                invariant buf.Length != 0;
-                invariant forall j :: 0 <= j < nPackets ==> result[j] == old(buf[lo+j]);
-                invariant forall j :: 0 <= j < lo ==> buf[j] == old(buf[j]);
-                invariant forall j :: 0 <= j < lo ==> buf[j] < useBy;
-                {
-                    var p := popAtIndex(lo);
-                    i := i + 1;
-                }
-                assert countGEend(buf[..old(count)],useBy) >= nPackets ==> count == old(count) - nPackets;
-                assert countGEend(buf[..old(count)],useBy) >= nPackets ==> (forall j :: 0 <= j < nPackets ==> result[j] == old(buf[lo+j]));
-                assert countGEend(buf[..old(count)],useBy) >= nPackets ==> (forall j :: 0 <= j < lo ==> buf[j] == old(buf[j]));
-                assert countGEend(buf[..old(count)],useBy) >= nPackets ==> (forall j :: 0 <= j < lo ==> buf[j] < useBy);
-            } else {
-                assert found < nPackets;
-                assert lo + found == count;
-                assert buf[..count] == buf[..lo] + buf[lo..count];
-                assert countGEend(buf[lo..count],useBy) == found;
-                assert countGEend(buf[..lo],useBy) == 0;
-                distcountGEend(buf[..lo],buf[lo..count],useBy);
-                assert countGEend(buf[..count],useBy) == found < nPackets;
-                result := new int[0];
-            }
-        }
-    }
+    
 
     method isLow() returns (b: bool)
         requires Valid(); ensures Valid()
@@ -661,31 +660,32 @@ ensures CountGE(a + b, key) == CountGE(a, key) + CountGE(b, key);
     }
 }
 
+
 // Counts greater than or equal to key 
-function countGEend(a: seq<int>, key: int): nat 
+function CountGEend(a: seq<int>, key: int): nat 
 decreases |a|;
-ensures 0 <= countGEend(a, key) <= |a|;
+ensures 0 <= CountGEend(a, key) <= |a|;
 {
     if |a| == 0 then 0 else
-    (if a[|a|-1] >= key then 1 else 0) + countGEend(a[..|a|-1], key)
+    (if a[|a|-1] >= key then 1 else 0) + CountGEend(a[..|a|-1], key)
 }
 
-lemma distcountGEend(a: seq<int>, b: seq<int>, key: int)
+lemma distCountGEend(a: seq<int>, b: seq<int>, key: int)
 decreases |b|;
-ensures countGEend(a,key) + countGEend(b,key) == countGEend(a+b,key);
+ensures CountGEend(a,key) + CountGEend(b,key) == CountGEend(a+b,key);
 {
     if (|b| == 0) {
         assert a + b == a;
     } else {
-        distcountGEend(a,b[0..|b|-1],key);
-        // assert countGEend(a,key) + countGEend(b[..|b|-1],key) == countGEend(a+b[..|b|-1],key);
+        distCountGEend(a,b[0..|b|-1],key);
+        // assert CountGEend(a,key) + CountGEend(b[..|b|-1],key) == CountGEend(a+b[..|b|-1],key);
         // assert b[..|b|-1] + [b[|b|-1]] == b;
-        // assert countGEend(b,key) == countGEend(b[..|b|-1],key) + (if b[|b|-1] >= key then 1 else 0);
+        // assert CountGEend(b,key) == CountGEend(b[..|b|-1],key) + (if b[|b|-1] >= key then 1 else 0);
         assert a + b[..|b|-1] + [b[|b|-1]] == a + b;
     }
 }
 
-lemma inclusiveGE(a: array<int>, lo: int, hi: int, key: int)
+lemma inclusiveGEend(a: array<int>, lo: int, hi: int, key: int)
 requires a != null;
 requires 0 <= lo <= hi < a.Length;
 requires forall i:: lo <= i < hi ==> a[i] >= key;
@@ -695,7 +695,7 @@ ensures forall i:: lo <= i <= hi ==> a[i] >= key;
 
 }
 
-predicate allGE(a: array<int>, lo: int, hi: int, key: int)
+predicate allGEend(a: array<int>, lo: int, hi: int, key: int)
 requires a != null;
 reads a;
 requires 0 <= lo <= hi <= a.Length;
